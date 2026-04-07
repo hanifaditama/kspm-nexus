@@ -38,7 +38,7 @@ const Recruitment = () => (
           Now Accepting Applications
         </p>
         <h1 className="text-3xl font-semibold tracking-tight md:text-5xl">
-          Open Recruitment 2026
+          Open Recruitment CMP Division 2026
         </h1>
         <p className="mt-4 max-w-xl text-lg leading-relaxed text-primary-foreground/70">
           Join KSPM and kickstart your journey in capital markets. We're looking for passionate, curious students ready to learn and grow.
