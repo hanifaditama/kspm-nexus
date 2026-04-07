@@ -38,14 +38,14 @@ const Recruitment = () => (
           Now Accepting Applications
         </p>
         <h1 className="text-3xl font-semibold tracking-tight md:text-5xl">
-          Open Recruitment 2024
+          Open Recruitment 2026
         </h1>
         <p className="mt-4 max-w-xl text-lg leading-relaxed text-primary-foreground/70">
           Join KSPM and kickstart your journey in capital markets. We're looking for passionate, curious students ready to learn and grow.
         </p>
         <div className="mt-8 flex items-center gap-3 text-sm text-primary-foreground/60">
           <CalendarDays className="h-4 w-4" />
-          <span>Application Deadline: May 30, 2024</span>
+          <span>Application Deadline: April 12, 2026</span>
         </div>
       </div>
     </section>
