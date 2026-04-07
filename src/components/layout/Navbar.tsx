@@ -12,6 +12,9 @@ const navLinks = [
   { label: "Contact", path: "/contact" },
 ];
 
+// Toggle this to control recruitment status site-wide
+const isRecruitmentOpen = true;
+
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
@@ -40,13 +43,34 @@ const Navbar = () => {
           ))}
         </nav>
 
-        <button
-          onClick={() => setOpen(!open)}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-md text-foreground md:hidden"
-          aria-label="Toggle menu"
-        >
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+        <div className="flex items-center gap-3">
+          {/* Recruitment Status */}
+          {isRecruitmentOpen ? (
+            <Link
+              to="/recruitment"
+              className="hidden items-center gap-2 rounded-full bg-accent/10 px-3.5 py-1.5 text-xs font-semibold text-accent transition-colors hover:bg-accent/20 sm:inline-flex"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
+              </span>
+              Open Recruitment
+            </Link>
+          ) : (
+            <span className="hidden items-center gap-2 rounded-full bg-muted px-3.5 py-1.5 text-xs font-medium text-muted-foreground sm:inline-flex">
+              <span className="h-2 w-2 rounded-full bg-muted-foreground/40" />
+              Closed
+            </span>
+          )}
+
+          <button
+            onClick={() => setOpen(!open)}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md text-foreground md:hidden"
+            aria-label="Toggle menu"
+          >
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
 
       {open && (
@@ -64,6 +88,19 @@ const Navbar = () => {
                 {link.label}
               </Link>
             ))}
+            {isRecruitmentOpen && (
+              <Link
+                to="/recruitment"
+                onClick={() => setOpen(false)}
+                className="mt-2 flex items-center gap-2 rounded-md bg-accent/10 px-3 py-2 text-sm font-semibold text-accent"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
+                </span>
+                Open Recruitment
+              </Link>
+            )}
           </nav>
         </div>
       )}
