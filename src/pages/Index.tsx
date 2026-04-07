@@ -5,7 +5,40 @@ import ArticleCard from "@/components/cards/ArticleCard";
 import EventCard from "@/components/cards/EventCard";
 import ProgramCard from "@/components/cards/ProgramCard";
 import { articles, events, programs } from "@/data/mock";
-import { ArrowRight, BarChart3, Users, Award } from "lucide-react";
+import { ArrowRight, TrendingUp, Users, Lightbulb, BriefcaseBusiness, GraduationCap, Network } from "lucide-react";
+
+const benefits = [
+  {
+    icon: TrendingUp,
+    title: "Practical Investment Skills",
+    description: "Gain hands-on experience with real market analysis and simulated trading platforms.",
+  },
+  {
+    icon: Network,
+    title: "Professional Network",
+    description: "Connect with industry professionals, alumni, and like-minded peers in finance.",
+  },
+  {
+    icon: GraduationCap,
+    title: "Academic Excellence",
+    description: "Strengthen your understanding of financial theory through research and publication.",
+  },
+  {
+    icon: BriefcaseBusiness,
+    title: "Career Readiness",
+    description: "Build a competitive edge for careers in banking, asset management, and securities.",
+  },
+  {
+    icon: Lightbulb,
+    title: "Financial Literacy",
+    description: "Develop strong personal finance habits and investment decision-making skills.",
+  },
+  {
+    icon: Users,
+    title: "Leadership Development",
+    description: "Grow your leadership and organizational skills through event and project management.",
+  },
+];
 
 const Index = () => (
   <>
@@ -44,26 +77,29 @@ const Index = () => (
       </div>
     </section>
 
-    {/* Stats */}
-    <section className="border-b border-border bg-background py-12">
-      <div className="container grid grid-cols-2 gap-8 md:grid-cols-4">
-        {[
-          { icon: Users, label: "Active Members", value: "150+" },
-          { icon: BarChart3, label: "Programs", value: "4" },
-          { icon: Award, label: "Years Active", value: "12" },
-          { icon: Users, label: "Alumni Network", value: "500+" },
-        ].map((stat) => (
-          <div key={stat.label} className="text-center">
-            <stat.icon className="mx-auto mb-2 h-5 w-5 text-accent" />
-            <p className="text-2xl font-semibold text-foreground">{stat.value}</p>
-            <p className="text-sm text-muted-foreground">{stat.label}</p>
+    {/* Key Benefits */}
+    <Section>
+      <SectionHeader
+        label="Why Join Us"
+        title="Key Benefits"
+        description="Discover what makes KSPM the premier capital market study group for aspiring finance professionals."
+      />
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {benefits.map((benefit) => (
+          <div
+            key={benefit.title}
+            className="group rounded-lg border border-border bg-card p-6 transition-colors hover:border-accent/40 hover:bg-muted/50"
+          >
+            <benefit.icon className="mb-4 h-6 w-6 text-accent" />
+            <h3 className="mb-2 text-base font-semibold text-foreground">{benefit.title}</h3>
+            <p className="text-sm leading-relaxed text-muted-foreground">{benefit.description}</p>
           </div>
         ))}
       </div>
-    </section>
+    </Section>
 
     {/* About Preview */}
-    <Section>
+    <Section variant="muted">
       <div className="grid items-center gap-12 md:grid-cols-2">
         <div>
           <SectionHeader
@@ -80,7 +116,7 @@ const Index = () => (
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
-        <div className="rounded-lg bg-muted p-12 text-center">
+        <div className="rounded-lg bg-background p-12 text-center">
           <p className="font-heading text-5xl font-semibold text-foreground">KSPM</p>
           <p className="mt-2 text-sm text-muted-foreground">Est. 2012</p>
         </div>
@@ -88,7 +124,7 @@ const Index = () => (
     </Section>
 
     {/* Programs */}
-    <Section variant="muted">
+    <Section>
       <SectionHeader
         label="Programs"
         title="What We Offer"
@@ -102,7 +138,7 @@ const Index = () => (
     </Section>
 
     {/* Articles */}
-    <Section>
+    <Section variant="muted">
       <div className="mb-12 flex items-end justify-between">
         <SectionHeader label="Articles" title="Latest Insights" className="mb-0" align="left" />
         <Link
@@ -120,7 +156,7 @@ const Index = () => (
     </Section>
 
     {/* Events */}
-    <Section variant="muted">
+    <Section>
       <div className="mb-12 flex items-end justify-between">
         <SectionHeader label="Events" title="Upcoming Events" className="mb-0" align="left" />
         <Link
