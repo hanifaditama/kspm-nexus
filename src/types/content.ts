@@ -10,6 +10,7 @@ export interface Article {
     image?: string;
   };
   mainImage?: string;
+  content?: string;
 }
 
 export interface Event {
