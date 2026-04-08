@@ -51,7 +51,7 @@ const Articles = () => {
 
       {/* Market ticker bar */}
       <div className="border-b border-border bg-primary">
-        <div className="container flex items-center gap-2 overflow-x-auto py-2 scrollbar-hide">
+        <div className="container flex flex-wrap items-center gap-2 py-2">
           <div className="flex shrink-0 items-center gap-1.5 pr-3 text-sm font-medium text-primary-foreground">
             Top Securities
             <ChevronDown className="h-3.5 w-3.5" />
@@ -69,6 +69,9 @@ const Articles = () => {
               </span>
             </div>
           ))}
+        </div>
+        <div className="container pb-2">
+          <span className="text-[0.65rem] italic text-primary-foreground/50">Updated after market close</span>
         </div>
       </div>
 
