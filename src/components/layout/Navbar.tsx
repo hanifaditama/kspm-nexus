@@ -65,6 +65,25 @@ const Navbar = () => {
             </span>
           )}
 
+          {/* Member Login/Dashboard */}
+          {user ? (
+            <Link
+              to="/member"
+              className="hidden items-center gap-2 rounded-md bg-muted px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/80 sm:inline-flex"
+            >
+              <User className="h-3.5 w-3.5" />
+              Dashboard
+            </Link>
+          ) : (
+            <Link
+              to="/login"
+              className="hidden items-center gap-2 rounded-md bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/80 sm:inline-flex"
+            >
+              <LogIn className="h-3.5 w-3.5" />
+              Member
+            </Link>
+          )}
+
           <button
             onClick={() => setOpen(!open)}
             className="inline-flex h-9 w-9 items-center justify-center rounded-md text-foreground md:hidden"
