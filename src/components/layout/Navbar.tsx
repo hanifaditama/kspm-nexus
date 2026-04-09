@@ -122,6 +122,14 @@ const Navbar = () => {
                 Open Recruitment
               </Link>
             )}
+            <Link
+              to={user ? "/member" : "/login"}
+              onClick={() => setOpen(false)}
+              className="mt-2 flex items-center gap-2 rounded-md bg-muted px-3 py-2 text-sm font-medium text-muted-foreground"
+            >
+              {user ? <User className="h-4 w-4" /> : <LogIn className="h-4 w-4" />}
+              {user ? "Dashboard" : "Member Login"}
+            </Link>
           </nav>
         </div>
       )}
