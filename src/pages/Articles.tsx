@@ -1,8 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Section from "@/components/layout/Section";
 import ArticleCard from "@/components/cards/ArticleCard";
-import { articles } from "@/data/mock";
+import { getArticles } from "@/lib/sanity";
 import { ArrowRight, TrendingUp, TrendingDown, ChevronDown } from "lucide-react";
 
 const categories = ["All", "Market Analysis", "Economics", "Sustainable Finance", "Commodities", "Stocks"];
@@ -19,14 +19,29 @@ const marketData = [
 
 const Articles = () => {
   const [activeCategory, setActiveCategory] = useState("All");
+  const [articles, setArticles] = useState<any[]>([]);
 
+  // 🔥 Fetch from Sanity
+  useEffect(() => {
+    getArticles().then(setArticles);
+  }, []);
+
+  // 🔥 Filter logic stays the same
   const filtered = useMemo(
-    () => (activeCategory === "All" ? articles : articles.filter((a) => a.category === activeCategory)),
-    [activeCategory]
+    () =>
+      activeCategory === "All"
+        ? articles
+        : articles.filter((a) => a.category === activeCategory),
+    [activeCategory, articles]
   );
 
-  // Featured article (latest)
-  const featured = articles[0];
+  // 🔥 Featured article
+  const featured = articles?.[0];
+
+  // 🔥 Loading state
+  if (!articles.length) {
+    return <div className="p-10">Loading articles...</div>;
+  }
 
   return (
     <>
@@ -63,24 +78,36 @@ const Articles = () => {
             >
               <span className="text-xs font-semibold text-primary-foreground">{item.name}</span>
               <span className="text-xs text-primary-foreground/80">{item.value}</span>
-              <span className={`flex items-center gap-0.5 text-xs font-medium ${item.up ? "text-green-400" : "text-red-400"}`}>
-                {item.up ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+              <span
+                className={`flex items-center gap-0.5 text-xs font-medium ${
+                  item.up ? "text-green-400" : "text-red-400"
+                }`}
+              >
+                {item.up ? (
+                  <TrendingUp className="h-3 w-3" />
+                ) : (
+                  <TrendingDown className="h-3 w-3" />
+                )}
                 {item.change}
               </span>
             </div>
           ))}
         </div>
         <div className="container pb-2">
-          <span className="text-[0.65rem] italic text-primary-foreground/50">Updated after market close</span>
+          <span className="text-[0.65rem] italic text-primary-foreground/50">
+            Updated after market close
+          </span>
         </div>
       </div>
 
       {/* Featured article */}
-      {activeCategory === "All" && (
+      {activeCategory === "All" && featured && (
         <div className="border-b border-border">
           <div className="container py-10 md:py-14">
             <Link to={`/articles/${featured.slug}`} className="group block">
-              <span className="text-xs font-semibold uppercase tracking-widest text-accent">{featured.category}</span>
+              <span className="text-xs font-semibold uppercase tracking-widest text-accent">
+                {featured.category}
+              </span>
               <h1 className="mt-2 max-w-3xl font-heading text-2xl font-bold leading-tight text-foreground transition-colors group-hover:text-accent md:text-4xl md:leading-tight">
                 {featured.title}
               </h1>
@@ -88,7 +115,9 @@ const Articles = () => {
                 {featured.excerpt}
               </p>
               <div className="mt-4 flex items-center gap-3 text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">{featured.author.name}</span>
+                <span className="font-medium text-foreground">
+                  {featured.author?.name}
+                </span>
                 <span>·</span>
                 <span>
                   {new Date(featured.publishedAt).toLocaleDateString("en-US", {
@@ -110,8 +139,11 @@ const Articles = () => {
           <h2 className="text-lg font-semibold text-foreground">
             {activeCategory === "All" ? "Latest Articles" : activeCategory}
           </h2>
-          <span className="text-sm text-muted-foreground">{filtered.length} articles</span>
+          <span className="text-sm text-muted-foreground">
+            {filtered.length} articles
+          </span>
         </div>
+
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {(activeCategory === "All" ? filtered.slice(1) : filtered).map((a) => (
             <ArticleCard key={a._id} article={a} />
