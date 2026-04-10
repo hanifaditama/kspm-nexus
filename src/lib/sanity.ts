@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { createClient } from '@sanity/client'
 import imageUrlBuilder from '@sanity/image-url'
 
@@ -95,12 +94,3 @@ export async function getPrograms() {
     }
   `)
 }
-=======
-// Sanity CMS integration - placeholder for future connection
-// Articles are currently served from mock data
-
-export async function getArticles() {
-  // TODO: Connect to Sanity CMS
-  return [];
-}
->>>>>>> 8b1d1bd3c7731acef2931f53abdeb8e59a387cd2
