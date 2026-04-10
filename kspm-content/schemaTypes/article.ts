@@ -5,41 +5,79 @@ export default {
   fields: [
     {
       name: 'title',
+      title: 'Title',
       type: 'string',
       validation: (Rule: any) => Rule.required()
     },
     {
       name: 'slug',
+      title: 'Slug',
       type: 'slug',
-      options: { source: 'title' }
+      options: { source: 'title' },
+      validation: (Rule: any) => Rule.required()
     },
-
-    // 🔥 ADD THIS
     {
       name: 'excerpt',
       title: 'Excerpt',
       type: 'text'
     },
-
-    // 🔥 ADD THIS
     {
       name: 'category',
       title: 'Category',
-      type: 'string'
+      type: 'string',
+      options: {
+        list: [
+          { title: 'Market Analysis', value: 'Market Analysis' },
+          { title: 'Economics', value: 'Economics' },
+          { title: 'Sustainable Finance', value: 'Sustainable Finance' },
+          { title: 'Commodities', value: 'Commodities' },
+          { title: 'Stocks', value: 'Stocks' },
+        ]
+      }
     },
-
+    {
+      name: 'author',
+      title: 'Author',
+      type: 'object',
+      fields: [
+        {
+          name: 'name',
+          title: 'Name',
+          type: 'string',
+          validation: (Rule: any) => Rule.required()
+        },
+        {
+          name: 'image',
+          title: 'Author Photo',
+          type: 'image',
+          options: { hotspot: true }
+        }
+      ]
+    },
     {
       name: 'coverImage',
-      type: 'image'
+      title: 'Cover Image',
+      type: 'image',
+      options: { hotspot: true }
     },
     {
       name: 'content',
+      title: 'Content',
       type: 'array',
       of: [{ type: 'block' }]
     },
     {
       name: 'publishedAt',
-      type: 'datetime'
+      title: 'Published At',
+      type: 'datetime',
+      validation: (Rule: any) => Rule.required()
     }
-  ]
+  ],
+  preview: {
+    select: {
+      title: 'title',
+      subtitle: 'author.name',
+      media: 'coverImage'
+    }
+  }
 }
