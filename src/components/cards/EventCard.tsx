@@ -38,10 +38,18 @@ const EventCard = ({ event }: { event: Event }) => {
             <Calendar className="h-3.5 w-3.5" />
             <span>{new Date(event.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Clock className="h-3.5 w-3.5" />
-            <span>{event.time}</span>
-          </div>
+          {event.time && (
+            <div className="flex items-center gap-2">
+              <Clock className="h-3.5 w-3.5" />
+              <span>{event.time}</span>
+            </div>
+          )}
+          {event.location && (
+            <div className="flex items-center gap-2">
+              <MapPin className="h-3.5 w-3.5" />
+              <span>{event.location}</span>
+            </div>
+          )}
         </div>
       </article>
 

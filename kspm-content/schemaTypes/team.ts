@@ -21,11 +21,10 @@ export default {
       type: 'string',
       options: {
         list: [
-          { title: 'Executive Board', value: 'Executive Board' },
-          { title: 'Education', value: 'Education' },
+          { title: 'Board', value: 'Board' },
           { title: 'Research', value: 'Research' },
-          { title: 'Events', value: 'Events' },
-          { title: 'Public Relations', value: 'Public Relations' },
+          { title: 'Event', value: 'Event' },
+          { title: 'CMP', value: 'CMP' },
         ]
       }
     },
