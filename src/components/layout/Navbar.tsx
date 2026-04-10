@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogIn, User } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navLinks = [
   { label: "Home", path: "/" },
@@ -18,6 +19,7 @@ const isRecruitmentOpen = true;
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
+  const { user } = useAuth();
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
@@ -63,6 +65,25 @@ const Navbar = () => {
             </span>
           )}
 
+          {/* Member Login/Dashboard */}
+          {user ? (
+            <Link
+              to="/member"
+              className="hidden items-center gap-2 rounded-md bg-muted px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/80 sm:inline-flex"
+            >
+              <User className="h-3.5 w-3.5" />
+              Dashboard
+            </Link>
+          ) : (
+            <Link
+              to="/login"
+              className="hidden items-center gap-2 rounded-md bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/80 sm:inline-flex"
+            >
+              <LogIn className="h-3.5 w-3.5" />
+              Member
+            </Link>
+          )}
+
           <button
             onClick={() => setOpen(!open)}
             className="inline-flex h-9 w-9 items-center justify-center rounded-md text-foreground md:hidden"
@@ -101,6 +122,14 @@ const Navbar = () => {
                 Open Recruitment
               </Link>
             )}
+            <Link
+              to={user ? "/member" : "/login"}
+              onClick={() => setOpen(false)}
+              className="mt-2 flex items-center gap-2 rounded-md bg-muted px-3 py-2 text-sm font-medium text-muted-foreground"
+            >
+              {user ? <User className="h-4 w-4" /> : <LogIn className="h-4 w-4" />}
+              {user ? "Dashboard" : "Member Login"}
+            </Link>
           </nav>
         </div>
       )}
