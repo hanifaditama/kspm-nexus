@@ -11,7 +11,7 @@ const ArticleCard = ({ article }: { article: Article }) => (
       </h3>
       <p className="mb-4 flex-1 text-sm leading-relaxed text-muted-foreground">{article.excerpt}</p>
       <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <span>{article.author.name}</span>
+        <span>{article.author?.name || "Unknown Author"}</span>
         <div className="flex items-center gap-1">
           <span>{new Date(article.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
           <ArrowUpRight className="h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
