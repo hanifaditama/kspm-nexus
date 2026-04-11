@@ -1,4 +1,4 @@
-import { FileText, Download, Trash2, Folder, FolderOpen } from "lucide-react";
+import { FileText, Download, Trash2, Folder, FolderOpen, Eye } from "lucide-react";
 import { MemberFile, MemberFolder, formatFileSize } from "./types";
 
 interface FileTableProps {
@@ -7,6 +7,7 @@ interface FileTableProps {
   userId: string;
   onOpenFolder: (folderId: string) => void;
   onDownload: (file: MemberFile) => void;
+  onPreview: (file: MemberFile) => void;
   onDeleteFile: (file: MemberFile) => void;
   onDeleteFolder: (folder: MemberFolder) => void;
 }
@@ -17,6 +18,7 @@ const FileTable = ({
   userId,
   onOpenFolder,
   onDownload,
+  onPreview,
   onDeleteFile,
   onDeleteFolder,
 }: FileTableProps) => {
@@ -80,10 +82,13 @@ const FileTable = ({
           {files.map((file) => (
             <tr key={file.id} className="border-b border-border last:border-0 hover:bg-muted/30">
               <td className="px-4 py-3">
-                <div className="flex items-center gap-3">
+                <button
+                  onClick={() => onPreview(file)}
+                  className="flex items-center gap-3 text-left hover:text-accent transition-colors"
+                >
                   <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
                   <span className="truncate font-medium text-foreground">{file.file_name}</span>
-                </div>
+                </button>
               </td>
               <td className="hidden px-4 py-3 text-muted-foreground md:table-cell">
                 {file.file_type?.split("/")[1]?.toUpperCase() ?? "—"}
@@ -96,6 +101,13 @@ const FileTable = ({
               </td>
               <td className="px-4 py-3">
                 <div className="flex items-center justify-end gap-1">
+                  <button
+                    onClick={() => onPreview(file)}
+                    className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    title="Preview"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </button>
                   <button
                     onClick={() => onDownload(file)}
                     className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"

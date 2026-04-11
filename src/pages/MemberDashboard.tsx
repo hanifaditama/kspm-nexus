@@ -10,6 +10,7 @@ import { MemberFile, MemberFolder } from "@/components/dashboard/types";
 import FolderBreadcrumb from "@/components/dashboard/FolderBreadcrumb";
 import CreateFolderDialog from "@/components/dashboard/CreateFolderDialog";
 import FileTable from "@/components/dashboard/FileTable";
+import FilePreviewDialog from "@/components/dashboard/FilePreviewDialog";
 
 const MemberDashboard = () => {
   const { user, profile, loading: authLoading, signOut } = useAuth();
@@ -22,12 +23,14 @@ const MemberDashboard = () => {
   const [uploading, setUploading] = useState(false);
   const [search, setSearch] = useState("");
   const [loadingFiles, setLoadingFiles] = useState(true);
+  const [previewFile, setPreviewFile] = useState<MemberFile | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/login");
   }, [user, authLoading, navigate]);
 
-  // Build breadcrumb path for current folder
   const buildFolderPath = useCallback(async (folderId: string | null) => {
     if (!folderId) {
       setFolderPath([]);
@@ -168,6 +171,34 @@ const MemberDashboard = () => {
     URL.revokeObjectURL(url);
   };
 
+  const handlePreview = async (file: MemberFile) => {
+    setPreviewFile(file);
+    setPreviewUrl(null);
+    setPreviewOpen(true);
+
+    const { data, error } = await supabase.storage
+      .from("member-files")
+      .download(file.file_path);
+
+    if (error || !data) {
+      toast({ title: "Failed to load preview", variant: "destructive" });
+      setPreviewOpen(false);
+      return;
+    }
+
+    const url = URL.createObjectURL(data);
+    setPreviewUrl(url);
+  };
+
+  const handleClosePreview = () => {
+    setPreviewOpen(false);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
+    setPreviewFile(null);
+  };
+
   const handleDelete = async (file: MemberFile) => {
     if (file.uploaded_by !== user?.id) return;
     await supabase.storage.from("member-files").remove([file.file_path]);
@@ -254,11 +285,20 @@ const MemberDashboard = () => {
             userId={user.id}
             onOpenFolder={handleNavigateFolder}
             onDownload={handleDownload}
+            onPreview={handlePreview}
             onDeleteFile={handleDelete}
             onDeleteFolder={handleDeleteFolder}
           />
         )}
       </div>
+
+      <FilePreviewDialog
+        file={previewFile}
+        previewUrl={previewUrl}
+        open={previewOpen}
+        onClose={handleClosePreview}
+        onDownload={handleDownload}
+      />
     </section>
   );
 };
