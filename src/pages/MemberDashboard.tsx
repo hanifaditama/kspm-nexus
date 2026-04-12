@@ -11,7 +11,7 @@ import FolderBreadcrumb from "@/components/dashboard/FolderBreadcrumb";
 import CreateFolderDialog from "@/components/dashboard/CreateFolderDialog";
 import FileTable from "@/components/dashboard/FileTable";
 import FilePreviewDialog from "@/components/dashboard/FilePreviewDialog";
-import ChangePasswordDialog from "@/components/dashboard/ChangePasswordDialog";
+
 
 const MemberDashboard = () => {
   const { user, profile, loading: authLoading, signOut } = useAuth();
@@ -243,7 +243,7 @@ const MemberDashboard = () => {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <ChangePasswordDialog />
+            
             <CreateFolderDialog onCreateFolder={handleCreateFolder} />
             {profile?.can_upload && (
               <label className="cursor-pointer">
