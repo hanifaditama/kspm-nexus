@@ -4,7 +4,7 @@ import ArticleCard from "@/components/cards/ArticleCard";
 import EventCard from "@/components/cards/EventCard";
 import TeamCard from "@/components/cards/TeamCard";
 import { getArticles, getEvents, getTeam } from "@/lib/sanity";
-import { ArrowRight, TrendingUp, BookOpen, Users, Calendar } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 const Index = () => {
   const [articles, setArticles] = useState<any[]>([]);
@@ -21,13 +21,6 @@ const Index = () => {
       })
       .finally(() => setLoading(false));
   }, []);
-
-  const stats = [
-    { icon: Users, label: "Active Members", value: "50+" },
-    { icon: Calendar, label: "Events Held", value: "20+" },
-    { icon: BookOpen, label: "Research Papers", value: "15+" },
-    { icon: TrendingUp, label: "Years Active", value: "5+" },
-  ];
 
   return (
     <div>
@@ -79,20 +72,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Stats */}
-      <section className="relative -mt-2 pb-16">
-        <div className="container">
-          <div className="mx-auto grid max-w-4xl grid-cols-2 gap-4 md:grid-cols-4">
-            {stats.map((stat) => (
-              <div key={stat.label} className="group rounded-xl border border-border bg-card p-6 text-center shadow-sm transition-all hover:shadow-md hover:-translate-y-1">
-                <stat.icon className="mx-auto mb-3 h-6 w-6 text-accent transition-colors group-hover:text-accent/80" />
-                <p className="text-2xl font-bold text-foreground">{stat.value}</p>
-                <p className="mt-1 text-xs font-medium text-muted-foreground">{stat.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Latest Articles */}
       <section className="py-20 md:py-28">
