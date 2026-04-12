@@ -16,6 +16,7 @@ import Recruitment from "./pages/Recruitment";
 import ArticleDetail from "./pages/ArticleDetail";
 import MemberLogin from "./pages/MemberLogin";
 import MemberDashboard from "./pages/MemberDashboard";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ const App = () => (
               <Route path="/recruitment" element={<Recruitment />} />
               <Route path="/login" element={<MemberLogin />} />
               <Route path="/member" element={<MemberDashboard />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Layout>
