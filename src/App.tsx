@@ -18,6 +18,12 @@ import MemberLogin from "./pages/MemberLogin";
 import MemberDashboard from "./pages/MemberDashboard";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
+import AdminLayout from "./pages/admin/AdminLayout";
+import AdminHome from "./pages/admin/AdminHome";
+import AdminArticles from "./pages/admin/AdminArticles";
+import AdminEvents from "./pages/admin/AdminEvents";
+import AdminTeam from "./pages/admin/AdminTeam";
+import AdminPrograms from "./pages/admin/AdminPrograms";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +48,13 @@ const App = () => (
               <Route path="/login" element={<MemberLogin />} />
               <Route path="/member" element={<MemberDashboard />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminHome />} />
+                <Route path="articles" element={<AdminArticles />} />
+                <Route path="events" element={<AdminEvents />} />
+                <Route path="team" element={<AdminTeam />} />
+                <Route path="programs" element={<AdminPrograms />} />
+              </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Layout>
