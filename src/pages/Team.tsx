@@ -55,7 +55,7 @@ const Team = () => {
       {!loading && team.length === 0 && (
         <div className="py-20 text-center text-muted-foreground">
           <p className="text-lg font-medium">No team members added yet.</p>
-          <p className="mt-1 text-sm">Add team members in the Sanity Studio.</p>
+          <p className="mt-1 text-sm">Add team members from the admin panel.</p>
         </div>
       )}
 

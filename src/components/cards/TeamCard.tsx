@@ -1,6 +1,5 @@
 import type { TeamMember } from "@/types/content";
 import { Linkedin, User } from "lucide-react";
-import { urlFor } from "@/lib/sanity";
 
 const TeamCard = ({ member }: { member: TeamMember }) => (
   <div className="group rounded-lg border border-border bg-card p-6 text-center transition-all duration-300 hover:border-accent/30 hover:shadow-sm">
