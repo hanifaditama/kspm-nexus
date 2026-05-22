@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Section from "@/components/layout/Section";
 import SectionHeader from "@/components/layout/SectionHeader";
 import TeamCard from "@/components/cards/TeamCard";
-import { getTeam } from "@/lib/sanity";
+import { getTeam } from "@/lib/content";
 
 const Team = () => {
   const [team, setTeam] = useState<any[]>([]);

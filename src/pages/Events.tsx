@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Section from "@/components/layout/Section";
 import SectionHeader from "@/components/layout/SectionHeader";
 import EventCard from "@/components/cards/EventCard";
-import { getEvents } from "@/lib/sanity";
+import { getEvents } from "@/lib/content";
 
 const Events = () => {
   const [events, setEvents] = useState<any[]>([]);
