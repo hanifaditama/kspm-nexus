@@ -1,6 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getArticleBySlug, getArticles } from "@/lib/sanity";
+import { getArticleBySlug, getArticles } from "@/lib/content";
 import { ArrowLeft, Clock, Share2 } from "lucide-react";
 
 // ─── Portable Text renderer (no external deps) ────────────────────────────────

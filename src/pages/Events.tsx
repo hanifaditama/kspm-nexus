@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Section from "@/components/layout/Section";
 import SectionHeader from "@/components/layout/SectionHeader";
 import EventCard from "@/components/cards/EventCard";
-import { getEvents } from "@/lib/sanity";
+import { getEvents } from "@/lib/content";
 
 const Events = () => {
   const [events, setEvents] = useState<any[]>([]);
@@ -33,7 +33,7 @@ const Events = () => {
       {!loading && events.length === 0 && (
         <div className="py-20 text-center text-muted-foreground">
           <p className="text-lg font-medium">No events scheduled yet.</p>
-          <p className="mt-1 text-sm">Check back soon or add events in the Sanity Studio.</p>
+          <p className="mt-1 text-sm">Check back soon or add events from the admin panel.</p>
         </div>
       )}
 

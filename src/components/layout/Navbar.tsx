@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, LogIn, User } from "lucide-react";
+import { Menu, X, LogIn, User, Settings } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 const navLinks = [
   { label: "Home", path: "/" },
@@ -20,6 +21,7 @@ const Navbar = () => {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
   const { user } = useAuth();
+  const { isAdmin } = useIsAdmin();
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
@@ -63,6 +65,17 @@ const Navbar = () => {
               <span className="h-2 w-2 rounded-full bg-muted-foreground/40" />
               Closed
             </span>
+          )}
+
+          {/* Admin link */}
+          {isAdmin && (
+            <Link
+              to="/admin"
+              className="hidden items-center gap-2 rounded-md bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20 sm:inline-flex"
+            >
+              <Settings className="h-3.5 w-3.5" />
+              Admin
+            </Link>
           )}
 
           {/* Member Login/Dashboard */}

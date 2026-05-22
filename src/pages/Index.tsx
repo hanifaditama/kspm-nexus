@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import ArticleCard from "@/components/cards/ArticleCard";
 import EventCard from "@/components/cards/EventCard";
 import TeamCard from "@/components/cards/TeamCard";
-import { getArticles, getEvents, getTeam } from "@/lib/sanity";
+import { getArticles, getEvents, getTeam } from "@/lib/content";
 import { ArrowRight } from "lucide-react";
 
 const Index = () => {

@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Section from "@/components/layout/Section";
 import ArticleCard from "@/components/cards/ArticleCard";
-import { getArticles } from "@/lib/sanity";
+import { getArticles } from "@/lib/content";
 import { ArrowRight, TrendingUp, TrendingDown, ChevronDown } from "lucide-react";
 
 const categories = ["All", "Market Analysis", "Economics", "Sustainable Finance", "Commodities", "Stocks"];
@@ -111,7 +111,7 @@ const Articles = () => {
         <Section>
           <div className="py-20 text-center text-muted-foreground">
             <p className="text-lg font-medium">No articles published yet.</p>
-            <p className="mt-1 text-sm">Check back soon or add articles in the Sanity Studio.</p>
+            <p className="mt-1 text-sm">Check back soon or add articles from the admin panel.</p>
           </div>
         </Section>
       )}
