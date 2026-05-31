@@ -4,6 +4,7 @@ import ArticleCard from "@/components/cards/ArticleCard";
 import EventCard from "@/components/cards/EventCard";
 import TeamCard from "@/components/cards/TeamCard";
 import { getArticles, getEvents, getTeam } from "@/lib/content";
+import { useRecruitmentStatus } from "@/hooks/useRecruitmentStatus";
 import { ArrowRight } from "lucide-react";
 
 const Index = () => {
@@ -11,6 +12,7 @@ const Index = () => {
   const [events, setEvents] = useState<any[]>([]);
   const [team, setTeam] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const { isOpen: isRecruitmentOpen } = useRecruitmentStatus();
 
   useEffect(() => {
     Promise.all([getArticles(), getEvents(), getTeam()])
@@ -54,12 +56,14 @@ const Index = () => {
               >
                 Learn More
               </Link>
-              <Link
-                to="/recruitment"
-                className="rounded-lg border border-white/30 bg-white/10 px-7 py-3.5 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20"
-              >
-                Join Us
-              </Link>
+              {isRecruitmentOpen && (
+                <Link
+                  to="/recruitment"
+                  className="rounded-lg border border-white/30 bg-white/10 px-7 py-3.5 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20"
+                >
+                  Join Us
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -173,22 +177,24 @@ const Index = () => {
       </section>
 
       {/* CTA */}
-      <section className="border-t border-border">
-        <div className="container py-20 md:py-28">
-          <div className="mx-auto max-w-2xl rounded-2xl bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--navy-light))] p-10 text-center shadow-xl md:p-16">
-            <h2 className="font-heading text-3xl font-bold text-white md:text-4xl">Ready to Join KSPM?</h2>
-            <p className="mx-auto mt-4 max-w-md text-base leading-relaxed text-white/75">
-              Be part of a community passionate about capital markets and financial literacy.
-            </p>
-            <Link
-              to="/recruitment"
-              className="mt-8 inline-block rounded-lg bg-white px-8 py-3.5 text-sm font-semibold text-[hsl(var(--primary))] shadow-lg transition-all hover:bg-white/90 hover:shadow-xl"
-            >
-              Apply Now
-            </Link>
+      {isRecruitmentOpen && (
+        <section className="border-t border-border">
+          <div className="container py-20 md:py-28">
+            <div className="mx-auto max-w-2xl rounded-2xl bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--navy-light))] p-10 text-center shadow-xl md:p-16">
+              <h2 className="font-heading text-3xl font-bold text-white md:text-4xl">Ready to Join KSPM?</h2>
+              <p className="mx-auto mt-4 max-w-md text-base leading-relaxed text-white/75">
+                Be part of a community passionate about capital markets and financial literacy.
+              </p>
+              <Link
+                to="/recruitment"
+                className="mt-8 inline-block rounded-lg bg-white px-8 py-3.5 text-sm font-semibold text-[hsl(var(--primary))] shadow-lg transition-all hover:bg-white/90 hover:shadow-xl"
+              >
+                Apply Now
+              </Link>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   );
 };

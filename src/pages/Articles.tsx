@@ -123,29 +123,40 @@ const Articles = () => {
           {activeCategory === "All" && featured && (
             <div className="border-b border-border">
               <div className="container py-10 md:py-14">
-                <Link to={`/articles/${featured.slug}`} className="group block">
-                  <span className="text-xs font-semibold uppercase tracking-widest text-accent">
-                    {featured.category}
-                  </span>
-                  <h1 className="mt-2 max-w-3xl font-heading text-2xl font-bold leading-tight text-foreground transition-colors group-hover:text-accent md:text-4xl md:leading-tight">
-                    {featured.title}
-                  </h1>
-                  <p className="mt-3 max-w-2xl text-base leading-relaxed text-muted-foreground md:text-lg">
-                    {featured.excerpt}
-                  </p>
-                  <div className="mt-4 flex items-center gap-3 text-sm text-muted-foreground">
-                    <span className="font-medium text-foreground">
-                      {featured.author?.name}
+                <Link to={`/articles/${featured.slug}`} className="group grid gap-8 md:grid-cols-2 md:items-center">
+                  {featured.mainImage && (
+                    <div className="aspect-[16/10] w-full overflow-hidden rounded-lg bg-muted">
+                      <img
+                        src={featured.mainImage}
+                        alt={featured.title}
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-xs font-semibold uppercase tracking-widest text-accent">
+                      {featured.category}
                     </span>
-                    <span>·</span>
-                    <span>
-                      {new Date(featured.publishedAt).toLocaleDateString("en-US", {
-                        month: "long",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </span>
-                    <ArrowRight className="ml-2 h-4 w-4 text-accent opacity-0 transition-opacity group-hover:opacity-100" />
+                    <h1 className="mt-2 max-w-3xl font-heading text-2xl font-bold leading-tight text-foreground transition-colors group-hover:text-accent md:text-4xl md:leading-tight">
+                      {featured.title}
+                    </h1>
+                    <p className="mt-3 max-w-2xl text-base leading-relaxed text-muted-foreground md:text-lg">
+                      {featured.excerpt}
+                    </p>
+                    <div className="mt-4 flex items-center gap-3 text-sm text-muted-foreground">
+                      <span className="font-medium text-foreground">
+                        {featured.author?.name}
+                      </span>
+                      <span>·</span>
+                      <span>
+                        {new Date(featured.publishedAt).toLocaleDateString("en-US", {
+                          month: "long",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </span>
+                      <ArrowRight className="ml-2 h-4 w-4 text-accent opacity-0 transition-opacity group-hover:opacity-100" />
+                    </div>
                   </div>
                 </Link>
               </div>

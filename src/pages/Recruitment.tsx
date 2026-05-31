@@ -1,9 +1,11 @@
 import Section from "@/components/layout/Section";
 import SectionHeader from "@/components/layout/SectionHeader";
+import { useRecruitmentStatus } from "@/hooks/useRecruitmentStatus";
+import { Link } from "react-router-dom";
 import {
   CalendarDays, CheckCircle2, ClipboardList, Users,
   TrendingUp, Network, GraduationCap, BriefcaseBusiness,
-  Lightbulb, Award, Check,
+  Lightbulb, Award, Check, Lock,
 } from "lucide-react";
 
 const steps = [
@@ -30,7 +32,38 @@ const requirements = [
   "No prior finance experience required — we'll teach you everything",
 ];
 
-const Recruitment = () => (
+const Recruitment = () => {
+  const { isOpen, loading } = useRecruitmentStatus();
+
+  if (loading) {
+    return <div className="container py-20 text-center text-muted-foreground">Loading...</div>;
+  }
+
+  if (!isOpen) {
+    return (
+      <section className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-muted/30 py-20">
+        <div className="container max-w-xl text-center">
+          <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-muted">
+            <Lock className="h-6 w-6 text-muted-foreground" />
+          </div>
+          <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+            Recruitment Closed
+          </h1>
+          <p className="mt-4 text-base leading-relaxed text-muted-foreground">
+            We are not accepting applications at this time. Please check back later or follow our social media for updates on the next recruitment cycle.
+          </p>
+          <Link
+            to="/"
+            className="mt-8 inline-block rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            Back to Home
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
+  return (
   <>
     <section className="bg-primary py-20 text-primary-foreground">
       <div className="container">
@@ -131,6 +164,7 @@ const Recruitment = () => (
       </div>
     </Section>
   </>
-);
+  );
+};
 
 export default Recruitment;

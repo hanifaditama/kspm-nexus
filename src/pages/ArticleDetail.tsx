@@ -167,6 +167,19 @@ const ArticleDetail = () => {
         </div>
       </header>
 
+      {/* Cover image */}
+      {article.mainImage && (
+        <div className="mx-auto mt-10 max-w-3xl px-6">
+          <div className="aspect-[16/9] w-full overflow-hidden rounded-lg bg-muted">
+            <img
+              src={article.mainImage}
+              alt={article.title}
+              className="h-full w-full object-cover"
+            />
+          </div>
+        </div>
+      )}
+
       {/* Body */}
       <div className="mx-auto max-w-3xl px-6 pt-10 font-sans">
         {!content && (
