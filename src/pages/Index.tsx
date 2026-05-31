@@ -4,6 +4,7 @@ import ArticleCard from "@/components/cards/ArticleCard";
 import EventCard from "@/components/cards/EventCard";
 import TeamCard from "@/components/cards/TeamCard";
 import { getArticles, getEvents, getTeam } from "@/lib/content";
+import { useRecruitmentStatus } from "@/hooks/useRecruitmentStatus";
 import { ArrowRight } from "lucide-react";
 
 const Index = () => {
@@ -11,6 +12,7 @@ const Index = () => {
   const [events, setEvents] = useState<any[]>([]);
   const [team, setTeam] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const { isOpen: isRecruitmentOpen } = useRecruitmentStatus();
 
   useEffect(() => {
     Promise.all([getArticles(), getEvents(), getTeam()])
