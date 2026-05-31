@@ -56,12 +56,14 @@ const Index = () => {
               >
                 Learn More
               </Link>
-              <Link
-                to="/recruitment"
-                className="rounded-lg border border-white/30 bg-white/10 px-7 py-3.5 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20"
-              >
-                Join Us
-              </Link>
+              {isRecruitmentOpen && (
+                <Link
+                  to="/recruitment"
+                  className="rounded-lg border border-white/30 bg-white/10 px-7 py-3.5 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20"
+                >
+                  Join Us
+                </Link>
+              )}
             </div>
           </div>
         </div>
