@@ -177,22 +177,24 @@ const Index = () => {
       </section>
 
       {/* CTA */}
-      <section className="border-t border-border">
-        <div className="container py-20 md:py-28">
-          <div className="mx-auto max-w-2xl rounded-2xl bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--navy-light))] p-10 text-center shadow-xl md:p-16">
-            <h2 className="font-heading text-3xl font-bold text-white md:text-4xl">Ready to Join KSPM?</h2>
-            <p className="mx-auto mt-4 max-w-md text-base leading-relaxed text-white/75">
-              Be part of a community passionate about capital markets and financial literacy.
-            </p>
-            <Link
-              to="/recruitment"
-              className="mt-8 inline-block rounded-lg bg-white px-8 py-3.5 text-sm font-semibold text-[hsl(var(--primary))] shadow-lg transition-all hover:bg-white/90 hover:shadow-xl"
-            >
-              Apply Now
-            </Link>
+      {isRecruitmentOpen && (
+        <section className="border-t border-border">
+          <div className="container py-20 md:py-28">
+            <div className="mx-auto max-w-2xl rounded-2xl bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--navy-light))] p-10 text-center shadow-xl md:p-16">
+              <h2 className="font-heading text-3xl font-bold text-white md:text-4xl">Ready to Join KSPM?</h2>
+              <p className="mx-auto mt-4 max-w-md text-base leading-relaxed text-white/75">
+                Be part of a community passionate about capital markets and financial literacy.
+              </p>
+              <Link
+                to="/recruitment"
+                className="mt-8 inline-block rounded-lg bg-white px-8 py-3.5 text-sm font-semibold text-[hsl(var(--primary))] shadow-lg transition-all hover:bg-white/90 hover:shadow-xl"
+              >
+                Apply Now
+              </Link>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   );
 };
