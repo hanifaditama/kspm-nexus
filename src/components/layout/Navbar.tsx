@@ -1,8 +1,16 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Menu, X, LogIn, User, Settings } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Menu, X, LogIn, User, Settings, LogOut, FolderOpen } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { useRecruitmentStatus } from "@/hooks/useRecruitmentStatus";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const navLinks = [
   { label: "Home", path: "/" },
@@ -14,14 +22,18 @@ const navLinks = [
   { label: "Contact", path: "/contact" },
 ];
 
-// Toggle this to control recruitment status site-wide
-const isRecruitmentOpen = true;
-
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   const { isAdmin } = useIsAdmin();
+  const { isOpen: isRecruitmentOpen } = useRecruitmentStatus();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
@@ -63,30 +75,41 @@ const Navbar = () => {
           ) : (
             <span className="hidden items-center gap-2 rounded-full bg-muted px-3.5 py-1.5 text-xs font-medium text-muted-foreground sm:inline-flex">
               <span className="h-2 w-2 rounded-full bg-muted-foreground/40" />
-              Closed
+              Recruitment Closed
             </span>
           )}
 
-          {/* Admin link */}
-          {isAdmin && (
-            <Link
-              to="/admin"
-              className="hidden items-center gap-2 rounded-md bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20 sm:inline-flex"
-            >
-              <Settings className="h-3.5 w-3.5" />
-              Admin
-            </Link>
-          )}
-
-          {/* Member Login/Dashboard */}
+          {/* User menu */}
           {user ? (
-            <Link
-              to="/member"
-              className="hidden items-center gap-2 rounded-md bg-muted px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/80 sm:inline-flex"
-            >
-              <User className="h-3.5 w-3.5" />
-              Dashboard
-            </Link>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="hidden items-center gap-2 rounded-md bg-muted px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/80 sm:inline-flex">
+                  <User className="h-3.5 w-3.5" />
+                  Account
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem asChild>
+                  <Link to="/member" className="flex items-center gap-2">
+                    <FolderOpen className="h-4 w-4" />
+                    File Manager
+                  </Link>
+                </DropdownMenuItem>
+                {isAdmin && (
+                  <DropdownMenuItem asChild>
+                    <Link to="/admin" className="flex items-center gap-2">
+                      <Settings className="h-4 w-4" />
+                      Admin Panel
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <Link
               to="/login"
@@ -135,14 +158,47 @@ const Navbar = () => {
                 Open Recruitment
               </Link>
             )}
-            <Link
-              to={user ? "/member" : "/login"}
-              onClick={() => setOpen(false)}
-              className="mt-2 flex items-center gap-2 rounded-md bg-muted px-3 py-2 text-sm font-medium text-muted-foreground"
-            >
-              {user ? <User className="h-4 w-4" /> : <LogIn className="h-4 w-4" />}
-              {user ? "Dashboard" : "Member Login"}
-            </Link>
+            {user ? (
+              <>
+                <Link
+                  to="/member"
+                  onClick={() => setOpen(false)}
+                  className="mt-2 flex items-center gap-2 rounded-md bg-muted px-3 py-2 text-sm font-medium text-foreground"
+                >
+                  <FolderOpen className="h-4 w-4" />
+                  File Manager
+                </Link>
+                {isAdmin && (
+                  <Link
+                    to="/admin"
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-2 rounded-md bg-primary/10 px-3 py-2 text-sm font-medium text-primary"
+                  >
+                    <Settings className="h-4 w-4" />
+                    Admin Panel
+                  </Link>
+                )}
+                <button
+                  onClick={() => {
+                    setOpen(false);
+                    handleSignOut();
+                  }}
+                  className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium text-destructive"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <Link
+                to="/login"
+                onClick={() => setOpen(false)}
+                className="mt-2 flex items-center gap-2 rounded-md bg-muted px-3 py-2 text-sm font-medium text-muted-foreground"
+              >
+                <LogIn className="h-4 w-4" />
+                Member Login
+              </Link>
+            )}
           </nav>
         </div>
       )}
