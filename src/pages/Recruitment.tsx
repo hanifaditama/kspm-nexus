@@ -164,6 +164,7 @@ const Recruitment = () => {
       </div>
     </Section>
   </>
-);
+  );
+};
 
 export default Recruitment;
