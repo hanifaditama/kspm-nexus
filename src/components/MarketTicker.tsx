@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { TrendingUp, TrendingDown } from "lucide-react";
 
 export interface MarketItem {
   name: string;
@@ -8,70 +7,79 @@ export interface MarketItem {
   changePercent: number;
 }
 
-const INDONESIA: MarketItem[] = [
-  { name: "IHSG", value: 7423.45, change: 32.1, changePercent: 0.43 },
-  { name: "BBCA", value: 10250, change: -75, changePercent: -0.73 },
-  { name: "BBRI", value: 4890, change: 40, changePercent: 0.82 },
-  { name: "TLKM", value: 3120, change: -20, changePercent: -0.64 },
+const SYMBOLS: { symbol: string; name: string }[] = [
+  { symbol: "^JKSE", name: "IHSG" },
+  { symbol: "BBCA.JK", name: "BBCA" },
+  { symbol: "BBRI.JK", name: "BBRI" },
+  { symbol: "TLKM.JK", name: "TLKM" },
+  { symbol: "^GSPC", name: "S&P 500" },
+  { symbol: "^IXIC", name: "Nasdaq" },
+  { symbol: "GC=F", name: "Gold" },
+  { symbol: "BTC-USD", name: "Bitcoin" },
 ];
 
-const GLOBAL: MarketItem[] = [
-  { name: "S&P 500", value: 6775.38, change: 158.9, changePercent: 2.4 },
-  { name: "Nasdaq", value: 22604.66, change: 590.3, changePercent: 2.68 },
-  { name: "Gold", value: 2341.5, change: 19.1, changePercent: 0.82 },
-  { name: "Bitcoin", value: 71250, change: -1240, changePercent: -1.71 },
-];
-
-async function fetchMarkets(): Promise<{ indonesia: MarketItem[]; global: MarketItem[] }> {
-  // TODO: replace with real API integration
-  await new Promise((r) => setTimeout(r, 400));
-  return { indonesia: INDONESIA, global: GLOBAL };
+async function fetchQuote(symbol: string, name: string): Promise<MarketItem | null> {
+  try {
+    const target = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d`;
+    const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(target)}`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const json = await res.json();
+    const result = json?.chart?.result?.[0];
+    const meta = result?.meta;
+    if (!meta) return null;
+    const value = Number(meta.regularMarketPrice);
+    const prev = Number(meta.chartPreviousClose ?? meta.previousClose);
+    const change = value - prev;
+    const changePercent = prev ? (change / prev) * 100 : 0;
+    return { name, value, change, changePercent };
+  } catch {
+    return null;
+  }
 }
 
-const formatValue = (n: number) =>
-  n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const formatValue = (n: number) => {
+  if (n >= 1000)
+    return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
 
-const formatPercent = (n: number) => `${n >= 0 ? "+" : ""}${n.toFixed(2)}%`;
+const Arrow = ({ up }: { up: boolean }) => (
+  <span className={`inline-block text-[10px] leading-none ${up ? "text-green-400" : "text-red-400"}`}>
+    {up ? "▲" : "▼"}
+  </span>
+);
 
-const TickerCard = ({ item }: { item: MarketItem }) => {
+const Pill = ({ item }: { item: MarketItem }) => {
   const up = item.changePercent >= 0;
   return (
-    <div className="flex shrink-0 flex-col gap-1 rounded-lg border border-white/10 bg-white/5 px-4 py-3 min-w-[140px]">
-      <span className="text-[11px] font-bold uppercase tracking-wider text-white/70">
-        {item.name}
-      </span>
-      <span className="font-mono text-sm font-semibold text-white">
-        {formatValue(item.value)}
-      </span>
-      <span
-        className={`flex items-center gap-1 text-xs font-medium ${
-          up ? "text-green-400" : "text-red-400"
-        }`}
-      >
-        {up ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-        {formatPercent(item.changePercent)}
+    <div className="flex shrink-0 items-center gap-2 rounded-full bg-black px-4 py-2 ring-1 ring-white/10">
+      <span className="text-[13px] font-bold tracking-tight text-white">{item.name}</span>
+      <span className="font-mono text-[13px] text-white/90">{formatValue(item.value)}</span>
+      <span className={`flex items-center gap-1 text-[12px] font-semibold ${up ? "text-green-400" : "text-red-400"}`}>
+        <Arrow up={up} />
+        {up ? "+" : ""}
+        {item.changePercent.toFixed(2)}%
       </span>
     </div>
   );
 };
 
 const Skeleton = () => (
-  <div className="flex shrink-0 flex-col gap-1 rounded-lg border border-white/10 bg-white/5 px-4 py-3 min-w-[140px]">
-    <div className="h-3 w-12 animate-pulse rounded bg-white/10" />
-    <div className="h-4 w-20 animate-pulse rounded bg-white/10" />
-    <div className="h-3 w-14 animate-pulse rounded bg-white/10" />
-  </div>
+  <div className="h-9 w-44 shrink-0 animate-pulse rounded-full bg-white/5 ring-1 ring-white/10" />
 );
 
 const MarketTicker = () => {
-  const [data, setData] = useState<{ indonesia: MarketItem[]; global: MarketItem[] } | null>(null);
+  const [items, setItems] = useState<MarketItem[] | null>(null);
 
   useEffect(() => {
     let active = true;
-    const load = () => {
-      fetchMarkets().then((d) => {
-        if (active) setData(d);
-      });
+    const load = async () => {
+      const results = await Promise.all(SYMBOLS.map((s) => fetchQuote(s.symbol, s.name)));
+      if (!active) return;
+      const clean = results.filter((r): r is MarketItem => r !== null);
+      if (clean.length) setItems(clean);
+      else if (!items) setItems([]);
     };
     load();
     const id = setInterval(load, 60_000);
@@ -79,26 +87,19 @@ const MarketTicker = () => {
       active = false;
       clearInterval(id);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const renderRow = (label: string, items: MarketItem[] | undefined) => (
-    <div className="flex items-center gap-3">
-      <span className="shrink-0 text-[11px] font-bold uppercase tracking-widest text-white/60">
-        {label}
-      </span>
-      <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-        {items
-          ? items.map((it) => <TickerCard key={it.name} item={it} />)
-          : Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} />)}
-      </div>
-    </div>
-  );
 
   return (
     <div className="bg-[#0a1428] border-y border-white/10">
-      <div className="container flex flex-col gap-3 py-3 md:flex-row md:items-center md:gap-6">
-        {renderRow("Indonesia", data?.indonesia)}
-        {renderRow("Global", data?.global)}
+      <div className="container py-3">
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+          {items === null
+            ? Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} />)
+            : items.length === 0
+            ? <span className="text-xs text-white/60">Market data unavailable</span>
+            : items.map((it) => <Pill key={it.name} item={it} />)}
+        </div>
       </div>
     </div>
   );
