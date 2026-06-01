@@ -64,41 +64,7 @@ const Articles = () => {
       </div>
 
 
-      {/* Market ticker bar */}
-      <div className="border-b border-border bg-primary">
-        <div className="container flex flex-wrap items-center gap-2 py-2">
-          <div className="flex shrink-0 items-center gap-1.5 pr-3 text-sm font-medium text-primary-foreground">
-            Top Securities
-            <ChevronDown className="h-3.5 w-3.5" />
-          </div>
-          {marketData.map((item) => (
-            <div
-              key={item.name}
-              className="flex shrink-0 items-center gap-2 rounded-md bg-primary-foreground/10 px-3 py-1.5"
-            >
-              <span className="text-xs font-semibold text-primary-foreground">{item.name}</span>
-              <span className="text-xs text-primary-foreground/80">{item.value}</span>
-              <span
-                className={`flex items-center gap-0.5 text-xs font-medium ${
-                  item.up ? "text-green-400" : "text-red-400"
-                }`}
-              >
-                {item.up ? (
-                  <TrendingUp className="h-3 w-3" />
-                ) : (
-                  <TrendingDown className="h-3 w-3" />
-                )}
-                {item.change}
-              </span>
-            </div>
-          ))}
-        </div>
-        <div className="container pb-2">
-          <span className="text-[0.65rem] italic text-primary-foreground/50">
-            Updated after market close
-          </span>
-        </div>
-      </div>
+      <MarketTicker />
 
       {/* Loading state */}
       {loading && (
