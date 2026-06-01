@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import Section from "@/components/layout/Section";
 import ArticleCard from "@/components/cards/ArticleCard";
 import { getArticles } from "@/lib/content";
-import { ArrowRight, TrendingUp, TrendingDown, ChevronDown } from "lucide-react";
+import { ArrowRight, ChevronDown } from "lucide-react";
+import MarketTicker from "@/components/MarketTicker";
 
 const categories = ["All", "Market Analysis", "Economics", "Sustainable Finance", "Commodities", "Stocks"];
 
