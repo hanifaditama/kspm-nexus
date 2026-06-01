@@ -40,24 +40,28 @@ const Articles = () => {
 
   return (
     <>
-      {/* Category bar */}
-      <div className="sticky top-16 z-30 border-b border-border bg-background/95 backdrop-blur-sm">
-        <div className="container flex items-center gap-1 overflow-x-auto py-0 scrollbar-hide">
-          {categories.map((cat) => (
+      {/* Category bar - Bloomberg style */}
+      <div className="sticky top-16 z-30 border-b border-white/10 bg-[#0a0a0a]">
+        <div className="container flex items-center gap-0 overflow-x-auto py-0 scrollbar-hide">
+          {categories.map((cat, i) => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={`shrink-0 border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
+              className={`group flex shrink-0 items-center gap-1 px-4 py-3.5 text-[13px] font-bold uppercase tracking-wide transition-colors ${
                 activeCategory === cat
-                  ? "border-accent text-accent"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
+                  ? "text-white"
+                  : "text-white/70 hover:text-white"
               }`}
             >
               {cat}
+              {(i === 0 || i === categories.length - 1) && (
+                <ChevronDown className="h-3 w-3 opacity-80" />
+              )}
             </button>
           ))}
         </div>
       </div>
+
 
       {/* Market ticker bar */}
       <div className="border-b border-border bg-primary">
