@@ -8,16 +8,6 @@ import MarketTicker from "@/components/MarketTicker";
 
 const categories = ["All", "Market Analysis", "Economics", "Sustainable Finance", "Commodities", "Stocks"];
 
-const marketData = [
-  { name: "S&P 500", value: "6,775.38", change: "+2.40%", up: true },
-  { name: "Nasdaq", value: "22,604.66", change: "+2.68%", up: true },
-  { name: "B500", value: "2,438.49", change: "+2.20%", up: true },
-  { name: "US 10 Yr", value: "4.27", change: "0.00%", up: true },
-  { name: "Crude Oil", value: "94.55", change: "-16.29%", up: false },
-  { name: "FTSE 100", value: "8,275.66", change: "+1.15%", up: true },
-  { name: "Gold", value: "2,341.50", change: "+0.82%", up: true },
-];
-
 const Articles = () => {
   const [activeCategory, setActiveCategory] = useState("All");
   const [articles, setArticles] = useState<any[]>([]);
