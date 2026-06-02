@@ -3,9 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 // Returned shapes mirror the previous Sanity queries so consumer components keep working.
 
 export async function getArticles() {
+  // Omit `content` here — it's huge and only ArticleDetail needs it.
   const { data } = await supabase
     .from("articles")
-    .select("*")
+    .select("id,title,slug,excerpt,category,published_at,author_name,cover_image")
     .order("published_at", { ascending: false });
   return (data ?? []).map((a) => ({
     _id: a.id,
@@ -16,7 +17,7 @@ export async function getArticles() {
     publishedAt: a.published_at,
     author: { name: a.author_name },
     mainImage: a.cover_image,
-    content: a.content,
+    content: null as string | null,
   }));
 }
 
