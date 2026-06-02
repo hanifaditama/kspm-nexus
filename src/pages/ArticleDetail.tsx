@@ -40,10 +40,20 @@ const ArticleDetail = () => {
 
   useEffect(() => {
     if (!slug) return;
-    Promise.all([getArticleBySlug(slug), getArticles()]).then(([art, all]) => {
+    let cancelled = false;
+    setLoading(true);
+    // Load the article first so the page renders ASAP.
+    getArticleBySlug(slug).then((art) => {
+      if (cancelled) return;
       setArticle(art ?? null);
+      setLoading(false);
+    });
+    // Load related articles in the background — don't block render.
+    getArticles().then((all) => {
+      if (cancelled) return;
       setRelated((all as any[]).filter((a) => a.slug !== slug).slice(0, 3));
-    }).finally(() => setLoading(false));
+    });
+    return () => { cancelled = true; };
   }, [slug]);
 
   if (loading) {
