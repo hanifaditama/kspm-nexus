@@ -29,10 +29,13 @@ Apply migrations and deploy the contact function with the Supabase CLI:
 ```bash
 supabase db push
 supabase functions deploy contact
+supabase functions deploy market-data
 supabase secrets set RESEND_API_KEY=... CONTACT_FROM_EMAIL=... CONTACT_HASH_SALT=...
 ```
 
 `CONTACT_FROM_EMAIL` must use a sender/domain verified in Resend. Contact messages are sent to `investment.club@uph.edu`. If Resend is not configured, valid messages are still stored in `contact_submissions` and the UI clearly reports that email delivery is awaiting configuration.
+
+The market ticker uses free public Yahoo Finance chart data through the `market-data` Edge Function, cached for 60 seconds. IDX top gainers are calculated from the liquid-stock watchlist in the function and are not a full-exchange ranking.
 
 ## Security notes
 

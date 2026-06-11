@@ -5,6 +5,7 @@ import TeamCard from "@/components/cards/TeamCard";
 import { useArticles, useEvents, useTeam } from "@/hooks/useContentQueries";
 import { useRecruitmentStatus } from "@/hooks/useRecruitmentStatus";
 import { ArrowRight } from "lucide-react";
+import MarketTicker from "@/components/MarketTicker";
 
 const Index = () => {
   const articlesQuery = useArticles(3);
@@ -24,6 +25,7 @@ const Index = () => {
           Some live content could not be loaded. Please try again shortly.
         </div>
       )}
+      <MarketTicker />
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-border">
         {/* Gradient background with decorative elements */}

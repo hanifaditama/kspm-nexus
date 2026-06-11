@@ -1,106 +1,125 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { RefreshCw, TrendingUp } from "lucide-react";
+import { getMarketSnapshot, MarketQuote } from "@/services/marketService";
 
-export interface MarketItem {
-  name: string;
-  value: number;
-  change: number;
-  changePercent: number;
-}
-
-const SYMBOLS: { symbol: string; name: string }[] = [
-  { symbol: "^JKSE", name: "IHSG" },
-  { symbol: "BBCA.JK", name: "BBCA" },
-  { symbol: "BBRI.JK", name: "BBRI" },
-  { symbol: "TLKM.JK", name: "TLKM" },
-  { symbol: "^GSPC", name: "S&P 500" },
-  { symbol: "^IXIC", name: "Nasdaq" },
-  { symbol: "GC=F", name: "Gold" },
-  { symbol: "BTC-USD", name: "Bitcoin" },
-];
-
-async function fetchQuotes(): Promise<MarketItem[]> {
-  const symbols = SYMBOLS.map((item) => item.symbol).join(",");
-  const target = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(symbols)}`;
-  const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(target)}`;
-  const response = await fetch(url, { signal: AbortSignal.timeout(8_000) });
-  if (!response.ok) throw new Error("Market data request failed.");
-  const json = await response.json();
-  const quotes = json?.quoteResponse?.result ?? [];
-  return quotes.flatMap((quote: any) => {
-    const configured = SYMBOLS.find((item) => item.symbol === quote.symbol);
-    const value = Number(quote.regularMarketPrice);
-    const change = Number(quote.regularMarketChange);
-    const changePercent = Number(quote.regularMarketChangePercent);
-    if (!configured || !Number.isFinite(value)) return [];
-    return [{ name: configured.name, value, change, changePercent }];
+const formatValue = (quote: MarketQuote) =>
+  quote.value.toLocaleString(quote.currency === "IDR" ? "id-ID" : "en-US", {
+    minimumFractionDigits: quote.currency === "IDR" ? 0 : 2,
+    maximumFractionDigits: quote.currency === "IDR" ? 0 : 2,
   });
-}
 
-const formatValue = (n: number) => {
-  if (n >= 1000)
-    return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-};
-
-const Arrow = ({ up }: { up: boolean }) => (
-  <span className={`inline-block text-[10px] leading-none ${up ? "text-green-400" : "text-red-400"}`}>
-    {up ? "▲" : "▼"}
-  </span>
-);
-
-const Pill = ({ item }: { item: MarketItem }) => {
-  const up = item.changePercent >= 0;
+const QuotePill = ({ quote, emphasized = false }: { quote: MarketQuote; emphasized?: boolean }) => {
+  const up = quote.changePercent >= 0;
   return (
-    <div className="flex shrink-0 items-center gap-2 rounded-full bg-black px-4 py-2 ring-1 ring-white/10">
-      <span className="text-[13px] font-bold tracking-tight text-white">{item.name}</span>
-      <span className="font-mono text-[13px] text-white/90">{formatValue(item.value)}</span>
-      <span className={`flex items-center gap-1 text-[12px] font-semibold ${up ? "text-green-400" : "text-red-400"}`}>
-        <Arrow up={up} />
-        {up ? "+" : ""}
-        {item.changePercent.toFixed(2)}%
+    <div
+      className={`flex h-10 shrink-0 items-center gap-2 rounded-md border px-3 ${
+        emphasized
+          ? "border-white/15 bg-[#1b1b1b]"
+          : "border-white/10 bg-[#141414]"
+      }`}
+      title={`${quote.name}: ${quote.change >= 0 ? "+" : ""}${quote.change.toFixed(2)} (${quote.changePercent.toFixed(2)}%)`}
+    >
+      <span className="text-[13px] font-bold text-white">{quote.name}</span>
+      <span className="font-mono text-[13px] font-semibold text-white/90">{formatValue(quote)}</span>
+      <span className={`text-[12px] font-bold ${up ? "text-emerald-400" : "text-red-400"}`}>
+        {up ? "▲" : "▼"} {Math.abs(quote.changePercent).toFixed(2)}%
       </span>
     </div>
   );
 };
 
-const Skeleton = () => (
-  <div className="h-9 w-44 shrink-0 animate-pulse rounded-full bg-white/5 ring-1 ring-white/10" />
-);
+const Skeleton = () => <div className="h-10 w-44 shrink-0 animate-pulse rounded-md bg-white/10" />;
 
 const MarketTicker = () => {
-  const [items, setItems] = useState<MarketItem[] | null>(null);
+  const [indexes, setIndexes] = useState<MarketQuote[]>([]);
+  const [gainers, setGainers] = useState<MarketQuote[]>([]);
+  const [updatedAt, setUpdatedAt] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState(false);
 
-  useEffect(() => {
-    let active = true;
-    const load = async () => {
-      try {
-        const results = await fetchQuotes();
-        if (active && results.length) setItems(results);
-        else if (active) setItems((current) => current ?? []);
-      } catch {
-        if (active) setItems((current) => current ?? []);
-      }
-    };
-    load();
-    const id = setInterval(load, 20_000);
-    return () => {
-      active = false;
-      clearInterval(id);
-    };
+  const load = useCallback(async (manual = false) => {
+    if (manual) setRefreshing(true);
+    try {
+      const snapshot = await getMarketSnapshot();
+      setIndexes(snapshot.indexes);
+      setGainers(snapshot.gainers);
+      setUpdatedAt(snapshot.updatedAt);
+      setError(false);
+    } catch {
+      setError(true);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   }, []);
 
+  useEffect(() => {
+    void load();
+    const interval = window.setInterval(() => void load(), 60_000);
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") void load();
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [load]);
+
+  const updatedLabel = updatedAt
+    ? new Date(updatedAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })
+    : null;
+
   return (
-    <div className="bg-[#0a1428] border-y border-white/10">
-      <div className="container py-3">
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-          {items === null
-            ? Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} />)
-            : items.length === 0
-            ? <span className="text-xs text-white/60">Market data unavailable</span>
-            : items.map((it) => <Pill key={it.name} item={it} />)}
+    <section className="border-y border-white/10 bg-[#090909] text-white" aria-label="Live market update">
+      <div className="container flex min-h-14 items-center gap-3 py-2">
+        <div className="flex shrink-0 items-center gap-2 border-r border-white/15 pr-3">
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+          </span>
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-widest text-white">Markets</p>
+            <p className="text-[10px] text-white/45">{updatedLabel ? `Updated ${updatedLabel} WIB` : "Live update"}</p>
+          </div>
         </div>
+
+        <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto scrollbar-hide">
+          {loading
+            ? Array.from({ length: 6 }).map((_, index) => <Skeleton key={index} />)
+            : (
+              <>
+                {indexes.map((quote) => <QuotePill key={quote.symbol} quote={quote} emphasized />)}
+                {gainers.length > 0 && (
+                  <div className="ml-1 flex h-10 shrink-0 items-center gap-2 px-2 text-emerald-400">
+                    <TrendingUp className="h-4 w-4" />
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Top Gainers IDX Liquid</span>
+                  </div>
+                )}
+                {gainers.map((quote) => <QuotePill key={quote.symbol} quote={quote} />)}
+                {error && indexes.length === 0 && (
+                  <span className="px-3 text-xs text-white/55">Market data sedang tidak tersedia.</span>
+                )}
+                {!error && !loading && gainers.length === 0 && (
+                  <span className="px-3 text-xs text-white/55">Belum ada saham watchlist yang menguat.</span>
+                )}
+              </>
+            )}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => void load(true)}
+          disabled={refreshing}
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-white/60 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-40"
+          aria-label="Refresh market data"
+          title="Refresh market data"
+        >
+          <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+        </button>
       </div>
-    </div>
+    </section>
   );
 };
 
