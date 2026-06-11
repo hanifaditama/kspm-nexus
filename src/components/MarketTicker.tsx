@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { RefreshCw, TrendingUp } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { getMarketSnapshot, MarketQuote } from "@/services/marketService";
 
 const formatValue = (quote: MarketQuote) =>
@@ -33,6 +33,7 @@ const Skeleton = () => <div className="h-10 w-44 shrink-0 animate-pulse rounded-
 const MarketTicker = () => {
   const [indexes, setIndexes] = useState<MarketQuote[]>([]);
   const [gainers, setGainers] = useState<MarketQuote[]>([]);
+  const [losers, setLosers] = useState<MarketQuote[]>([]);
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -44,6 +45,7 @@ const MarketTicker = () => {
       const snapshot = await getMarketSnapshot();
       setIndexes(snapshot.indexes);
       setGainers(snapshot.gainers);
+      setLosers(snapshot.losers);
       setUpdatedAt(snapshot.updatedAt);
       setError(false);
     } catch {
@@ -91,18 +93,13 @@ const MarketTicker = () => {
             : (
               <>
                 {indexes.map((quote) => <QuotePill key={quote.symbol} quote={quote} emphasized />)}
-                {gainers.length > 0 && (
-                  <div className="ml-1 flex h-10 shrink-0 items-center gap-2 px-2 text-emerald-400">
-                    <TrendingUp className="h-4 w-4" />
-                    <span className="text-[11px] font-bold uppercase tracking-wider">Top Gainers IDX Liquid</span>
-                  </div>
-                )}
                 {gainers.map((quote) => <QuotePill key={quote.symbol} quote={quote} />)}
+                {losers.map((quote) => <QuotePill key={quote.symbol} quote={quote} />)}
                 {error && indexes.length === 0 && (
                   <span className="px-3 text-xs text-white/55">Market data sedang tidak tersedia.</span>
                 )}
-                {!error && !loading && gainers.length === 0 && (
-                  <span className="px-3 text-xs text-white/55">Belum ada saham watchlist yang menguat.</span>
+                {!error && !loading && gainers.length === 0 && losers.length === 0 && (
+                  <span className="px-3 text-xs text-white/55">Pergerakan saham watchlist belum tersedia.</span>
                 )}
               </>
             )}

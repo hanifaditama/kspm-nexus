@@ -65,16 +65,20 @@ Deno.serve(async (request) => {
       changePercent: (change / previous) * 100,
       currency: meta.currency ?? (isIndex ? "" : "IDR"),
       marketTime: Number(meta.regularMarketTime ?? 0),
-      kind: isIndex ? "index" : "gainer",
+      kind: isIndex ? "index" : "stock",
     }];
   });
 
   const body = JSON.stringify({
     indexes: INDEX_SYMBOLS.flatMap((symbol) => quotes.find((quote: any) => quote.symbol === symbol) ?? []),
     gainers: quotes
-      .filter((quote: any) => quote.kind === "gainer" && quote.changePercent > 0)
+      .filter((quote: any) => quote.kind === "stock" && quote.changePercent > 0)
       .sort((a: any, b: any) => b.changePercent - a.changePercent)
-      .slice(0, 6),
+      .slice(0, 5),
+    losers: quotes
+      .filter((quote: any) => quote.kind === "stock" && quote.changePercent < 0)
+      .sort((a: any, b: any) => a.changePercent - b.changePercent)
+      .slice(0, 5),
     updatedAt: new Date().toISOString(),
     source: "Yahoo Finance public market data",
   });
