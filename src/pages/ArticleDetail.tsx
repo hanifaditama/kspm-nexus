@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { getArticleBySlug, getArticles } from "@/lib/content";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Share2 } from "lucide-react";
+import DOMPurify from "dompurify";
 
 // ─── Portable Text renderer (Medium-style, unstyled — CSS handles it) ─────
 function renderPortableText(blocks: any[]): React.ReactNode[] {
@@ -32,6 +33,8 @@ function renderPlainText(content: string): React.ReactNode[] {
     return <p key={i}>{trimmed}</p>;
   });
 }
+
+const isHtmlContent = (content: string) => /<[a-z][\s\S]*>/i.test(content);
 
 const ArticleDetail = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -107,7 +110,7 @@ const ArticleDetail = () => {
   const wordCount = isPortableText
     ? content.flatMap((b: any) => b.children?.map((s: any) => s.text) ?? []).join(" ").split(/\s+/).length
     : typeof content === "string"
-    ? content.split(/\s+/).length
+    ? content.replace(/<[^>]*>/g, " ").split(/\s+/).filter(Boolean).length
     : 0;
   const readTime = Math.max(1, Math.ceil(wordCount / 200));
   const initials = article.author?.name?.split(" ").map((n: string) => n[0]).join("").slice(0, 2) ?? "?";
@@ -184,7 +187,10 @@ const ArticleDetail = () => {
         <div className="article-medium">
           {!content && <p>Full article content coming soon.</p>}
           {content && isPortableText && renderPortableText(content)}
-          {content && !isPortableText && renderPlainText(content as string)}
+          {content && !isPortableText && isHtmlContent(content as string) && (
+            <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content as string) }} />
+          )}
+          {content && !isPortableText && !isHtmlContent(content as string) && renderPlainText(content as string)}
         </div>
       </div>
 

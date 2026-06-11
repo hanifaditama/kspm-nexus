@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import AdminCrudShell from "@/components/admin/AdminCrudShell";
 import ImageUploadField from "@/components/admin/ImageUploadField";
+import RichTextEditor from "@/components/admin/RichTextEditor";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -127,7 +128,7 @@ const AdminArticles = () => {
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+        <DialogContent className="max-h-[94vh] max-w-6xl overflow-y-auto">
           <DialogHeader><DialogTitle>{form.id ? "Edit article" : "New article"}</DialogTitle></DialogHeader>
           <div className="grid gap-4 py-2">
             <div><Label>Title</Label><Input value={form.title ?? ""} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
@@ -149,7 +150,10 @@ const AdminArticles = () => {
               <div><Label>Author</Label><Input value={form.author_name ?? ""} onChange={(e) => setForm({ ...form, author_name: e.target.value })} /></div>
             </div>
             <div><Label>Excerpt</Label><Textarea rows={2} value={form.excerpt ?? ""} onChange={(e) => setForm({ ...form, excerpt: e.target.value })} /></div>
-            <div><Label>Content</Label><Textarea rows={10} value={form.content ?? ""} onChange={(e) => setForm({ ...form, content: e.target.value })} /></div>
+            <div className="space-y-2">
+              <Label>Content</Label>
+              <RichTextEditor value={form.content ?? ""} onChange={(content) => setForm((current) => ({ ...current, content }))} />
+            </div>
             <div><Label>Cover image</Label><ImageUploadField folder="articles" value={form.cover_image} onChange={(url) => setForm({ ...form, cover_image: url })} /></div>
           </div>
           <div className="flex justify-end gap-2">

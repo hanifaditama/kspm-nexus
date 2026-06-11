@@ -27,6 +27,7 @@ export default defineConfig(({ mode }) => ({
           if (id.includes("@supabase")) return "vendor-supabase";
           if (id.includes("@tanstack")) return "vendor-query";
           if (id.includes("@radix-ui")) return "vendor-radix";
+          if (id.includes("@tiptap") || id.includes("prosemirror")) return "vendor-editor";
           if (id.includes("react-router") || id.includes("react-dom") || id.includes("/react/")) return "vendor-react";
           if (id.includes("lucide-react")) return "vendor-icons";
         },
