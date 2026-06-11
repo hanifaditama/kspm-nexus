@@ -18,24 +18,22 @@ const SYMBOLS: { symbol: string; name: string }[] = [
   { symbol: "BTC-USD", name: "Bitcoin" },
 ];
 
-async function fetchQuote(symbol: string, name: string): Promise<MarketItem | null> {
-  try {
-    const target = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d`;
-    const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(target)}`;
-    const res = await fetch(url);
-    if (!res.ok) return null;
-    const json = await res.json();
-    const result = json?.chart?.result?.[0];
-    const meta = result?.meta;
-    if (!meta) return null;
-    const value = Number(meta.regularMarketPrice);
-    const prev = Number(meta.chartPreviousClose ?? meta.previousClose);
-    const change = value - prev;
-    const changePercent = prev ? (change / prev) * 100 : 0;
-    return { name, value, change, changePercent };
-  } catch {
-    return null;
-  }
+async function fetchQuotes(): Promise<MarketItem[]> {
+  const symbols = SYMBOLS.map((item) => item.symbol).join(",");
+  const target = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(symbols)}`;
+  const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(target)}`;
+  const response = await fetch(url, { signal: AbortSignal.timeout(8_000) });
+  if (!response.ok) throw new Error("Market data request failed.");
+  const json = await response.json();
+  const quotes = json?.quoteResponse?.result ?? [];
+  return quotes.flatMap((quote: any) => {
+    const configured = SYMBOLS.find((item) => item.symbol === quote.symbol);
+    const value = Number(quote.regularMarketPrice);
+    const change = Number(quote.regularMarketChange);
+    const changePercent = Number(quote.regularMarketChangePercent);
+    if (!configured || !Number.isFinite(value)) return [];
+    return [{ name: configured.name, value, change, changePercent }];
+  });
 }
 
 const formatValue = (n: number) => {
@@ -75,19 +73,20 @@ const MarketTicker = () => {
   useEffect(() => {
     let active = true;
     const load = async () => {
-      const results = await Promise.all(SYMBOLS.map((s) => fetchQuote(s.symbol, s.name)));
-      if (!active) return;
-      const clean = results.filter((r): r is MarketItem => r !== null);
-      if (clean.length) setItems(clean);
-      else if (!items) setItems([]);
+      try {
+        const results = await fetchQuotes();
+        if (active && results.length) setItems(results);
+        else if (active) setItems((current) => current ?? []);
+      } catch {
+        if (active) setItems((current) => current ?? []);
+      }
     };
     load();
-    const id = setInterval(load, 60_000);
+    const id = setInterval(load, 20_000);
     return () => {
       active = false;
       clearInterval(id);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import AdminCrudShell from "@/components/admin/AdminCrudShell";
@@ -39,13 +39,14 @@ const AdminEvents = () => {
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
-  const fetchItems = async () => {
+  const fetchItems = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase.from("events").select("*").order("event_date", { ascending: true });
+    const { data, error } = await supabase.from("events").select("*").order("event_date", { ascending: true });
     setItems((data as EventRow[]) ?? []);
     setLoading(false);
-  };
-  useEffect(() => { fetchItems(); }, []);
+    if (error) toast({ title: "Could not load events", description: error.message, variant: "destructive" });
+  }, [toast]);
+  useEffect(() => { void fetchItems(); }, [fetchItems]);
 
   const openNew = () => { setForm(empty); setOpen(true); };
   const openEdit = (item: EventRow) => {
@@ -66,14 +67,19 @@ const AdminEvents = () => {
       type: form.type || "seminar",
       image: form.image || null,
     };
-    const { error } = form.id
-      ? await supabase.from("events").update(payload).eq("id", form.id)
-      : await supabase.from("events").insert(payload);
+    const { data, error } = form.id
+      ? await supabase.from("events").update(payload).eq("id", form.id).select("*").single()
+      : await supabase.from("events").insert(payload).select("*").single();
     setSaving(false);
     if (error) return toast({ title: "Save failed", description: error.message, variant: "destructive" });
     toast({ title: form.id ? "Event updated" : "Event created" });
+    setItems((current) => {
+      const next = form.id
+        ? current.map((item) => item.id === data.id ? data as EventRow : item)
+        : [...current, data as EventRow];
+      return next.sort((a, b) => a.event_date.localeCompare(b.event_date));
+    });
     setOpen(false);
-    fetchItems();
   };
 
   const remove = async (id: string) => {
@@ -81,7 +87,7 @@ const AdminEvents = () => {
     const { error } = await supabase.from("events").delete().eq("id", id);
     if (error) return toast({ title: "Delete failed", description: error.message, variant: "destructive" });
     toast({ title: "Event deleted" });
-    fetchItems();
+    setItems((current) => current.filter((item) => item.id !== id));
   };
 
   return (

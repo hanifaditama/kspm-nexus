@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -15,7 +14,6 @@ import FilePreviewDialog from "@/components/dashboard/FilePreviewDialog";
 
 const MemberDashboard = () => {
   const { user, profile, loading: authLoading, signOut } = useAuth();
-  const navigate = useNavigate();
   const { toast } = useToast();
   const [files, setFiles] = useState<MemberFile[]>([]);
   const [folders, setFolders] = useState<MemberFolder[]>([]);
@@ -27,10 +25,6 @@ const MemberDashboard = () => {
   const [previewFile, setPreviewFile] = useState<MemberFile | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
-
-  useEffect(() => {
-    if (!authLoading && !user) navigate("/login");
-  }, [user, authLoading, navigate]);
 
   const buildFolderPath = useCallback(async (folderId: string | null) => {
     if (!folderId) {
@@ -60,7 +54,7 @@ const MemberDashboard = () => {
 
     const folderQuery = supabase
       .from("member_folders")
-      .select("*")
+      .select("id,name,user_id,parent_id,created_at")
       .order("name", { ascending: true });
     if (currentFolderId) {
       folderQuery.eq("parent_id", currentFolderId);
@@ -70,7 +64,7 @@ const MemberDashboard = () => {
 
     const fileQuery = supabase
       .from("member_files")
-      .select("*")
+      .select("id,file_name,file_path,file_size,file_type,uploaded_by,folder_id,created_at")
       .order("created_at", { ascending: false });
     if (currentFolderId) {
       fileQuery.eq("folder_id", currentFolderId);
@@ -81,8 +75,12 @@ const MemberDashboard = () => {
     const [foldersRes, filesRes] = await Promise.all([folderQuery, fileQuery]);
     if (foldersRes.data) setFolders(foldersRes.data);
     if (filesRes.data) setFiles(filesRes.data);
+    const error = foldersRes.error ?? filesRes.error;
+    if (error) {
+      toast({ title: "Could not load files", description: error.message, variant: "destructive" });
+    }
     setLoadingFiles(false);
-  }, [currentFolderId]);
+  }, [currentFolderId, toast]);
 
   useEffect(() => {
     if (user) {
@@ -113,19 +111,28 @@ const MemberDashboard = () => {
 
   const handleDeleteFolder = async (folder: MemberFolder) => {
     if (folder.user_id !== user?.id) return;
+    if (!confirm(`Delete folder "${folder.name}"?`)) return;
     const { error } = await supabase.from("member_folders").delete().eq("id", folder.id);
-    if (!error) {
-      toast({ title: "Folder deleted" });
-      fetchContents();
+    if (error) {
+      toast({ title: "Delete failed", description: error.message, variant: "destructive" });
+      return;
     }
+    toast({ title: "Folder deleted" });
+    setFolders((current) => current.filter((item) => item.id !== folder.id));
   };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
+    if (file.size > 25 * 1024 * 1024) {
+      toast({ title: "File is too large", description: "Uploads must be 25 MB or smaller.", variant: "destructive" });
+      e.target.value = "";
+      return;
+    }
 
     setUploading(true);
-    const filePath = `${user.id}/${Date.now()}_${file.name}`;
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+    const filePath = `${user.id}/${Date.now()}_${safeName}`;
 
     const { error: uploadError } = await supabase.storage
       .from("member-files")
@@ -147,6 +154,7 @@ const MemberDashboard = () => {
     });
 
     if (dbError) {
+      await supabase.storage.from("member-files").remove([filePath]);
       toast({ title: "Error", description: dbError.message, variant: "destructive" });
     } else {
       toast({ title: "File uploaded successfully" });
@@ -202,17 +210,26 @@ const MemberDashboard = () => {
 
   const handleDelete = async (file: MemberFile) => {
     if (file.uploaded_by !== user?.id) return;
-    await supabase.storage.from("member-files").remove([file.file_path]);
-    const { error } = await supabase.from("member_files").delete().eq("id", file.id);
-    if (!error) {
-      toast({ title: "File deleted" });
-      fetchContents();
+    if (!confirm(`Delete "${file.file_name}"?`)) return;
+    const { error: storageError } = await supabase.storage.from("member-files").remove([file.file_path]);
+    if (storageError) {
+      toast({ title: "Delete failed", description: storageError.message, variant: "destructive" });
+      return;
     }
+    const { error } = await supabase.from("member_files").delete().eq("id", file.id);
+    if (error) {
+      toast({ title: "Delete failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "File deleted" });
+    setFiles((current) => current.filter((item) => item.id !== file.id));
   };
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate("/login");
+    const { error } = await signOut();
+    if (error) {
+      toast({ title: "Sign out failed", description: error, variant: "destructive" });
+    }
   };
 
   const filteredFolders = folders.filter((f) =>
@@ -235,14 +252,14 @@ const MemberDashboard = () => {
   return (
     <section className="min-h-[calc(100vh-4rem)] bg-background">
       <div className="border-b border-border bg-card">
-        <div className="container flex items-center justify-between py-6">
+        <div className="container flex flex-col items-start justify-between gap-4 py-6 sm:flex-row sm:items-center">
           <div>
             <h1 className="text-xl font-semibold text-foreground">Member Dashboard</h1>
             <p className="text-sm text-muted-foreground">
               Welcome, {profile?.display_name ?? user.email}
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
             
             <CreateFolderDialog onCreateFolder={handleCreateFolder} />
             {profile?.can_upload && (

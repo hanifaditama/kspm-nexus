@@ -1,31 +1,29 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import ArticleCard from "@/components/cards/ArticleCard";
 import EventCard from "@/components/cards/EventCard";
 import TeamCard from "@/components/cards/TeamCard";
-import { getArticles, getEvents, getTeam } from "@/lib/content";
+import { useArticles, useEvents, useTeam } from "@/hooks/useContentQueries";
 import { useRecruitmentStatus } from "@/hooks/useRecruitmentStatus";
 import { ArrowRight } from "lucide-react";
 
 const Index = () => {
-  const [articles, setArticles] = useState<any[]>([]);
-  const [events, setEvents] = useState<any[]>([]);
-  const [team, setTeam] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const articlesQuery = useArticles(3);
+  const eventsQuery = useEvents(3);
+  const teamQuery = useTeam(4);
+  const articles = articlesQuery.data ?? [];
+  const events = eventsQuery.data ?? [];
+  const team = teamQuery.data ?? [];
+  const loading = articlesQuery.isLoading || eventsQuery.isLoading || teamQuery.isLoading;
+  const loadError = articlesQuery.error || eventsQuery.error || teamQuery.error;
   const { isOpen: isRecruitmentOpen } = useRecruitmentStatus();
-
-  useEffect(() => {
-    Promise.all([getArticles(), getEvents(), getTeam()])
-      .then(([arts, evts, tm]) => {
-        setArticles((arts as any[]).slice(0, 3));
-        setEvents((evts as any[]).slice(0, 3));
-        setTeam((tm as any[]).slice(0, 4));
-      })
-      .finally(() => setLoading(false));
-  }, []);
 
   return (
     <div>
+      {loadError && (
+        <div className="border-b border-destructive/20 bg-destructive/10 px-4 py-3 text-center text-sm text-destructive">
+          Some live content could not be loaded. Please try again shortly.
+        </div>
+      )}
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-border">
         {/* Gradient background with decorative elements */}

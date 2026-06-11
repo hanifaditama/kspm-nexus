@@ -1,19 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Section from "@/components/layout/Section";
 import SectionHeader from "@/components/layout/SectionHeader";
 import TeamCard from "@/components/cards/TeamCard";
-import { getTeam } from "@/lib/content";
+import { useTeam } from "@/hooks/useContentQueries";
 
 const Team = () => {
-  const [team, setTeam] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: team = [], isLoading: loading, error } = useTeam();
   const [active, setActive] = useState("All");
-
-  useEffect(() => {
-    getTeam()
-      .then(setTeam)
-      .finally(() => setLoading(false));
-  }, []);
 
   const divisions = ["All", ...Array.from(new Set(team.map((m) => m.division).filter(Boolean)))];
   const filtered = active === "All" ? team : team.filter((m) => m.division === active);
@@ -25,6 +18,7 @@ const Team = () => {
         title="Meet Our Team"
         description="The dedicated individuals driving KSPM's mission forward."
       />
+      {error && <p className="mb-6 rounded-md bg-destructive/10 p-4 text-sm text-destructive">Team members could not be loaded.</p>}
 
       {!loading && team.length > 0 && (
         <div className="mb-8 flex flex-wrap justify-center gap-2">

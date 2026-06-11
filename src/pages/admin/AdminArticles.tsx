@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import AdminCrudShell from "@/components/admin/AdminCrudShell";
@@ -43,14 +43,15 @@ const AdminArticles = () => {
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
-  const fetchItems = async () => {
+  const fetchItems = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase.from("articles").select("*").order("published_at", { ascending: false });
+    const { data, error } = await supabase.from("articles").select("*").order("published_at", { ascending: false });
     setItems((data as Article[]) ?? []);
     setLoading(false);
-  };
+    if (error) toast({ title: "Could not load articles", description: error.message, variant: "destructive" });
+  }, [toast]);
 
-  useEffect(() => { fetchItems(); }, []);
+  useEffect(() => { void fetchItems(); }, [fetchItems]);
 
   const openNew = () => { setForm(empty); setOpen(true); };
   const openEdit = (item: Article) => { setForm(item); setOpen(true); };
@@ -68,17 +69,19 @@ const AdminArticles = () => {
       author_name: form.author_name || null,
       cover_image: form.cover_image || null,
     };
-    const { error } = form.id
-      ? await supabase.from("articles").update(payload).eq("id", form.id)
-      : await supabase.from("articles").insert(payload);
+    const { data, error } = form.id
+      ? await supabase.from("articles").update(payload).eq("id", form.id).select("*").single()
+      : await supabase.from("articles").insert(payload).select("*").single();
     setSaving(false);
     if (error) {
       toast({ title: "Save failed", description: error.message, variant: "destructive" });
       return;
     }
     toast({ title: form.id ? "Article updated" : "Article created" });
+    setItems((current) => form.id
+      ? current.map((item) => item.id === data.id ? data as Article : item)
+      : [data as Article, ...current]);
     setOpen(false);
-    fetchItems();
   };
 
   const remove = async (id: string) => {
@@ -86,7 +89,7 @@ const AdminArticles = () => {
     const { error } = await supabase.from("articles").delete().eq("id", id);
     if (error) return toast({ title: "Delete failed", description: error.message, variant: "destructive" });
     toast({ title: "Article deleted" });
-    fetchItems();
+    setItems((current) => current.filter((item) => item.id !== id));
   };
 
   return (

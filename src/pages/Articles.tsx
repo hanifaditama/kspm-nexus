@@ -1,8 +1,8 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import Section from "@/components/layout/Section";
 import ArticleCard from "@/components/cards/ArticleCard";
-import { getArticles } from "@/lib/content";
+import { useArticles } from "@/hooks/useContentQueries";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import MarketTicker from "@/components/MarketTicker";
 
@@ -10,14 +10,7 @@ const categories = ["All", "Market Analysis", "Economics", "Sustainable Finance"
 
 const Articles = () => {
   const [activeCategory, setActiveCategory] = useState("All");
-  const [articles, setArticles] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    getArticles()
-      .then(setArticles)
-      .finally(() => setLoading(false));
-  }, []);
+  const { data: articles = [], isLoading: loading, error } = useArticles();
 
   const filtered = useMemo(
     () =>
@@ -55,6 +48,12 @@ const Articles = () => {
 
 
       <MarketTicker />
+
+      {error && (
+        <div className="container py-6">
+          <p className="rounded-md bg-destructive/10 p-4 text-sm text-destructive">Articles could not be loaded.</p>
+        </div>
+      )}
 
       {/* Loading state */}
       {loading && (

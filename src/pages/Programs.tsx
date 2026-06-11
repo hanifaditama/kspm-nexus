@@ -1,18 +1,10 @@
-import { useEffect, useState } from "react";
 import Section from "@/components/layout/Section";
 import SectionHeader from "@/components/layout/SectionHeader";
 import ProgramCard from "@/components/cards/ProgramCard";
-import { getPrograms } from "@/lib/content";
+import { usePrograms } from "@/hooks/useContentQueries";
 
 const Programs = () => {
-  const [programs, setPrograms] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    getPrograms()
-      .then(setPrograms)
-      .finally(() => setLoading(false));
-  }, []);
+  const { data: programs = [], isLoading: loading, error } = usePrograms();
 
   return (
     <Section>
@@ -21,6 +13,7 @@ const Programs = () => {
         title="Our Programs"
         description="Explore our comprehensive programs designed to build expertise in capital markets, from beginner to advanced levels."
       />
+      {error && <p className="mb-6 rounded-md bg-destructive/10 p-4 text-sm text-destructive">Programs could not be loaded.</p>}
       {loading ? (
         <div className="grid gap-6 md:grid-cols-2">
           {Array.from({ length: 4 }).map((_, i) => (

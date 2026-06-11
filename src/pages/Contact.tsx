@@ -1,14 +1,53 @@
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import Section from "@/components/layout/Section";
 import SectionHeader from "@/components/layout/SectionHeader";
-import { Mail, MapPin, Phone } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Mail, MapPin, Send } from "lucide-react";
+import { submitContactForm } from "@/services/contactService";
+
+const contactSchema = z.object({
+  name: z.string().trim().min(2, "Please enter your name.").max(100),
+  email: z.string().trim().email("Please enter a valid email address.").max(254),
+  message: z.string().trim().min(10, "Please include at least 10 characters.").max(5000),
+  website: z.string().max(0).optional(),
+});
+
+type ContactFields = z.infer<typeof contactSchema>;
 
 const Contact = () => {
-  const [submitted, setSubmitted] = useState(false);
+  const [result, setResult] = useState<{ message: string; sent: boolean } | null>(null);
+  const [submitError, setSubmitError] = useState("");
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<ContactFields>({
+    resolver: zodResolver(contactSchema),
+    defaultValues: { name: "", email: "", message: "", website: "" },
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitted(true);
+  const onSubmit = async (values: ContactFields) => {
+    setSubmitError("");
+    setResult(null);
+    try {
+      const response = await submitContactForm({
+        name: values.name ?? "",
+        email: values.email ?? "",
+        message: values.message ?? "",
+        website: values.website,
+      });
+      setResult(response);
+      reset();
+    } catch {
+      setSubmitError("We could not send your message right now. Please email us directly.");
+    }
   };
 
   return (
@@ -22,16 +61,9 @@ const Contact = () => {
             </div>
             <div>
               <h3 className="font-semibold text-foreground">Email</h3>
-              <p className="text-sm text-muted-foreground">kspm@university.ac.id</p>
-            </div>
-          </div>
-          <div className="flex gap-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
-              <Phone className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-foreground">Phone</h3>
-              <p className="text-sm text-muted-foreground">+62 812 3456 7890</p>
+              <a className="text-sm text-muted-foreground hover:text-accent" href="mailto:investment.club@uph.edu">
+                investment.club@uph.edu
+              </a>
             </div>
           </div>
           <div className="flex gap-4">
@@ -40,37 +72,47 @@ const Contact = () => {
             </div>
             <div>
               <h3 className="font-semibold text-foreground">Location</h3>
-              <p className="text-sm text-muted-foreground">Faculty of Economics & Business<br />Room 305, 3rd Floor</p>
+              <p className="text-sm text-muted-foreground">Universitas Pelita Harapan<br />Tangerang, Indonesia</p>
             </div>
           </div>
         </div>
 
-        {submitted ? (
-          <div className="flex items-center justify-center rounded-lg border border-border bg-card p-12 text-center">
-            <div>
-              <p className="text-lg font-semibold text-foreground">Thank you!</p>
-              <p className="mt-2 text-sm text-muted-foreground">We'll get back to you soon.</p>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 rounded-lg border border-border bg-card p-6 sm:p-8" noValidate>
+          {result && (
+            <div className="rounded-md border border-accent/30 bg-accent/10 px-4 py-3 text-sm text-foreground" role="status">
+              {result.message}
             </div>
+          )}
+          {submitError && (
+            <div className="rounded-md bg-destructive/10 px-4 py-3 text-sm text-destructive" role="alert">
+              {submitError}{" "}
+              <a className="font-medium underline" href="mailto:investment.club@uph.edu">investment.club@uph.edu</a>
+            </div>
+          )}
+          <div className="hidden" aria-hidden="true">
+            <Label htmlFor="website">Website</Label>
+            <Input id="website" tabIndex={-1} autoComplete="off" {...register("website")} />
           </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-5 rounded-lg border border-border bg-card p-8">
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-foreground">Name</label>
-              <input required className="w-full rounded-md border border-input bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" placeholder="Your name" />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-foreground">Email</label>
-              <input required type="email" className="w-full rounded-md border border-input bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" placeholder="you@example.com" />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-foreground">Message</label>
-              <textarea required rows={4} className="w-full rounded-md border border-input bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" placeholder="Your message..." />
-            </div>
-            <button type="submit" className="w-full rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
-              Send Message
-            </button>
-          </form>
-        )}
+          <div className="space-y-1.5">
+            <Label htmlFor="contact-name">Name</Label>
+            <Input id="contact-name" autoComplete="name" {...register("name")} aria-invalid={Boolean(errors.name)} />
+            {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="contact-email">Email</Label>
+            <Input id="contact-email" type="email" autoComplete="email" {...register("email")} aria-invalid={Boolean(errors.email)} />
+            {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="contact-message">Message</Label>
+            <Textarea id="contact-message" rows={5} {...register("message")} aria-invalid={Boolean(errors.message)} />
+            {errors.message && <p className="text-xs text-destructive">{errors.message.message}</p>}
+          </div>
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            <Send className="mr-2 h-4 w-4" />
+            {isSubmitting ? "Sending..." : "Send Message"}
+          </Button>
+        </form>
       </div>
     </Section>
   );

@@ -31,8 +31,8 @@ const Navbar = () => {
   const { isOpen: isRecruitmentOpen } = useRecruitmentStatus();
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate("/");
+    const { error } = await signOut();
+    if (!error) navigate("/");
   };
 
   return (

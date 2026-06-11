@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -19,8 +18,7 @@ const MemberLogin = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-  const { signIn, user } = useAuth();
-  const navigate = useNavigate();
+  const { signIn } = useAuth();
   const { toast } = useToast();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -30,8 +28,6 @@ const MemberLogin = () => {
     const { error: signInError } = await signIn(email, password);
     if (signInError) {
       setError("Invalid credentials. Please try again.");
-    } else {
-      navigate("/member");
     }
     setLoading(false);
   };

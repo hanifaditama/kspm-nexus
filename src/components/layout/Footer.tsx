@@ -41,7 +41,9 @@ const Footer = () => (
         <div className="space-y-4">
           <h4 className="text-sm font-semibold uppercase tracking-wider text-primary-foreground/50">Connect</h4>
           <div className="flex flex-col gap-2 text-sm text-primary-foreground/70">
-            <span>kspm@university.ac.id</span>
+            <a href="mailto:investment.club@uph.edu" className="transition-colors hover:text-primary-foreground">
+              investment.club@uph.edu
+            </a>
             <span>@kspm_official</span>
           </div>
         </div>

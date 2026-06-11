@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import AdminCrudShell from "@/components/admin/AdminCrudShell";
@@ -31,13 +31,14 @@ const AdminPrograms = () => {
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
-  const fetchItems = async () => {
+  const fetchItems = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase.from("programs").select("*").order("display_order");
+    const { data, error } = await supabase.from("programs").select("*").order("display_order");
     setItems((data as ProgramRow[]) ?? []);
     setLoading(false);
-  };
-  useEffect(() => { fetchItems(); }, []);
+    if (error) toast({ title: "Could not load programs", description: error.message, variant: "destructive" });
+  }, [toast]);
+  useEffect(() => { void fetchItems(); }, [fetchItems]);
 
   const openNew = () => { setForm(empty); setFeaturesText(""); setOpen(true); };
   const openEdit = (item: ProgramRow) => {
@@ -58,14 +59,19 @@ const AdminPrograms = () => {
       image: form.image || null,
       display_order: form.display_order ?? 0,
     };
-    const { error } = form.id
-      ? await supabase.from("programs").update(payload).eq("id", form.id)
-      : await supabase.from("programs").insert(payload);
+    const { data, error } = form.id
+      ? await supabase.from("programs").update(payload).eq("id", form.id).select("*").single()
+      : await supabase.from("programs").insert(payload).select("*").single();
     setSaving(false);
     if (error) return toast({ title: "Save failed", description: error.message, variant: "destructive" });
     toast({ title: form.id ? "Program updated" : "Program created" });
+    setItems((current) => {
+      const next = form.id
+        ? current.map((item) => item.id === data.id ? data as ProgramRow : item)
+        : [...current, data as ProgramRow];
+      return next.sort((a, b) => a.display_order - b.display_order);
+    });
     setOpen(false);
-    fetchItems();
   };
 
   const remove = async (id: string) => {
@@ -73,7 +79,7 @@ const AdminPrograms = () => {
     const { error } = await supabase.from("programs").delete().eq("id", id);
     if (error) return toast({ title: "Delete failed", description: error.message, variant: "destructive" });
     toast({ title: "Program deleted" });
-    fetchItems();
+    setItems((current) => current.filter((item) => item.id !== id));
   };
 
   return (

@@ -1,18 +1,10 @@
-import { useState, useEffect } from "react";
 import Section from "@/components/layout/Section";
 import SectionHeader from "@/components/layout/SectionHeader";
 import EventCard from "@/components/cards/EventCard";
-import { getEvents } from "@/lib/content";
+import { useEvents } from "@/hooks/useContentQueries";
 
 const Events = () => {
-  const [events, setEvents] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    getEvents()
-      .then(setEvents)
-      .finally(() => setLoading(false));
-  }, []);
+  const { data: events = [], isLoading: loading, error } = useEvents();
 
   return (
     <Section>
@@ -21,6 +13,7 @@ const Events = () => {
         title="Upcoming Events"
         description="Join our seminars, workshops, and competitions to expand your knowledge and network."
       />
+      {error && <p className="mb-6 rounded-md bg-destructive/10 p-4 text-sm text-destructive">Events could not be loaded.</p>}
 
       {loading && (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

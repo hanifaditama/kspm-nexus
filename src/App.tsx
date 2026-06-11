@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -5,27 +6,43 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Layout from "@/components/layout/Layout";
-import Index from "./pages/Index";
-import About from "./pages/About";
-import Programs from "./pages/Programs";
-import Articles from "./pages/Articles";
-import Events from "./pages/Events";
-import Team from "./pages/Team";
-import Contact from "./pages/Contact";
-import Recruitment from "./pages/Recruitment";
-import ArticleDetail from "./pages/ArticleDetail";
-import MemberLogin from "./pages/MemberLogin";
-import MemberDashboard from "./pages/MemberDashboard";
-import ResetPassword from "./pages/ResetPassword";
-import NotFound from "./pages/NotFound";
-import AdminLayout from "./pages/admin/AdminLayout";
-import AdminHome from "./pages/admin/AdminHome";
-import AdminArticles from "./pages/admin/AdminArticles";
-import AdminEvents from "./pages/admin/AdminEvents";
-import AdminTeam from "./pages/admin/AdminTeam";
-import AdminPrograms from "./pages/admin/AdminPrograms";
+import { ProtectedRoute, PublicOnlyRoute } from "@/routes/ProtectedRoute";
 
-const queryClient = new QueryClient();
+const Index = lazy(() => import("./pages/Index"));
+const About = lazy(() => import("./pages/About"));
+const Programs = lazy(() => import("./pages/Programs"));
+const Articles = lazy(() => import("./pages/Articles"));
+const Events = lazy(() => import("./pages/Events"));
+const Team = lazy(() => import("./pages/Team"));
+const Contact = lazy(() => import("./pages/Contact"));
+const Recruitment = lazy(() => import("./pages/Recruitment"));
+const ArticleDetail = lazy(() => import("./pages/ArticleDetail"));
+const MemberLogin = lazy(() => import("./pages/MemberLogin"));
+const MemberDashboard = lazy(() => import("./pages/MemberDashboard"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
+const AdminHome = lazy(() => import("./pages/admin/AdminHome"));
+const AdminArticles = lazy(() => import("./pages/admin/AdminArticles"));
+const AdminEvents = lazy(() => import("./pages/admin/AdminEvents"));
+const AdminTeam = lazy(() => import("./pages/admin/AdminTeam"));
+const AdminPrograms = lazy(() => import("./pages/admin/AdminPrograms"));
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60_000,
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+const RouteFallback = () => (
+  <div className="container flex min-h-[50vh] items-center justify-center text-sm text-muted-foreground">
+    Loading...
+  </div>
+);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -35,28 +52,30 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Layout>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/programs" element={<Programs />} />
-              <Route path="/articles" element={<Articles />} />
-              <Route path="/articles/:slug" element={<ArticleDetail />} />
-              <Route path="/events" element={<Events />} />
-              <Route path="/team" element={<Team />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/recruitment" element={<Recruitment />} />
-              <Route path="/login" element={<MemberLogin />} />
-              <Route path="/member" element={<MemberDashboard />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/admin" element={<AdminLayout />}>
-                <Route index element={<AdminHome />} />
-                <Route path="articles" element={<AdminArticles />} />
-                <Route path="events" element={<AdminEvents />} />
-                <Route path="team" element={<AdminTeam />} />
-                <Route path="programs" element={<AdminPrograms />} />
-              </Route>
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <Suspense fallback={<RouteFallback />}>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/programs" element={<Programs />} />
+                <Route path="/articles" element={<Articles />} />
+                <Route path="/articles/:slug" element={<ArticleDetail />} />
+                <Route path="/events" element={<Events />} />
+                <Route path="/team" element={<Team />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/recruitment" element={<Recruitment />} />
+                <Route path="/login" element={<PublicOnlyRoute><MemberLogin /></PublicOnlyRoute>} />
+                <Route path="/member" element={<ProtectedRoute><MemberDashboard /></ProtectedRoute>} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminLayout /></ProtectedRoute>}>
+                  <Route index element={<AdminHome />} />
+                  <Route path="articles" element={<AdminArticles />} />
+                  <Route path="events" element={<AdminEvents />} />
+                  <Route path="team" element={<AdminTeam />} />
+                  <Route path="programs" element={<AdminPrograms />} />
+                </Route>
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
           </Layout>
         </AuthProvider>
       </BrowserRouter>

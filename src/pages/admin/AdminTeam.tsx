@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import AdminCrudShell from "@/components/admin/AdminCrudShell";
@@ -31,13 +31,14 @@ const AdminTeam = () => {
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
-  const fetchItems = async () => {
+  const fetchItems = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase.from("team_members").select("*").order("display_order").order("name");
+    const { data, error } = await supabase.from("team_members").select("*").order("display_order").order("name");
     setItems((data as TeamRow[]) ?? []);
     setLoading(false);
-  };
-  useEffect(() => { fetchItems(); }, []);
+    if (error) toast({ title: "Could not load team", description: error.message, variant: "destructive" });
+  }, [toast]);
+  useEffect(() => { void fetchItems(); }, [fetchItems]);
 
   const openNew = () => { setForm(empty); setOpen(true); };
   const openEdit = (item: TeamRow) => { setForm(item); setOpen(true); };
@@ -54,14 +55,19 @@ const AdminTeam = () => {
       photo: form.photo || null,
       display_order: form.display_order ?? 0,
     };
-    const { error } = form.id
-      ? await supabase.from("team_members").update(payload).eq("id", form.id)
-      : await supabase.from("team_members").insert(payload);
+    const { data, error } = form.id
+      ? await supabase.from("team_members").update(payload).eq("id", form.id).select("*").single()
+      : await supabase.from("team_members").insert(payload).select("*").single();
     setSaving(false);
     if (error) return toast({ title: "Save failed", description: error.message, variant: "destructive" });
     toast({ title: form.id ? "Member updated" : "Member added" });
+    setItems((current) => {
+      const next = form.id
+        ? current.map((item) => item.id === data.id ? data as TeamRow : item)
+        : [...current, data as TeamRow];
+      return next.sort((a, b) => a.display_order - b.display_order || a.name.localeCompare(b.name));
+    });
     setOpen(false);
-    fetchItems();
   };
 
   const remove = async (id: string) => {
@@ -69,7 +75,7 @@ const AdminTeam = () => {
     const { error } = await supabase.from("team_members").delete().eq("id", id);
     if (error) return toast({ title: "Delete failed", description: error.message, variant: "destructive" });
     toast({ title: "Member deleted" });
-    fetchItems();
+    setItems((current) => current.filter((item) => item.id !== id));
   };
 
   return (

@@ -1,7 +1,4 @@
-import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { Link, Outlet, useLocation } from "react-router-dom";
 import { FileText, Calendar, Users, BookOpen, LayoutDashboard, ArrowLeft } from "lucide-react";
 
 const navItems = [
@@ -13,29 +10,7 @@ const navItems = [
 ];
 
 const AdminLayout = () => {
-  const { user, loading: authLoading } = useAuth();
-  const { isAdmin, loading: roleLoading } = useIsAdmin();
-  const navigate = useNavigate();
   const { pathname } = useLocation();
-
-  useEffect(() => {
-    if (!authLoading && !user) navigate("/login");
-  }, [authLoading, user, navigate]);
-
-  if (authLoading || roleLoading) {
-    return <div className="container py-20 text-center text-muted-foreground">Loading...</div>;
-  }
-  if (!user) return null;
-  if (!isAdmin) {
-    return (
-      <div className="container py-20 text-center">
-        <h1 className="text-xl font-semibold text-foreground">Access denied</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          You need admin permissions to view this page.
-        </p>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-background">

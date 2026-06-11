@@ -1,92 +1,106 @@
 import { supabase } from "@/integrations/supabase/client";
 
-// Returned shapes mirror the previous Sanity queries so consumer components keep working.
+function assertNoError(error: { message: string } | null) {
+  if (error) throw new Error(error.message);
+}
 
-export async function getArticles() {
-  // Omit `content` here — it's huge and only ArticleDetail needs it.
-  const { data } = await supabase
+export async function getArticles(limit?: number) {
+  let query = supabase
     .from("articles")
     .select("id,title,slug,excerpt,category,published_at,author_name,cover_image")
     .order("published_at", { ascending: false });
-  return (data ?? []).map((a) => ({
-    _id: a.id,
-    title: a.title,
-    slug: a.slug,
-    excerpt: a.excerpt,
-    category: a.category,
-    publishedAt: a.published_at,
-    author: { name: a.author_name },
-    mainImage: a.cover_image,
+  if (limit) query = query.limit(limit);
+  const { data, error } = await query;
+  assertNoError(error);
+  return (data ?? []).map((article) => ({
+    _id: article.id,
+    title: article.title,
+    slug: article.slug,
+    excerpt: article.excerpt ?? "",
+    category: article.category ?? "General",
+    publishedAt: article.published_at,
+    author: { name: article.author_name ?? "KSPM Nexus" },
+    mainImage: article.cover_image,
     content: null as string | null,
   }));
 }
 
 export async function getArticleBySlug(slug: string) {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("articles")
     .select("*")
     .eq("slug", slug)
     .maybeSingle();
+  assertNoError(error);
   if (!data) return null;
   return {
     _id: data.id,
     title: data.title,
     slug: data.slug,
-    excerpt: data.excerpt,
-    category: data.category,
+    excerpt: data.excerpt ?? "",
+    category: data.category ?? "General",
     publishedAt: data.published_at,
-    author: { name: data.author_name },
+    author: { name: data.author_name ?? "KSPM Nexus" },
     mainImage: data.cover_image,
     content: data.content,
   };
 }
 
-export async function getEvents() {
-  const { data } = await supabase
+export async function getEvents(limit?: number) {
+  let query = supabase
     .from("events")
-    .select("*")
+    .select("id,title,slug,type,event_date,event_time,location,description,image")
     .order("event_date", { ascending: true });
-  return (data ?? []).map((e) => ({
-    _id: e.id,
-    title: e.title,
-    slug: e.slug,
-    type: e.type,
-    date: e.event_date,
-    time: e.event_time,
-    location: e.location,
-    description: e.description,
-    image: e.image,
+  if (limit) query = query.limit(limit);
+  const { data, error } = await query;
+  assertNoError(error);
+  return (data ?? []).map((event) => ({
+    _id: event.id,
+    title: event.title,
+    slug: event.slug,
+    type: event.type as "seminar" | "workshop" | "competition" | "webinar",
+    date: event.event_date,
+    time: event.event_time ?? "",
+    location: event.location ?? "",
+    description: event.description ?? "",
+    image: event.image,
   }));
 }
 
-export async function getTeam() {
-  const { data } = await supabase
+export async function getTeam(limit?: number) {
+  let query = supabase
     .from("team_members")
-    .select("*")
+    .select("id,name,role,division,linkedin,bio,photo")
     .order("display_order", { ascending: true })
     .order("name", { ascending: true });
-  return (data ?? []).map((m) => ({
-    _id: m.id,
-    name: m.name,
-    role: m.role,
-    division: m.division,
-    linkedin: m.linkedin,
-    bio: m.bio,
-    image: m.photo,
+  if (limit) query = query.limit(limit);
+  const { data, error } = await query;
+  assertNoError(error);
+  return (data ?? []).map((member) => ({
+    _id: member.id,
+    name: member.name,
+    role: member.role,
+    division: member.division ?? "General",
+    linkedin: member.linkedin,
+    bio: member.bio,
+    image: member.photo,
   }));
 }
 
-export async function getPrograms() {
-  const { data } = await supabase
+export async function getPrograms(limit?: number) {
+  let query = supabase
     .from("programs")
-    .select("*")
+    .select("id,title,description,icon,features,image")
     .order("display_order", { ascending: true });
-  return (data ?? []).map((p) => ({
-    _id: p.id,
-    title: p.title,
-    description: p.description,
-    icon: p.icon,
-    features: p.features ?? [],
-    image: p.image,
+  if (limit) query = query.limit(limit);
+  const { data, error } = await query;
+  assertNoError(error);
+  return (data ?? []).map((program) => ({
+    _id: program.id,
+    title: program.title,
+    description: program.description ?? "",
+    icon: program.icon ?? "BookOpen",
+    features: program.features ?? [],
+    image: program.image,
   }));
 }

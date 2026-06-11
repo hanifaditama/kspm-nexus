@@ -1,6 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getArticleBySlug, getArticles } from "@/lib/content";
+import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Share2 } from "lucide-react";
 
 // ─── Portable Text renderer (Medium-style, unstyled — CSS handles it) ─────
@@ -37,22 +38,41 @@ const ArticleDetail = () => {
   const [article, setArticle] = useState<any>(null);
   const [related, setRelated] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  const handleShare = async () => {
+    const shareData = { title: article?.title, url: window.location.href };
+    if (navigator.share) {
+      await navigator.share(shareData).catch(() => undefined);
+      return;
+    }
+    await navigator.clipboard.writeText(window.location.href);
+    toast({ title: "Article link copied" });
+  };
 
   useEffect(() => {
     if (!slug) return;
     let cancelled = false;
     setLoading(true);
     // Load the article first so the page renders ASAP.
-    getArticleBySlug(slug).then((art) => {
-      if (cancelled) return;
-      setArticle(art ?? null);
-      setLoading(false);
-    });
+    getArticleBySlug(slug)
+      .then((art) => {
+        if (cancelled) return;
+        setArticle(art ?? null);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setArticle(null);
+        setLoading(false);
+      });
     // Load related articles in the background — don't block render.
-    getArticles().then((all) => {
-      if (cancelled) return;
-      setRelated((all as any[]).filter((a) => a.slug !== slug).slice(0, 3));
-    });
+    getArticles()
+      .then((all) => {
+        if (cancelled) return;
+        setRelated((all as any[]).filter((a) => a.slug !== slug).slice(0, 3));
+      })
+      .catch(() => setRelated([]));
     return () => { cancelled = true; };
   }, [slug]);
 
@@ -64,7 +84,7 @@ const ArticleDetail = () => {
         <div className="h-6 w-3/4 rounded bg-muted" />
         <div className="mt-8 space-y-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-4 rounded bg-muted" style={{ width: `${85 + Math.random() * 15}%` }} />
+            <div key={i} className="h-4 rounded bg-muted" style={{ width: `${88 + (i % 3) * 5}%` }} />
           ))}
         </div>
       </div>
@@ -104,7 +124,7 @@ const ArticleDetail = () => {
             <ArrowLeft className="h-4 w-4" />
             Articles
           </Link>
-          <button className="flex items-center gap-2 text-sm text-[#6b6b6b] transition-colors hover:text-black">
+          <button onClick={handleShare} className="flex items-center gap-2 text-sm text-[#6b6b6b] transition-colors hover:text-black">
             <Share2 className="h-4 w-4" />
             Share
           </button>
@@ -142,7 +162,7 @@ const ArticleDetail = () => {
           <span className="rounded-full bg-[#f2f2f2] px-3 py-1 text-xs font-medium uppercase tracking-wider text-[#242424]">
             {article.category}
           </span>
-          <button className="flex items-center gap-2 text-sm hover:text-black">
+          <button onClick={handleShare} className="flex items-center gap-2 text-sm hover:text-black" aria-label="Share article">
             <Share2 className="h-[18px] w-[18px]" />
           </button>
         </div>
