@@ -64,7 +64,7 @@ const AdminArticles = () => {
       title: form.title,
       slug,
       excerpt: form.excerpt || null,
-      category: form.category || null,
+      category: form.category?.trim() || null,
       content: form.content || null,
       author_name: form.author_name || null,
       cover_image: form.cover_image || null,
@@ -133,7 +133,19 @@ const AdminArticles = () => {
             <div><Label>Title</Label><Input value={form.title ?? ""} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
             <div><Label>Slug</Label><Input placeholder="auto from title" value={form.slug ?? ""} onChange={(e) => setForm({ ...form, slug: e.target.value })} /></div>
             <div className="grid gap-4 sm:grid-cols-2">
-              <div><Label>Category</Label><Input value={form.category ?? ""} onChange={(e) => setForm({ ...form, category: e.target.value })} /></div>
+              <div>
+                <Label>Category</Label>
+                <Input
+                  list="article-categories"
+                  value={form.category ?? ""}
+                  onChange={(e) => setForm({ ...form, category: e.target.value })}
+                />
+                <datalist id="article-categories">
+                  {["Market Analysis", "Economics", "Sustainable Finance", "Commodities", "Stocks"].map((category) => (
+                    <option key={category} value={category} />
+                  ))}
+                </datalist>
+              </div>
               <div><Label>Author</Label><Input value={form.author_name ?? ""} onChange={(e) => setForm({ ...form, author_name: e.target.value })} /></div>
             </div>
             <div><Label>Excerpt</Label><Textarea rows={2} value={form.excerpt ?? ""} onChange={(e) => setForm({ ...form, excerpt: e.target.value })} /></div>

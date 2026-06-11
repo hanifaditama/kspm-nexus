@@ -6,17 +6,28 @@ import { useArticles } from "@/hooks/useContentQueries";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import MarketTicker from "@/components/MarketTicker";
 
-const categories = ["All", "Market Analysis", "Economics", "Sustainable Finance", "Commodities", "Stocks"];
+const normalizeCategory = (category: string) => category.trim().toLocaleLowerCase();
 
 const Articles = () => {
   const [activeCategory, setActiveCategory] = useState("All");
   const { data: articles = [], isLoading: loading, error } = useArticles();
 
+  const categories = useMemo(() => {
+    const unique = new Map<string, string>();
+    articles.forEach((article) => {
+      const label = article.category.trim();
+      if (label) unique.set(normalizeCategory(label), label);
+    });
+    return ["All", ...Array.from(unique.values()).sort((a, b) => a.localeCompare(b))];
+  }, [articles]);
+
   const filtered = useMemo(
     () =>
       activeCategory === "All"
         ? articles
-        : articles.filter((a) => a.category === activeCategory),
+        : articles.filter((article) =>
+            normalizeCategory(article.category) === normalizeCategory(activeCategory)
+          ),
     [activeCategory, articles]
   );
 
@@ -139,6 +150,11 @@ const Articles = () => {
                 <ArticleCard key={a._id} article={a} />
               ))}
             </div>
+            {activeCategory !== "All" && filtered.length === 0 && (
+              <div className="rounded-md border border-dashed border-border py-12 text-center text-muted-foreground">
+                No articles found in this category.
+              </div>
+            )}
           </Section>
         </>
       )}
