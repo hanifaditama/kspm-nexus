@@ -1,4 +1,4 @@
-project_id = "vjwgxnpengrweawthbtd"
+project_id = "kwktjzcxheklrjehtnoo"
 
 [functions.account-recovery]
 verify_jwt = false
