@@ -31,10 +31,12 @@ supabase db push
 supabase functions deploy market-data
 supabase functions deploy create-member
 supabase functions deploy account-recovery
-supabase secrets set RESEND_API_KEY=... APP_URL=... KSPM_EMAIL_DOMAIN=kspm.uph.edu ACCOUNT_FROM_EMAIL=... ACCOUNT_HASH_SALT=...
+supabase secrets set RESEND_API_KEY=... APP_URL=... KSPM_EMAIL_DOMAIN=kspm.uph ACCOUNT_FROM_EMAIL=... ACCOUNT_HASH_SALT=...
 ```
 
 Administrators can create member accounts from **Admin > Access Control**. The account uses a KSPM login email and a separate recovery email. Initial credentials and custom password recovery links are delivered to the recovery email through Resend. New members must replace their temporary password on first sign-in. `APP_URL` must match the deployed frontend URL, and `ACCOUNT_FROM_EMAIL` must use a sender/domain verified in Resend.
+
+Only the Primary Administrator can open **Access Control**, create member accounts, or assign permissions. The Primary Administrator can transfer ownership to another member from that page. A transfer grants full administrator access to the new owner and removes the previous owner's administrator role.
 
 Add `${APP_URL}/reset-password` to the Supabase Auth redirect URL allow list so generated recovery links can open the password form.
 

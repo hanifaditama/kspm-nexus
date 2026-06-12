@@ -20,7 +20,7 @@ const AdminHome = () => {
   const { isOpen, loading, refresh } = useRecruitmentStatus();
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
-  const { isAdmin, hasPermission } = useAuth();
+  const { isPrimaryAdmin, hasPermission } = useAuth();
   const canEditRecruitment = hasPermission("recruitment");
   const visibleCards = cards.filter((card) => hasPermission(card.permission));
 
@@ -83,7 +83,7 @@ const AdminHome = () => {
           );
         })}
       </div>
-      {isAdmin && (
+      {isPrimaryAdmin && (
         <Link
           to="/admin/access"
           className="mt-4 flex items-center gap-4 rounded-lg border border-border bg-card p-5 transition-colors hover:border-accent/40"

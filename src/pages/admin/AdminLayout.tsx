@@ -9,14 +9,14 @@ const navItems = [
   { to: "/admin/events", label: "Events", icon: Calendar, permission: "events" as ContentPermission },
   { to: "/admin/team", label: "Team", icon: Users, permission: "team" as ContentPermission },
   { to: "/admin/programs", label: "Programs", icon: BookOpen, permission: "programs" as ContentPermission },
-  { to: "/admin/access", label: "Access Control", icon: ShieldCheck, adminOnly: true },
+  { to: "/admin/access", label: "Access Control", icon: ShieldCheck, primaryAdminOnly: true },
 ];
 
 const AdminLayout = () => {
   const { pathname } = useLocation();
-  const { isAdmin, hasPermission } = useAuth();
+  const { isPrimaryAdmin, hasPermission } = useAuth();
   const visibleItems = navItems.filter((item) => {
-    if (item.adminOnly) return isAdmin;
+    if (item.primaryAdminOnly) return isPrimaryAdmin;
     return !item.permission || hasPermission(item.permission);
   });
 

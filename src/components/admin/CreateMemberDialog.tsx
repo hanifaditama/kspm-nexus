@@ -97,7 +97,7 @@ const CreateMemberDialog = ({ onCreated }: Props) => {
             <Input
               id="new-member-login"
               type="email"
-              placeholder="name@kspm.uph.edu"
+              placeholder="name@kspm.uph"
               value={loginEmail}
               onChange={(event) => setLoginEmail(event.target.value)}
             />

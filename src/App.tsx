@@ -71,7 +71,7 @@ const App = () => (
                   <Route path="events" element={<ProtectedRoute requirePermission="events"><AdminEvents /></ProtectedRoute>} />
                   <Route path="team" element={<ProtectedRoute requirePermission="team"><AdminTeam /></ProtectedRoute>} />
                   <Route path="programs" element={<ProtectedRoute requirePermission="programs"><AdminPrograms /></ProtectedRoute>} />
-                  <Route path="access" element={<ProtectedRoute requireAdmin><AdminAccess /></ProtectedRoute>} />
+                  <Route path="access" element={<ProtectedRoute requirePrimaryAdmin><AdminAccess /></ProtectedRoute>} />
                 </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>

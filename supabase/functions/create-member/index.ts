@@ -26,13 +26,13 @@ Deno.serve(async (request) => {
   const { data: callerData, error: callerError } = await admin.auth.getUser(token);
   if (callerError || !callerData.user) return json({ message: "Unauthorized." }, 401);
 
-  const { data: role } = await admin
-    .from("user_roles")
+  const { data: primaryAdmin } = await admin
+    .from("primary_administrator")
     .select("id")
+    .eq("id", "main")
     .eq("user_id", callerData.user.id)
-    .eq("role", "admin")
     .maybeSingle();
-  if (!role) return json({ message: "Administrator access required." }, 403);
+  if (!primaryAdmin) return json({ message: "Primary administrator access required." }, 403);
 
   const body = await request.json().catch(() => ({}));
   const displayName = clean(body.displayName);

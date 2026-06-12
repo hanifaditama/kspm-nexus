@@ -237,6 +237,24 @@ export type Database = {
         }
         Relationships: []
       }
+      primary_administrator: {
+        Row: {
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       site_settings: {
         Row: {
           id: string
@@ -354,6 +372,18 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      is_primary_administrator: {
+        Args: {
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      transfer_primary_administrator: {
+        Args: {
+          _target_user_id: string
+        }
+        Returns: undefined
       }
     }
     Enums: {

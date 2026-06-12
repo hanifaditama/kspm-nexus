@@ -9,6 +9,7 @@ interface AuthContextType {
   user: User | null;
   profile: { display_name: string; can_upload: boolean; email: string | null } | null;
   isAdmin: boolean;
+  isPrimaryAdmin: boolean;
   permissions: ContentPermission[];
   canManageContent: boolean;
   mustChangePassword: boolean;
@@ -23,6 +24,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   profile: null,
   isAdmin: false,
+  isPrimaryAdmin: false,
   permissions: [],
   canManageContent: false,
   mustChangePassword: false,
@@ -39,6 +41,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<AuthContextType["profile"]>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isPrimaryAdmin, setIsPrimaryAdmin] = useState(false);
   const [permissions, setPermissions] = useState<ContentPermission[]>([]);
   const [mustChangePassword, setMustChangePassword] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -50,6 +53,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(next.user);
     setProfile(next.profile);
     setIsAdmin(next.isAdmin);
+    setIsPrimaryAdmin(next.isPrimaryAdmin);
     setPermissions(next.permissions);
     setMustChangePassword(next.mustChangePassword);
     setLoading(false);
@@ -90,6 +94,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         () => {
           void loadAuthState(session).then((next) => {
             setIsAdmin(next.isAdmin);
+            setIsPrimaryAdmin(next.isPrimaryAdmin);
             setPermissions(next.permissions);
           });
         },
@@ -113,6 +118,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(null);
       setProfile(null);
       setIsAdmin(false);
+      setIsPrimaryAdmin(false);
       setPermissions([]);
       setMustChangePassword(false);
     }
@@ -126,7 +132,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const canManageContent = isAdmin || permissions.length > 0;
 
   return (
-    <AuthContext.Provider value={{ session, user, profile, isAdmin, permissions, canManageContent, mustChangePassword, hasPermission, loading, signIn, signOut }}>
+    <AuthContext.Provider value={{ session, user, profile, isAdmin, isPrimaryAdmin, permissions, canManageContent, mustChangePassword, hasPermission, loading, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );

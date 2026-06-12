@@ -7,6 +7,7 @@ export interface AuthState {
   user: User | null;
   profile: { display_name: string; can_upload: boolean; email: string | null } | null;
   isAdmin: boolean;
+  isPrimaryAdmin: boolean;
   permissions: ContentPermission[];
   mustChangePassword: boolean;
 }
@@ -15,10 +16,10 @@ export async function loadAuthState(session: Session | null): Promise<AuthState>
   const user = session?.user ?? null;
 
   if (!user) {
-    return { session: null, user: null, profile: null, isAdmin: false, permissions: [], mustChangePassword: false };
+    return { session: null, user: null, profile: null, isAdmin: false, isPrimaryAdmin: false, permissions: [], mustChangePassword: false };
   }
 
-  const [profileResult, roleResult, permissionsResult] = await Promise.all([
+  const [profileResult, roleResult, primaryAdminResult, permissionsResult] = await Promise.all([
     supabase
       .from("member_profiles")
       .select("display_name, can_upload, email")
@@ -30,6 +31,7 @@ export async function loadAuthState(session: Session | null): Promise<AuthState>
       .eq("user_id", user.id)
       .eq("role", "admin")
       .maybeSingle(),
+    supabase.rpc("is_primary_administrator", { _user_id: user.id }),
     supabase
       .from("user_content_permissions")
       .select("permission")
@@ -41,6 +43,7 @@ export async function loadAuthState(session: Session | null): Promise<AuthState>
     user,
     profile: profileResult.data,
     isAdmin: Boolean(roleResult.data),
+    isPrimaryAdmin: primaryAdminResult.data === true,
     permissions: (permissionsResult.data ?? []).map((item) => item.permission as ContentPermission),
     mustChangePassword: user.user_metadata?.must_change_password === true,
   };
