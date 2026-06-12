@@ -37,13 +37,13 @@ const MemberLogin = () => {
     setError("");
     setSuccess("");
     setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+    const { data, error } = await supabase.functions.invoke<{ message: string }>("account-recovery", {
+      body: { identifier: email },
     });
     if (error) {
       setError(error.message);
     } else {
-      setSuccess("Password reset link has been sent to your email.");
+      setSuccess(data?.message ?? "If the account exists, a reset link has been sent to its recovery email.");
     }
     setLoading(false);
   };
@@ -66,7 +66,10 @@ const MemberLogin = () => {
       setLoading(false);
       return;
     }
-    const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: newPassword,
+      data: { must_change_password: false },
+    });
     if (updateError) {
       setError(updateError.message);
     } else {
@@ -103,7 +106,7 @@ const MemberLogin = () => {
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
             {view === "login" && "Sign in to access member resources"}
-            {view === "forgot" && "Enter your email to receive a reset link"}
+            {view === "forgot" && "Enter your KSPM login email or recovery email"}
             {view === "change" && "Sign in and set a new password"}
           </p>
         </div>
@@ -152,10 +155,10 @@ const MemberLogin = () => {
               <div className="rounded-md bg-accent/10 px-4 py-3 text-sm text-accent">{success}</div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="reset-email">Email</Label>
+              <Label htmlFor="reset-email">KSPM or recovery email</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input id="reset-email" type="email" placeholder="member@kspm.org" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10" required />
+                <Input id="reset-email" type="email" placeholder="name@kspm.uph.edu or Gmail" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10" required />
               </div>
             </div>
             <Button type="submit" className="w-full" disabled={loading}>

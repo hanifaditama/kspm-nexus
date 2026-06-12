@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { KeyRound } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
@@ -15,11 +16,12 @@ const ResetPassword = () => {
   const [ready, setReady] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, mustChangePassword, canManageContent } = useAuth();
 
   useEffect(() => {
     // Check for recovery session from URL hash
     const hash = window.location.hash;
-    if (hash.includes("type=recovery")) {
+    if (hash.includes("type=recovery") || user) {
       setReady(true);
     } else {
       // Also listen for PASSWORD_RECOVERY event
@@ -30,7 +32,7 @@ const ResetPassword = () => {
       });
       return () => subscription.unsubscribe();
     }
-  }, []);
+  }, [mustChangePassword, user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,12 +46,15 @@ const ResetPassword = () => {
       return;
     }
     setLoading(true);
-    const { error: updateError } = await supabase.auth.updateUser({ password });
+    const { error: updateError } = await supabase.auth.updateUser({
+      password,
+      data: { ...user?.user_metadata, must_change_password: false },
+    });
     if (updateError) {
       setError(updateError.message);
     } else {
-      toast({ title: "Password reset successfully" });
-      navigate("/login");
+      toast({ title: "Password updated successfully" });
+      navigate(canManageContent ? "/admin" : "/member");
     }
     setLoading(false);
   };
@@ -69,8 +74,12 @@ const ResetPassword = () => {
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary">
             <KeyRound className="h-6 w-6 text-primary-foreground" />
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Set New Password</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Enter your new password below</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+            {mustChangePassword ? "Create Your Password" : "Change Password"}
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {mustChangePassword ? "Replace your temporary password before continuing" : "Enter your new password below"}
+          </p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (

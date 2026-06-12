@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
+import CreateMemberDialog from "@/components/admin/CreateMemberDialog";
 import {
   contentPermissionLabels,
   contentPermissions,
@@ -14,6 +15,7 @@ interface MemberProfile {
   user_id: string;
   display_name: string;
   email: string | null;
+  recovery_email: string | null;
 }
 
 const AdminAccess = () => {
@@ -28,7 +30,7 @@ const AdminAccess = () => {
   const loadAccess = useCallback(async () => {
     setLoading(true);
     const [profilesResult, permissionsResult, rolesResult] = await Promise.all([
-      supabase.from("member_profiles").select("user_id,display_name,email").order("display_name"),
+      supabase.from("member_profiles").select("user_id,display_name,email,recovery_email").order("display_name"),
       supabase.from("user_content_permissions").select("user_id,permission"),
       supabase.from("user_roles").select("user_id,role").eq("role", "admin"),
     ]);
@@ -58,7 +60,7 @@ const AdminAccess = () => {
     const term = search.trim().toLowerCase();
     if (!term) return members;
     return members.filter((member) =>
-      `${member.display_name} ${member.email ?? ""}`.toLowerCase().includes(term),
+      `${member.display_name} ${member.email ?? ""} ${member.recovery_email ?? ""}`.toLowerCase().includes(term),
     );
   }, [members, search]);
 
@@ -84,14 +86,17 @@ const AdminAccess = () => {
 
   return (
     <div>
-      <div className="flex items-start gap-3">
-        <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-md bg-accent/10 text-accent">
-          <ShieldCheck className="h-5 w-5" />
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
+        <div className="flex items-start gap-3">
+          <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-md bg-accent/10 text-accent">
+            <ShieldCheck className="h-5 w-5" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-semibold text-foreground">Access Control</h1>
+            <p className="mt-1 text-sm text-muted-foreground">Create member accounts and choose which content they can manage.</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">Access Control</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Choose which content each member can manage.</p>
-        </div>
+        <CreateMemberDialog onCreated={() => void loadAccess()} />
       </div>
 
       <div className="relative mt-6 max-w-md">
@@ -127,6 +132,9 @@ const AdminAccess = () => {
                     <td className="px-4 py-4">
                       <p className="font-medium text-foreground">{member.display_name}</p>
                       <p className="text-xs text-muted-foreground">{member.email ?? "No email available"}</p>
+                      {member.recovery_email && (
+                        <p className="mt-1 text-xs text-muted-foreground">Recovery: {member.recovery_email}</p>
+                      )}
                       {fullAccess && <p className="mt-1 text-xs font-medium text-accent">Administrator - Full access</p>}
                     </td>
                     {contentPermissions.map((permission) => {

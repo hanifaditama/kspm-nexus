@@ -30,10 +30,16 @@ Apply migrations and deploy the contact function with the Supabase CLI:
 supabase db push
 supabase functions deploy contact
 supabase functions deploy market-data
-supabase secrets set RESEND_API_KEY=... CONTACT_FROM_EMAIL=... CONTACT_HASH_SALT=...
+supabase functions deploy create-member
+supabase functions deploy account-recovery
+supabase secrets set RESEND_API_KEY=... CONTACT_FROM_EMAIL=... CONTACT_HASH_SALT=... APP_URL=... KSPM_EMAIL_DOMAIN=kspm.uph.edu ACCOUNT_FROM_EMAIL=... ACCOUNT_HASH_SALT=...
 ```
 
 `CONTACT_FROM_EMAIL` must use a sender/domain verified in Resend. Contact messages are sent to `investment.club@uph.edu`. If Resend is not configured, valid messages are still stored in `contact_submissions` and the UI clearly reports that email delivery is awaiting configuration.
+
+Administrators can create member accounts from **Admin > Access Control**. The account uses a KSPM login email and a separate recovery email. Initial credentials and custom password recovery links are delivered to the recovery email through Resend. New members must replace their temporary password on first sign-in. `APP_URL` must match the deployed frontend URL, and `ACCOUNT_FROM_EMAIL` must use a sender/domain verified in Resend.
+
+Add `${APP_URL}/reset-password` to the Supabase Auth redirect URL allow list so generated recovery links can open the password form.
 
 The market ticker uses free public Yahoo Finance chart data through the `market-data` Edge Function, cached for 60 seconds. IDX top gainers are calculated from the liquid-stock watchlist in the function and are not a full-exchange ranking.
 

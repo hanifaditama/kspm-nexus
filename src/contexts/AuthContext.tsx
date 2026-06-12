@@ -11,6 +11,7 @@ interface AuthContextType {
   isAdmin: boolean;
   permissions: ContentPermission[];
   canManageContent: boolean;
+  mustChangePassword: boolean;
   hasPermission: (permission: ContentPermission) => boolean;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
@@ -24,6 +25,7 @@ const AuthContext = createContext<AuthContextType>({
   isAdmin: false,
   permissions: [],
   canManageContent: false,
+  mustChangePassword: false,
   hasPermission: () => false,
   loading: true,
   signIn: async () => ({ error: null }),
@@ -38,6 +40,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [profile, setProfile] = useState<AuthContextType["profile"]>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [permissions, setPermissions] = useState<ContentPermission[]>([]);
+  const [mustChangePassword, setMustChangePassword] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const syncSession = useCallback(async (nextSession: Session | null) => {
@@ -48,6 +51,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setProfile(next.profile);
     setIsAdmin(next.isAdmin);
     setPermissions(next.permissions);
+    setMustChangePassword(next.mustChangePassword);
     setLoading(false);
   }, []);
 
@@ -110,6 +114,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setProfile(null);
       setIsAdmin(false);
       setPermissions([]);
+      setMustChangePassword(false);
     }
     return { error: error?.message ?? null };
   };
@@ -121,7 +126,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const canManageContent = isAdmin || permissions.length > 0;
 
   return (
-    <AuthContext.Provider value={{ session, user, profile, isAdmin, permissions, canManageContent, hasPermission, loading, signIn, signOut }}>
+    <AuthContext.Provider value={{ session, user, profile, isAdmin, permissions, canManageContent, mustChangePassword, hasPermission, loading, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );

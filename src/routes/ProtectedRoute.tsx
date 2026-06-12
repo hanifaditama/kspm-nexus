@@ -21,11 +21,12 @@ export const ProtectedRoute = ({
   requireContentManager = false,
   requirePermission,
 }: ProtectedRouteProps) => {
-  const { user, isAdmin, canManageContent, hasPermission, loading } = useAuth();
+  const { user, isAdmin, canManageContent, mustChangePassword, hasPermission, loading } = useAuth();
   const location = useLocation();
 
   if (loading) return <RouteLoading />;
   if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  if (mustChangePassword && location.pathname !== "/reset-password") return <Navigate to="/reset-password" replace />;
   if (requireAdmin && !isAdmin) return <Navigate to="/member" replace />;
   if (requireContentManager && !canManageContent) return <Navigate to="/member" replace />;
   if (requirePermission && !hasPermission(requirePermission)) return <Navigate to="/admin" replace />;
@@ -34,10 +35,10 @@ export const ProtectedRoute = ({
 };
 
 export const PublicOnlyRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, canManageContent, loading } = useAuth();
+  const { user, canManageContent, mustChangePassword, loading } = useAuth();
 
   if (loading) return <RouteLoading />;
-  if (user) return <Navigate to={canManageContent ? "/admin" : "/member"} replace />;
+  if (user) return <Navigate to={mustChangePassword ? "/reset-password" : canManageContent ? "/admin" : "/member"} replace />;
 
   return children;
 };

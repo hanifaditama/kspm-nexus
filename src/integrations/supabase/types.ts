@@ -178,6 +178,7 @@ export type Database = {
           display_name: string
           email: string | null
           id: string
+          recovery_email: string | null
           user_id: string
         }
         Insert: {
@@ -186,6 +187,7 @@ export type Database = {
           display_name: string
           email?: string | null
           id?: string
+          recovery_email?: string | null
           user_id: string
         }
         Update: {
@@ -194,6 +196,7 @@ export type Database = {
           display_name?: string
           email?: string | null
           id?: string
+          recovery_email?: string | null
           user_id?: string
         }
         Relationships: []

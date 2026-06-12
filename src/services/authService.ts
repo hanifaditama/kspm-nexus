@@ -8,13 +8,14 @@ export interface AuthState {
   profile: { display_name: string; can_upload: boolean; email: string | null } | null;
   isAdmin: boolean;
   permissions: ContentPermission[];
+  mustChangePassword: boolean;
 }
 
 export async function loadAuthState(session: Session | null): Promise<AuthState> {
   const user = session?.user ?? null;
 
   if (!user) {
-    return { session: null, user: null, profile: null, isAdmin: false, permissions: [] };
+    return { session: null, user: null, profile: null, isAdmin: false, permissions: [], mustChangePassword: false };
   }
 
   const [profileResult, roleResult, permissionsResult] = await Promise.all([
@@ -41,6 +42,7 @@ export async function loadAuthState(session: Session | null): Promise<AuthState>
     profile: profileResult.data,
     isAdmin: Boolean(roleResult.data),
     permissions: (permissionsResult.data ?? []).map((item) => item.permission as ContentPermission),
+    mustChangePassword: user.user_metadata?.must_change_password === true,
   };
 }
 

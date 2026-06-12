@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, LogIn, User, Settings, LogOut, FolderOpen } from "lucide-react";
+import { Menu, X, LogIn, User, Settings, LogOut, FolderOpen, KeyRound } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRecruitmentStatus } from "@/hooks/useRecruitmentStatus";
 import {
@@ -101,6 +101,12 @@ const Navbar = () => {
                     </Link>
                   </DropdownMenuItem>
                 )}
+                <DropdownMenuItem asChild>
+                  <Link to="/reset-password" className="flex items-center gap-2">
+                    <KeyRound className="h-4 w-4" />
+                    Change Password
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
                   <LogOut className="mr-2 h-4 w-4" />
@@ -176,6 +182,14 @@ const Navbar = () => {
                     Content Panel
                   </Link>
                 )}
+                <Link
+                  to="/reset-password"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-foreground"
+                >
+                  <KeyRound className="h-4 w-4" />
+                  Change Password
+                </Link>
                 <button
                   onClick={() => {
                     setOpen(false);
