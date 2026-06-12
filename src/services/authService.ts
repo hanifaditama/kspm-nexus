@@ -1,24 +1,26 @@
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import type { ContentPermission } from "@/lib/contentAccess";
 
 export interface AuthState {
   session: Session | null;
   user: User | null;
-  profile: { display_name: string; can_upload: boolean } | null;
+  profile: { display_name: string; can_upload: boolean; email: string | null } | null;
   isAdmin: boolean;
+  permissions: ContentPermission[];
 }
 
 export async function loadAuthState(session: Session | null): Promise<AuthState> {
   const user = session?.user ?? null;
 
   if (!user) {
-    return { session: null, user: null, profile: null, isAdmin: false };
+    return { session: null, user: null, profile: null, isAdmin: false, permissions: [] };
   }
 
-  const [profileResult, roleResult] = await Promise.all([
+  const [profileResult, roleResult, permissionsResult] = await Promise.all([
     supabase
       .from("member_profiles")
-      .select("display_name, can_upload")
+      .select("display_name, can_upload, email")
       .eq("user_id", user.id)
       .maybeSingle(),
     supabase
@@ -27,6 +29,10 @@ export async function loadAuthState(session: Session | null): Promise<AuthState>
       .eq("user_id", user.id)
       .eq("role", "admin")
       .maybeSingle(),
+    supabase
+      .from("user_content_permissions")
+      .select("permission")
+      .eq("user_id", user.id),
   ]);
 
   return {
@@ -34,6 +40,7 @@ export async function loadAuthState(session: Session | null): Promise<AuthState>
     user,
     profile: profileResult.data,
     isAdmin: Boolean(roleResult.data),
+    permissions: (permissionsResult.data ?? []).map((item) => item.permission as ContentPermission),
   };
 }
 

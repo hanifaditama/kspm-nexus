@@ -2,12 +2,16 @@ import { createContext, useCallback, useContext, useEffect, useState, ReactNode 
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { loadAuthState, signInWithPassword, signOutCurrentUser } from "@/services/authService";
+import type { ContentPermission } from "@/lib/contentAccess";
 
 interface AuthContextType {
   session: Session | null;
   user: User | null;
-  profile: { display_name: string; can_upload: boolean } | null;
+  profile: { display_name: string; can_upload: boolean; email: string | null } | null;
   isAdmin: boolean;
+  permissions: ContentPermission[];
+  canManageContent: boolean;
+  hasPermission: (permission: ContentPermission) => boolean;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<{ error: string | null }>;
@@ -18,6 +22,9 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   profile: null,
   isAdmin: false,
+  permissions: [],
+  canManageContent: false,
+  hasPermission: () => false,
   loading: true,
   signIn: async () => ({ error: null }),
   signOut: async () => ({ error: null }),
@@ -30,6 +37,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<AuthContextType["profile"]>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [permissions, setPermissions] = useState<ContentPermission[]>([]);
   const [loading, setLoading] = useState(true);
 
   const syncSession = useCallback(async (nextSession: Session | null) => {
@@ -39,6 +47,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(next.user);
     setProfile(next.profile);
     setIsAdmin(next.isAdmin);
+    setPermissions(next.permissions);
     setLoading(false);
   }, []);
 
@@ -61,6 +70,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [syncSession]);
 
+  useEffect(() => {
+    if (!session?.user) return;
+
+    const channel = supabase
+      .channel(`content_permissions_${session.user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "user_content_permissions",
+          filter: `user_id=eq.${session.user.id}`,
+        },
+        () => {
+          void loadAuthState(session).then((next) => {
+            setIsAdmin(next.isAdmin);
+            setPermissions(next.permissions);
+          });
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [session]);
+
   const signIn = async (email: string, password: string) => {
     const { error } = await signInWithPassword(email, password);
     return { error: error?.message ?? null };
@@ -73,12 +109,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(null);
       setProfile(null);
       setIsAdmin(false);
+      setPermissions([]);
     }
     return { error: error?.message ?? null };
   };
 
+  const hasPermission = useCallback(
+    (permission: ContentPermission) => isAdmin || permissions.includes(permission),
+    [isAdmin, permissions],
+  );
+  const canManageContent = isAdmin || permissions.length > 0;
+
   return (
-    <AuthContext.Provider value={{ session, user, profile, isAdmin, loading, signIn, signOut }}>
+    <AuthContext.Provider value={{ session, user, profile, isAdmin, permissions, canManageContent, hasPermission, loading, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );

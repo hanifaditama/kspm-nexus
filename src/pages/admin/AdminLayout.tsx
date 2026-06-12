@@ -1,16 +1,24 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { FileText, Calendar, Users, BookOpen, LayoutDashboard, ArrowLeft } from "lucide-react";
+import { FileText, Calendar, Users, BookOpen, LayoutDashboard, ArrowLeft, ShieldCheck } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import type { ContentPermission } from "@/lib/contentAccess";
 
 const navItems = [
   { to: "/admin", label: "Overview", icon: LayoutDashboard, end: true },
-  { to: "/admin/articles", label: "Articles", icon: FileText },
-  { to: "/admin/events", label: "Events", icon: Calendar },
-  { to: "/admin/team", label: "Team", icon: Users },
-  { to: "/admin/programs", label: "Programs", icon: BookOpen },
+  { to: "/admin/articles", label: "Articles", icon: FileText, permission: "articles" as ContentPermission },
+  { to: "/admin/events", label: "Events", icon: Calendar, permission: "events" as ContentPermission },
+  { to: "/admin/team", label: "Team", icon: Users, permission: "team" as ContentPermission },
+  { to: "/admin/programs", label: "Programs", icon: BookOpen, permission: "programs" as ContentPermission },
+  { to: "/admin/access", label: "Access Control", icon: ShieldCheck, adminOnly: true },
 ];
 
 const AdminLayout = () => {
   const { pathname } = useLocation();
+  const { isAdmin, hasPermission } = useAuth();
+  const visibleItems = navItems.filter((item) => {
+    if (item.adminOnly) return isAdmin;
+    return !item.permission || hasPermission(item.permission);
+  });
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-background">
@@ -26,7 +34,7 @@ const AdminLayout = () => {
             Admin
           </h2>
           <nav className="flex flex-col gap-1">
-            {navItems.map((item) => {
+            {visibleItems.map((item) => {
               const active = item.end ? pathname === item.to : pathname.startsWith(item.to);
               const Icon = item.icon;
               return (

@@ -27,6 +27,7 @@ const AdminArticles = lazy(() => import("./pages/admin/AdminArticles"));
 const AdminEvents = lazy(() => import("./pages/admin/AdminEvents"));
 const AdminTeam = lazy(() => import("./pages/admin/AdminTeam"));
 const AdminPrograms = lazy(() => import("./pages/admin/AdminPrograms"));
+const AdminAccess = lazy(() => import("./pages/admin/AdminAccess"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -66,12 +67,13 @@ const App = () => (
                 <Route path="/login" element={<PublicOnlyRoute><MemberLogin /></PublicOnlyRoute>} />
                 <Route path="/member" element={<ProtectedRoute><MemberDashboard /></ProtectedRoute>} />
                 <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminLayout /></ProtectedRoute>}>
+                <Route path="/admin" element={<ProtectedRoute requireContentManager><AdminLayout /></ProtectedRoute>}>
                   <Route index element={<AdminHome />} />
-                  <Route path="articles" element={<AdminArticles />} />
-                  <Route path="events" element={<AdminEvents />} />
-                  <Route path="team" element={<AdminTeam />} />
-                  <Route path="programs" element={<AdminPrograms />} />
+                  <Route path="articles" element={<ProtectedRoute requirePermission="articles"><AdminArticles /></ProtectedRoute>} />
+                  <Route path="events" element={<ProtectedRoute requirePermission="events"><AdminEvents /></ProtectedRoute>} />
+                  <Route path="team" element={<ProtectedRoute requirePermission="team"><AdminTeam /></ProtectedRoute>} />
+                  <Route path="programs" element={<ProtectedRoute requirePermission="programs"><AdminPrograms /></ProtectedRoute>} />
+                  <Route path="access" element={<ProtectedRoute requireAdmin><AdminAccess /></ProtectedRoute>} />
                 </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>

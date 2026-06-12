@@ -1,9 +1,12 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import type { ContentPermission } from "@/lib/contentAccess";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requireAdmin?: boolean;
+  requireContentManager?: boolean;
+  requirePermission?: ContentPermission;
 }
 
 const RouteLoading = () => (
@@ -12,22 +15,29 @@ const RouteLoading = () => (
   </div>
 );
 
-export const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps) => {
-  const { user, isAdmin, loading } = useAuth();
+export const ProtectedRoute = ({
+  children,
+  requireAdmin = false,
+  requireContentManager = false,
+  requirePermission,
+}: ProtectedRouteProps) => {
+  const { user, isAdmin, canManageContent, hasPermission, loading } = useAuth();
   const location = useLocation();
 
   if (loading) return <RouteLoading />;
   if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   if (requireAdmin && !isAdmin) return <Navigate to="/member" replace />;
+  if (requireContentManager && !canManageContent) return <Navigate to="/member" replace />;
+  if (requirePermission && !hasPermission(requirePermission)) return <Navigate to="/admin" replace />;
 
   return children;
 };
 
 export const PublicOnlyRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isAdmin, loading } = useAuth();
+  const { user, canManageContent, loading } = useAuth();
 
   if (loading) return <RouteLoading />;
-  if (user) return <Navigate to={isAdmin ? "/admin" : "/member"} replace />;
+  if (user) return <Navigate to={canManageContent ? "/admin" : "/member"} replace />;
 
   return children;
 };

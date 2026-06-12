@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X, LogIn, User, Settings, LogOut, FolderOpen } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useRecruitmentStatus } from "@/hooks/useRecruitmentStatus";
 import {
   DropdownMenu,
@@ -26,8 +25,7 @@ const Navbar = () => {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
-  const { isAdmin } = useIsAdmin();
+  const { user, canManageContent, signOut } = useAuth();
   const { isOpen: isRecruitmentOpen } = useRecruitmentStatus();
 
   const handleSignOut = async () => {
@@ -95,11 +93,11 @@ const Navbar = () => {
                     File Manager
                   </Link>
                 </DropdownMenuItem>
-                {isAdmin && (
+                {canManageContent && (
                   <DropdownMenuItem asChild>
                     <Link to="/admin" className="flex items-center gap-2">
                       <Settings className="h-4 w-4" />
-                      Admin Panel
+                      Content Panel
                     </Link>
                   </DropdownMenuItem>
                 )}
@@ -168,14 +166,14 @@ const Navbar = () => {
                   <FolderOpen className="h-4 w-4" />
                   File Manager
                 </Link>
-                {isAdmin && (
+                {canManageContent && (
                   <Link
                     to="/admin"
                     onClick={() => setOpen(false)}
                     className="flex items-center gap-2 rounded-md bg-primary/10 px-3 py-2 text-sm font-medium text-primary"
                   >
                     <Settings className="h-4 w-4" />
-                    Admin Panel
+                    Content Panel
                   </Link>
                 )}
                 <button
