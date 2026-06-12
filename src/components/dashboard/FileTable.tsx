@@ -10,6 +10,7 @@ interface FileTableProps {
   onPreview: (file: MemberFile) => void;
   onDeleteFile: (file: MemberFile) => void;
   onDeleteFolder: (folder: MemberFolder) => void;
+  selectedFileId?: string | null;
 }
 
 const FileTable = ({
@@ -21,6 +22,7 @@ const FileTable = ({
   onPreview,
   onDeleteFile,
   onDeleteFolder,
+  selectedFileId,
 }: FileTableProps) => {
   if (folders.length === 0 && files.length === 0) {
     return (
@@ -32,8 +34,8 @@ const FileTable = ({
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-border">
-      <table className="w-full text-sm">
+    <div className="overflow-x-auto rounded-lg border border-border">
+      <table className="w-full min-w-[680px] text-sm">
         <thead>
           <tr className="border-b border-border bg-muted/50">
             <th className="px-4 py-3 text-left font-medium text-muted-foreground">Name</th>
@@ -80,7 +82,12 @@ const FileTable = ({
             </tr>
           ))}
           {files.map((file) => (
-            <tr key={file.id} className="border-b border-border last:border-0 hover:bg-muted/30">
+            <tr
+              key={file.id}
+              className={`border-b border-border last:border-0 hover:bg-muted/30 ${
+                selectedFileId === file.id ? "bg-accent/10" : ""
+              }`}
+            >
               <td className="px-4 py-3">
                 <button
                   onClick={() => onPreview(file)}

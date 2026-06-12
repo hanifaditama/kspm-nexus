@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { MemberFile, MemberFolder } from "@/components/dashboard/types";
 import FolderBreadcrumb from "@/components/dashboard/FolderBreadcrumb";
 import CreateFolderDialog from "@/components/dashboard/CreateFolderDialog";
 import FileTable from "@/components/dashboard/FileTable";
-import FilePreviewDialog from "@/components/dashboard/FilePreviewDialog";
+import FilePreviewPanel from "@/components/dashboard/FilePreviewPanel";
 
 
 const MemberDashboard = () => {
@@ -24,7 +24,8 @@ const MemberDashboard = () => {
   const [loadingFiles, setLoadingFiles] = useState(true);
   const [previewFile, setPreviewFile] = useState<MemberFile | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const previewRequestRef = useRef(0);
 
   const buildFolderPath = useCallback(async (folderId: string | null) => {
     if (!folderId) {
@@ -90,6 +91,7 @@ const MemberDashboard = () => {
   }, [user, fetchContents, buildFolderPath, currentFolderId]);
 
   const handleNavigateFolder = (folderId: string | null) => {
+    handleClosePreview();
     setCurrentFolderId(folderId);
     setSearch("");
   };
@@ -181,32 +183,47 @@ const MemberDashboard = () => {
   };
 
   const handlePreview = async (file: MemberFile) => {
+    const requestId = ++previewRequestRef.current;
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewFile(file);
     setPreviewUrl(null);
-    setPreviewOpen(true);
+    setPreviewLoading(true);
 
     const { data, error } = await supabase.storage
       .from("member-files")
       .download(file.file_path);
 
     if (error || !data) {
+      if (requestId !== previewRequestRef.current) return;
       toast({ title: "Failed to load preview", variant: "destructive" });
-      setPreviewOpen(false);
+      setPreviewLoading(false);
       return;
     }
 
     const url = URL.createObjectURL(data);
+    if (requestId !== previewRequestRef.current) {
+      URL.revokeObjectURL(url);
+      return;
+    }
     setPreviewUrl(url);
+    setPreviewLoading(false);
   };
 
   const handleClosePreview = () => {
-    setPreviewOpen(false);
+    previewRequestRef.current += 1;
+    setPreviewLoading(false);
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
       setPreviewUrl(null);
     }
     setPreviewFile(null);
   };
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
 
   const handleDelete = async (file: MemberFile) => {
     if (file.uploaded_by !== user?.id) return;
@@ -223,6 +240,7 @@ const MemberDashboard = () => {
     }
     toast({ title: "File deleted" });
     setFiles((current) => current.filter((item) => item.id !== file.id));
+    if (previewFile?.id === file.id) handleClosePreview();
   };
 
   const handleSignOut = async () => {
@@ -295,29 +313,33 @@ const MemberDashboard = () => {
           </div>
         </div>
 
-        {loadingFiles ? (
-          <div className="py-20 text-center text-muted-foreground">Loading...</div>
-        ) : (
-          <FileTable
-            folders={filteredFolders}
-            files={filteredFiles}
-            userId={user.id}
-            onOpenFolder={handleNavigateFolder}
-            onDownload={handleDownload}
-            onPreview={handlePreview}
-            onDeleteFile={handleDelete}
-            onDeleteFolder={handleDeleteFolder}
-          />
-        )}
+        <div className={previewFile ? "grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(340px,42%)]" : ""}>
+          {loadingFiles ? (
+            <div className="py-20 text-center text-muted-foreground">Loading...</div>
+          ) : (
+            <FileTable
+              folders={filteredFolders}
+              files={filteredFiles}
+              userId={user.id}
+              onOpenFolder={handleNavigateFolder}
+              onDownload={handleDownload}
+              onPreview={handlePreview}
+              onDeleteFile={handleDelete}
+              onDeleteFolder={handleDeleteFolder}
+              selectedFileId={previewFile?.id}
+            />
+          )}
+          {previewFile && (
+            <FilePreviewPanel
+              file={previewFile}
+              previewUrl={previewUrl}
+              loading={previewLoading}
+              onClose={handleClosePreview}
+              onDownload={handleDownload}
+            />
+          )}
+        </div>
       </div>
-
-      <FilePreviewDialog
-        file={previewFile}
-        previewUrl={previewUrl}
-        open={previewOpen}
-        onClose={handleClosePreview}
-        onDownload={handleDownload}
-      />
     </section>
   );
 };
