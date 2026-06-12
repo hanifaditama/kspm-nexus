@@ -4,7 +4,7 @@ import { Instagram, Linkedin, Mail } from "lucide-react";
 const Footer = () => (
   <footer className="border-t border-border bg-primary text-primary-foreground">
     <div className="container py-16">
-      <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-[1.5fr_repeat(4,1fr)]">
+      <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-[1.5fr_repeat(3,1fr)]">
         <div className="space-y-4">
           <div className="flex items-center gap-3">
             <img src="/uphic-logo.png" alt="" className="h-11 w-auto object-contain brightness-0 invert" />
@@ -18,18 +18,7 @@ const Footer = () => (
         <div className="space-y-4">
           <h4 className="text-sm font-semibold uppercase tracking-wider text-primary-foreground/50">Navigation</h4>
           <nav className="flex flex-col gap-2">
-            {["About", "Programs", "Articles", "Events"].map((item) => (
-              <Link key={item} to={`/${item.toLowerCase()}`} className="text-sm text-primary-foreground/70 transition-colors hover:text-primary-foreground">
-                {item}
-              </Link>
-            ))}
-          </nav>
-        </div>
-
-        <div className="space-y-4">
-          <h4 className="text-sm font-semibold uppercase tracking-wider text-primary-foreground/50">Organization</h4>
-          <nav className="flex flex-col gap-2">
-            {["Team"].map((item) => (
+            {["About", "Programs", "Articles", "Events", "Team"].map((item) => (
               <Link key={item} to={`/${item.toLowerCase()}`} className="text-sm text-primary-foreground/70 transition-colors hover:text-primary-foreground">
                 {item}
               </Link>
