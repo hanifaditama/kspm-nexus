@@ -3,7 +3,7 @@ export const contentPermissions = ["recruitment", "articles", "events", "team", 
 export type ContentPermission = (typeof contentPermissions)[number];
 
 export const contentPermissionLabels: Record<ContentPermission, string> = {
-  recruitment: "Recruitment Status",
+  recruitment: "Recruitment Page & Status",
   articles: "Articles",
   events: "Events",
   team: "Team",
