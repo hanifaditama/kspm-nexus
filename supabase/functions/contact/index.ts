@@ -26,11 +26,19 @@ Deno.serve(async (request) => {
   const body = await request.json().catch(() => ({}));
   const name = clean(body.name);
   const email = clean(body.email).toLowerCase();
+  const subject = clean(body.subject).replace(/\s+/g, " ");
   const message = clean(body.message);
   const website = clean(body.website);
 
   if (website) return json({ sent: true, message: "Thank you. Your message was received." });
-  if (name.length < 2 || name.length > 100 || message.length < 10 || message.length > 5000) {
+  if (
+    name.length < 2 ||
+    name.length > 100 ||
+    subject.length < 3 ||
+    subject.length > 160 ||
+    message.length < 10 ||
+    message.length > 5000
+  ) {
     return json({ message: "Please check the submitted fields." }, 400);
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
@@ -58,7 +66,7 @@ Deno.serve(async (request) => {
 
   const { data: submission, error: insertError } = await admin
     .from("contact_submissions")
-    .insert({ name, email, message, ip_hash: ipHash })
+    .insert({ name, email, subject, message, ip_hash: ipHash })
     .select("id")
     .single();
 
@@ -83,8 +91,8 @@ Deno.serve(async (request) => {
       from,
       to: ["investment.club@uph.edu"],
       reply_to: email,
-      subject: `KSPM Nexus contact from ${name}`,
-      text: `Name: ${name}\nEmail: ${email}\n\n${message}`,
+      subject: `[KSPM Nexus] ${subject}`,
+      text: `Name: ${name}\nEmail: ${email}\nSubject: ${subject}\n\n${message}`,
     }),
   });
 

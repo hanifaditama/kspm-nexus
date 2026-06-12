@@ -14,6 +14,7 @@ import { submitContactForm } from "@/services/contactService";
 const contactSchema = z.object({
   name: z.string().trim().min(2, "Please enter your name.").max(100),
   email: z.string().trim().email("Please enter a valid email address.").max(254),
+  subject: z.string().trim().min(3, "Please enter a subject.").max(160),
   message: z.string().trim().min(10, "Please include at least 10 characters.").max(5000),
   website: z.string().max(0).optional(),
 });
@@ -30,7 +31,7 @@ const Contact = () => {
     formState: { errors, isSubmitting },
   } = useForm<ContactFields>({
     resolver: zodResolver(contactSchema),
-    defaultValues: { name: "", email: "", message: "", website: "" },
+    defaultValues: { name: "", email: "", subject: "", message: "", website: "" },
   });
 
   const onSubmit = async (values: ContactFields) => {
@@ -40,6 +41,7 @@ const Contact = () => {
       const response = await submitContactForm({
         name: values.name ?? "",
         email: values.email ?? "",
+        subject: values.subject ?? "",
         message: values.message ?? "",
         website: values.website,
       });
@@ -102,6 +104,16 @@ const Contact = () => {
             <Label htmlFor="contact-email">Email</Label>
             <Input id="contact-email" type="email" autoComplete="email" {...register("email")} aria-invalid={Boolean(errors.email)} />
             {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="contact-subject">Subject</Label>
+            <Input
+              id="contact-subject"
+              placeholder="What would you like to discuss?"
+              {...register("subject")}
+              aria-invalid={Boolean(errors.subject)}
+            />
+            {errors.subject && <p className="text-xs text-destructive">{errors.subject.message}</p>}
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="contact-message">Message</Label>
