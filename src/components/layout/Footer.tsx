@@ -13,6 +13,18 @@ const Footer = () => (
           <p className="text-sm leading-relaxed text-primary-foreground/70">
             Capital Market Study Group — empowering students with financial literacy and capital market knowledge.
           </p>
+          <div className="flex items-center gap-5 pt-2">
+            <img
+              src="/uph-logo.png"
+              alt="Universitas Pelita Harapan"
+              className="h-12 w-auto object-contain"
+            />
+            <img
+              src="/idx-logo.png"
+              alt="Indonesia Stock Exchange"
+              className="h-12 w-auto object-contain"
+            />
+          </div>
         </div>
 
         <div className="space-y-4">
@@ -69,19 +81,6 @@ const Footer = () => (
             </a>
           </div>
         </div>
-      </div>
-
-      <div className="mt-12 flex items-center justify-center gap-10 border-t border-primary-foreground/10 pt-10 sm:gap-16">
-        <img
-          src="/uph-logo.png"
-          alt="Universitas Pelita Harapan"
-          className="h-20 w-auto object-contain sm:h-24"
-        />
-        <img
-          src="/idx-logo.png"
-          alt="Indonesia Stock Exchange"
-          className="h-20 w-auto object-contain sm:h-24"
-        />
       </div>
 
       <div className="mt-12 border-t border-primary-foreground/10 pt-8 text-center text-sm text-primary-foreground/50">
