@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { FileText, Calendar, Users, BookOpen, LayoutDashboard, ArrowLeft, ShieldCheck } from "lucide-react";
+import { FileText, Calendar, Users, BookOpen, LayoutDashboard, ArrowLeft, ShieldCheck, UserPlus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import type { ContentPermission } from "@/lib/contentAccess";
 
@@ -9,6 +9,7 @@ const navItems = [
   { to: "/admin/events", label: "Events", icon: Calendar, permission: "events" as ContentPermission },
   { to: "/admin/team", label: "Team", icon: Users, permission: "team" as ContentPermission },
   { to: "/admin/programs", label: "Programs", icon: BookOpen, permission: "programs" as ContentPermission },
+  { to: "/admin/recruitment", label: "Recruitment Page", icon: UserPlus, permission: "recruitment" as ContentPermission },
   { to: "/admin/access", label: "Access Control", icon: ShieldCheck, primaryAdminOnly: true },
 ];
 

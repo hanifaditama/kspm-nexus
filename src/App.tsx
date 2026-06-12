@@ -26,6 +26,7 @@ const AdminArticles = lazy(() => import("./pages/admin/AdminArticles"));
 const AdminEvents = lazy(() => import("./pages/admin/AdminEvents"));
 const AdminTeam = lazy(() => import("./pages/admin/AdminTeam"));
 const AdminPrograms = lazy(() => import("./pages/admin/AdminPrograms"));
+const AdminRecruitment = lazy(() => import("./pages/admin/AdminRecruitment"));
 const AdminAccess = lazy(() => import("./pages/admin/AdminAccess"));
 
 const queryClient = new QueryClient({
@@ -71,6 +72,7 @@ const App = () => (
                   <Route path="events" element={<ProtectedRoute requirePermission="events"><AdminEvents /></ProtectedRoute>} />
                   <Route path="team" element={<ProtectedRoute requirePermission="team"><AdminTeam /></ProtectedRoute>} />
                   <Route path="programs" element={<ProtectedRoute requirePermission="programs"><AdminPrograms /></ProtectedRoute>} />
+                  <Route path="recruitment" element={<ProtectedRoute requirePermission="recruitment"><AdminRecruitment /></ProtectedRoute>} />
                   <Route path="access" element={<ProtectedRoute requirePrimaryAdmin><AdminAccess /></ProtectedRoute>} />
                 </Route>
                 <Route path="*" element={<NotFound />} />

@@ -258,17 +258,35 @@ export type Database = {
       site_settings: {
         Row: {
           id: string
+          recruitment_application_url: string | null
+          recruitment_deadline: string | null
+          recruitment_description: string
+          recruitment_eyebrow: string
           recruitment_open: boolean
+          recruitment_requirements: string[]
+          recruitment_title: string
           updated_at: string
         }
         Insert: {
           id: string
+          recruitment_application_url?: string | null
+          recruitment_deadline?: string | null
+          recruitment_description?: string
+          recruitment_eyebrow?: string
           recruitment_open?: boolean
+          recruitment_requirements?: string[]
+          recruitment_title?: string
           updated_at?: string
         }
         Update: {
           id?: string
+          recruitment_application_url?: string | null
+          recruitment_deadline?: string | null
+          recruitment_description?: string
+          recruitment_eyebrow?: string
           recruitment_open?: boolean
+          recruitment_requirements?: string[]
+          recruitment_title?: string
           updated_at?: string
         }
         Relationships: []

@@ -33,7 +33,7 @@ const requirements = [
 ];
 
 const Recruitment = () => {
-  const { isOpen, loading } = useRecruitmentStatus();
+  const { isOpen, settings, loading } = useRecruitmentStatus();
 
   if (loading) {
     return <div className="container py-20 text-center text-muted-foreground">Loading...</div>;
@@ -63,23 +63,29 @@ const Recruitment = () => {
     );
   }
 
+  const deadline = settings?.recruitment_deadline
+    ? new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" })
+      .format(new Date(`${settings.recruitment_deadline}T00:00:00Z`))
+    : null;
+  const displayRequirements = settings?.recruitment_requirements ?? requirements;
+
   return (
   <>
     <section className="bg-primary py-20 text-primary-foreground">
       <div className="container">
         <p className="mb-3 text-sm font-medium uppercase tracking-widest text-primary-foreground/60">
-          Now Accepting Applications
+          {settings?.recruitment_eyebrow}
         </p>
         <h1 className="text-3xl font-semibold tracking-tight md:text-5xl">
-          Open Recruitment CMP Division 2026
+          {settings?.recruitment_title}
         </h1>
         <p className="mt-4 max-w-xl text-lg leading-relaxed text-primary-foreground/70">
-          Join KSPM and kickstart your journey in capital markets. We're looking for passionate, curious students ready to learn and grow.
+          {settings?.recruitment_description}
         </p>
-        <div className="mt-8 flex items-center gap-3 text-sm text-primary-foreground/60">
+        {deadline && <div className="mt-8 flex items-center gap-3 text-sm text-primary-foreground/60">
           <CalendarDays className="h-4 w-4" />
-          <span>Application Deadline: April 12, 2026</span>
-        </div>
+          <span>Application Deadline: {deadline}</span>
+        </div>}
       </div>
     </section>
 
@@ -113,7 +119,7 @@ const Recruitment = () => {
       />
       <div className="mx-auto max-w-2xl">
         <ul className="space-y-4">
-          {requirements.map((req) => (
+          {displayRequirements.map((req) => (
             <li key={req} className="flex items-start gap-3">
               <Check className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
               <span className="text-sm leading-relaxed text-foreground">{req}</span>
@@ -155,12 +161,16 @@ const Recruitment = () => {
         <p className="mt-3 text-primary-foreground/70">
           Click below to fill out the application form. Make sure to submit before the deadline.
         </p>
-        <a
-          href="#"
-          className="mt-6 inline-flex items-center gap-2 rounded-md bg-accent px-8 py-3 text-sm font-medium text-accent-foreground transition-colors hover:bg-accent/90"
-        >
-          Apply Now
-        </a>
+        {settings?.recruitment_application_url && (
+          <a
+            href={settings.recruitment_application_url}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-6 inline-flex items-center gap-2 rounded-md bg-accent px-8 py-3 text-sm font-medium text-accent-foreground transition-colors hover:bg-accent/90"
+          >
+            Apply Now
+          </a>
+        )}
       </div>
     </Section>
   </>
