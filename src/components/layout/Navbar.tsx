@@ -35,11 +35,9 @@ const Navbar = () => {
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="container flex h-16 items-center justify-between">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary">
-            <span className="text-sm font-bold text-primary-foreground">KS</span>
-          </div>
-          <span className="text-lg font-semibold tracking-tight text-foreground">KSPM</span>
+        <Link to="/" className="flex shrink-0 items-center gap-3" aria-label="Investment Club by UPH home">
+          <img src="/uphic-logo.png" alt="" className="h-9 w-auto object-contain" />
+          <span className="hidden text-sm font-semibold text-foreground lg:inline">Investment Club by UPH</span>
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">

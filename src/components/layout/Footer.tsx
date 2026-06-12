@@ -5,11 +5,9 @@ const Footer = () => (
     <div className="container py-16">
       <div className="grid gap-12 md:grid-cols-3">
         <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary-foreground">
-              <span className="text-sm font-bold text-primary">KS</span>
-            </div>
-            <span className="text-lg font-semibold">KSPM</span>
+          <div className="flex items-center gap-3">
+            <img src="/uphic-logo.png" alt="" className="h-11 w-auto object-contain brightness-0 invert" />
+            <span className="text-lg font-semibold">Investment Club by UPH</span>
           </div>
           <p className="text-sm leading-relaxed text-primary-foreground/70">
             Capital Market Study Group — empowering students with financial literacy and capital market knowledge.
@@ -47,7 +45,7 @@ const Footer = () => (
       </div>
 
       <div className="mt-12 border-t border-primary-foreground/10 pt-8 text-center text-sm text-primary-foreground/50">
-        © {new Date().getFullYear()} KSPM. All rights reserved.
+        © {new Date().getFullYear()} Investment Club by UPH. All rights reserved.
       </div>
     </div>
   </footer>
