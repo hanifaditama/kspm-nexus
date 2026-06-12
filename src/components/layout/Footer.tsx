@@ -71,6 +71,19 @@ const Footer = () => (
         </div>
       </div>
 
+      <div className="mt-12 flex items-center justify-center gap-10 border-t border-primary-foreground/10 pt-10 sm:gap-16">
+        <img
+          src="/uph-logo.png"
+          alt="Universitas Pelita Harapan"
+          className="h-20 w-auto object-contain sm:h-24"
+        />
+        <img
+          src="/idx-logo.png"
+          alt="Indonesia Stock Exchange"
+          className="h-20 w-auto object-contain sm:h-24"
+        />
+      </div>
+
       <div className="mt-12 border-t border-primary-foreground/10 pt-8 text-center text-sm text-primary-foreground/50">
         © {new Date().getFullYear()} Investment Club by UPH. All rights reserved.
       </div>
