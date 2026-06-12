@@ -36,7 +36,7 @@ const Navbar = () => {
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex shrink-0 items-center gap-3" aria-label="Investment Club by UPH home">
-          <img src="/uphic-logo.png" alt="" className="h-9 w-auto object-contain" />
+          <img src="/uphic-logo.webp" alt="" width={300} height={116} fetchPriority="high" className="h-9 w-auto object-contain" />
           <span className="hidden text-sm font-semibold text-foreground lg:inline">Investment Club by UPH</span>
         </Link>
 

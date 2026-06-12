@@ -36,20 +36,20 @@ const Index = () => {
         <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }} />
 
         <div className="container relative z-10 py-24 md:py-36">
-          <div className="mx-auto max-w-3xl text-center">
-            <span className="animate-fade-up mb-6 inline-block rounded-full border border-white/20 bg-white/10 px-5 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/90 backdrop-blur-sm">
+          <div className="mx-auto max-w-5xl text-center">
+            <span className="mb-6 inline-block rounded-full border border-white/20 bg-white/10 px-5 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/90 backdrop-blur-sm">
               KSPM UPH
             </span>
-            <h1 className="animate-fade-up-delay-1 font-heading text-4xl font-bold leading-tight tracking-tight text-white md:text-5xl lg:text-6xl">
+            <h1 className="font-heading text-4xl font-bold leading-tight tracking-tight text-white md:text-5xl lg:text-6xl">
               Kelompok Studi{" "}
               <span className="bg-gradient-to-r from-[hsl(var(--gold))] to-[hsl(40,80%,65%)] bg-clip-text text-transparent">
                 Pasar Modal
               </span>
             </h1>
-            <p className="animate-fade-up-delay-2 mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/75">
+            <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/75">
               Empowering students with knowledge in capital markets, investment, and financial literacy through education, research, and community.
             </p>
-            <div className="animate-fade-up-delay-3 mt-10 flex flex-wrap justify-center gap-4">
+            <div className="mt-10 flex flex-wrap justify-center gap-4">
               <Link
                 to="/about"
                 className="rounded-lg bg-white px-7 py-3.5 text-sm font-semibold text-[hsl(var(--primary))] shadow-lg transition-all hover:bg-white/90 hover:shadow-xl"
@@ -71,7 +71,7 @@ const Index = () => {
 
 
       {/* Latest Articles */}
-      <section className="py-20 md:py-28">
+      <section className="content-auto py-20 md:py-28">
         <div className="container">
           <div className="mb-12 text-center">
             <span className="mb-3 inline-block text-sm font-medium uppercase tracking-widest text-accent">Articles</span>
@@ -81,7 +81,7 @@ const Index = () => {
           {loading ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="h-48 animate-pulse rounded-xl border border-border bg-muted" />
+                <div key={i} className="h-[380px] animate-pulse rounded-xl border border-border bg-muted" />
               ))}
             </div>
           ) : articles.length > 0 ? (
@@ -104,7 +104,7 @@ const Index = () => {
       </section>
 
       {/* Upcoming Events */}
-      <section className="border-y border-border bg-muted/30 py-20 md:py-28">
+      <section className="content-auto border-y border-border bg-muted/30 py-20 md:py-28">
         <div className="container">
           <div className="mb-12 text-center">
             <span className="mb-3 inline-block text-sm font-medium uppercase tracking-widest text-accent">Events</span>
@@ -114,7 +114,7 @@ const Index = () => {
           {loading ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="h-48 animate-pulse rounded-xl border border-border bg-muted" />
+                <div key={i} className="h-64 animate-pulse rounded-xl border border-border bg-muted" />
               ))}
             </div>
           ) : events.length > 0 ? (
@@ -137,7 +137,7 @@ const Index = () => {
       </section>
 
       {/* Team Preview */}
-      <section className="py-20 md:py-28">
+      <section className="content-auto py-20 md:py-28">
         <div className="container">
           <div className="mb-12 text-center">
             <span className="mb-3 inline-block text-sm font-medium uppercase tracking-widest text-accent">Team</span>
@@ -147,7 +147,7 @@ const Index = () => {
           {loading ? (
             <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-52 animate-pulse rounded-xl border border-border bg-muted" />
+                <div key={i} className="h-60 animate-pulse rounded-xl border border-border bg-muted" />
               ))}
             </div>
           ) : team.length > 0 ? (
@@ -171,7 +171,7 @@ const Index = () => {
 
       {/* CTA */}
       {isRecruitmentOpen && (
-        <section className="border-t border-border">
+        <section className="content-auto border-t border-border">
           <div className="container py-20 md:py-28">
             <div className="mx-auto max-w-2xl rounded-2xl bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--navy-light))] p-10 text-center shadow-xl md:p-16">
               <h2 className="font-heading text-3xl font-bold text-white md:text-4xl">Ready to Join KSPM?</h2>

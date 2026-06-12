@@ -40,7 +40,7 @@ const queryClient = new QueryClient({
 });
 
 const RouteFallback = () => (
-  <div className="container flex min-h-[50vh] items-center justify-center text-sm text-muted-foreground">
+  <div className="container flex min-h-[calc(100vh-4rem)] items-center justify-center text-sm text-muted-foreground">
     Loading...
   </div>
 );

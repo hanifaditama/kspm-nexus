@@ -11,6 +11,9 @@ const ArticleCard = ({ article }: { article: Article }) => (
             src={article.mainImage}
             alt={article.title}
             loading="lazy"
+            decoding="async"
+            width={640}
+            height={360}
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         </div>

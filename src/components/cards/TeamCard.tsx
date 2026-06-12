@@ -8,6 +8,10 @@ const TeamCard = ({ member }: { member: TeamMember }) => (
         <img
           src={member.image}
           alt={member.name}
+          loading="lazy"
+          decoding="async"
+          width={160}
+          height={160}
           className="h-full w-full object-cover"
         />
       ) : (
