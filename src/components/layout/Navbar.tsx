@@ -18,7 +18,6 @@ const navLinks = [
   { label: "Articles", path: "/articles" },
   { label: "Events", path: "/events" },
   { label: "Team", path: "/team" },
-  { label: "Contact", path: "/contact" },
 ];
 
 const Navbar = () => {

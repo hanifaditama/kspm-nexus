@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 const Footer = () => (
   <footer className="border-t border-border bg-primary text-primary-foreground">
     <div className="container py-16">
-      <div className="grid gap-12 md:grid-cols-4">
+      <div className="grid gap-12 md:grid-cols-3">
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary-foreground">
@@ -30,7 +30,7 @@ const Footer = () => (
         <div className="space-y-4">
           <h4 className="text-sm font-semibold uppercase tracking-wider text-primary-foreground/50">Organization</h4>
           <nav className="flex flex-col gap-2">
-            {["Team", "Contact"].map((item) => (
+            {["Team"].map((item) => (
               <Link key={item} to={`/${item.toLowerCase()}`} className="text-sm text-primary-foreground/70 transition-colors hover:text-primary-foreground">
                 {item}
               </Link>
@@ -41,9 +41,6 @@ const Footer = () => (
         <div className="space-y-4">
           <h4 className="text-sm font-semibold uppercase tracking-wider text-primary-foreground/50">Connect</h4>
           <div className="flex flex-col gap-2 text-sm text-primary-foreground/70">
-            <a href="mailto:investment.club@uph.edu" className="transition-colors hover:text-primary-foreground">
-              investment.club@uph.edu
-            </a>
             <span>@kspm_official</span>
           </div>
         </div>
