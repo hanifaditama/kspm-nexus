@@ -135,7 +135,7 @@ const ArticleDetail = () => {
       </div>
 
       {/* Header */}
-      <header className="mx-auto max-w-[728px] px-6 pt-12 md:pt-16">
+      <header className="mx-auto max-w-[920px] px-5 pt-14 sm:px-6 md:pt-20">
         <h1 className="article-title text-[2.5rem] md:text-[3.25rem]">
           {article.title}
         </h1>
