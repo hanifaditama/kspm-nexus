@@ -15,7 +15,7 @@ interface AuthContextType {
   mustChangePassword: boolean;
   hasPermission: (permission: ContentPermission) => boolean;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: string | null }>;
+  signIn: (email: string, password: string, remember?: boolean) => Promise<{ error: string | null }>;
   signOut: () => Promise<{ error: string | null }>;
 }
 
@@ -122,8 +122,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [session]);
 
-  const signIn = async (email: string, password: string) => {
-    const { error } = await signInWithPassword(email, password);
+  const signIn = async (email: string, password: string, remember?: boolean) => {
+    const { error } = await signInWithPassword(email, password, remember);
     return { error: error?.message ?? null };
   };
 

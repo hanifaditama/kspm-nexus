@@ -4,6 +4,7 @@ import type { Database } from './types';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const REMEMBER_SESSION_KEY = "kspm-remember-session";
 
 if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
   throw new Error(
@@ -14,9 +15,30 @@ if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
+const authStorage = {
+  getItem: (key: string) => localStorage.getItem(key) ?? sessionStorage.getItem(key),
+  setItem: (key: string, value: string) => {
+    const persistent = localStorage.getItem(REMEMBER_SESSION_KEY) !== "false";
+    const target = persistent ? localStorage : sessionStorage;
+    const previous = persistent ? sessionStorage : localStorage;
+    target.setItem(key, value);
+    previous.removeItem(key);
+  },
+  removeItem: (key: string) => {
+    localStorage.removeItem(key);
+    sessionStorage.removeItem(key);
+  },
+};
+
+export const setRememberSession = (remember: boolean) => {
+  localStorage.setItem(REMEMBER_SESSION_KEY, String(remember));
+};
+
+export const getRememberSession = () => localStorage.getItem(REMEMBER_SESSION_KEY) !== "false";
+
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
-    storage: localStorage,
+    storage: authStorage,
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,

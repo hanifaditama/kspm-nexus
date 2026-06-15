@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { getRememberSession, supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Lock, Mail, KeyRound, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -18,6 +19,7 @@ const MemberLogin = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [remember, setRemember] = useState(getRememberSession);
   const { signIn } = useAuth();
   const { toast } = useToast();
 
@@ -25,7 +27,7 @@ const MemberLogin = () => {
     e.preventDefault();
     setError("");
     setLoading(true);
-    const { error: signInError } = await signIn(email, password);
+    const { error: signInError } = await signIn(email, password, remember);
     if (signInError) {
       setError("Invalid credentials. Please try again.");
     }
@@ -130,6 +132,16 @@ const MemberLogin = () => {
                 <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10" required />
               </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="remember"
+                checked={remember}
+                onCheckedChange={(checked) => setRemember(checked === true)}
+              />
+              <Label htmlFor="remember" className="cursor-pointer text-xs font-normal text-muted-foreground">
+                Remember me on this device
+              </Label>
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Signing in..." : "Sign In"}
