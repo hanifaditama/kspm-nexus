@@ -342,6 +342,41 @@ export type Database = {
         }
         Relationships: []
       }
+      screening_notes: {
+        Row: {
+          author_name: string
+          created_at: string
+          id: string
+          message: string
+          screening_item_id: string
+          user_id: string
+        }
+        Insert: {
+          author_name?: string
+          created_at?: string
+          id?: string
+          message: string
+          screening_item_id: string
+          user_id: string
+        }
+        Update: {
+          author_name?: string
+          created_at?: string
+          id?: string
+          message?: string
+          screening_item_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "screening_notes_screening_item_id_fkey"
+            columns: ["screening_item_id"]
+            isOneToOne: false
+            referencedRelation: "screening_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       primary_administrator: {
         Row: {
           id: string

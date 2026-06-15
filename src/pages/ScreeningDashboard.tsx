@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { CheckCircle2, ExternalLink, FileCheck2, Loader2, Pencil, Plus, Settings2, Trash2 } from "lucide-react";
+import { ArrowDownUp, CheckCircle2, ExternalLink, FileCheck2, Loader2, MessageSquare, Pencil, Plus, Settings2, Trash2, UserPlus, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -43,6 +43,15 @@ interface ScreeningCheck {
   checked: boolean;
 }
 
+interface ScreeningNote {
+  id: string;
+  screening_item_id: string;
+  user_id: string;
+  author_name: string;
+  message: string;
+  created_at: string;
+}
+
 interface MemberProfile {
   user_id: string;
   display_name: string;
@@ -51,7 +60,7 @@ interface MemberProfile {
 
 const divisions: Division[] = ["BPH", "CMP", "EVENT", "RESEARCH"];
 const statuses: ScreeningStatus[] = ["SCREENING BY KSPM", "MINOR REVISION", "APPROVED BY KSPM"];
-const blankForm = { material: "", submitted_at: "", due_at: "", link: "", notes: "" };
+const blankForm = { material: "", submitted_at: "", due_at: "", link: "" };
 
 const statusStyle: Record<ScreeningStatus, string> = {
   "SCREENING BY KSPM": "border-amber-300 bg-amber-100 text-amber-900 hover:bg-amber-100",
@@ -72,6 +81,7 @@ const ScreeningDashboard = () => {
   const [items, setItems] = useState<ScreeningItem[]>([]);
   const [evaluators, setEvaluators] = useState<Evaluator[]>([]);
   const [checks, setChecks] = useState<ScreeningCheck[]>([]);
+  const [notes, setNotes] = useState<ScreeningNote[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingKey, setSavingKey] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -81,21 +91,26 @@ const ScreeningDashboard = () => {
   const [manageAccess, setManageAccess] = useState<Record<Division, boolean>>({ BPH: false, CMP: false, EVENT: false, RESEARCH: false });
   const [editingItem, setEditingItem] = useState<ScreeningItem | null>(null);
   const [form, setForm] = useState(blankForm);
+  const [noteMessage, setNoteMessage] = useState("");
+  const [evaluatorToAdd, setEvaluatorToAdd] = useState("");
+  const [newestFirst, setNewestFirst] = useState(true);
 
   const loadScreening = useCallback(async () => {
     setLoading(true);
-    const [itemsResult, evaluatorsResult, checksResult] = await Promise.all([
+    const [itemsResult, evaluatorsResult, checksResult, notesResult] = await Promise.all([
       supabase.from("screening_items").select("id,division,sequence_no,material,submitted_at,due_at,link,status,notes").order("sequence_no", { ascending: false }),
       supabase.from("screening_evaluators").select("id,division,display_name,display_order,user_id").order("display_order"),
       supabase.from("screening_checks").select("screening_item_id,evaluator_id,checked"),
+      supabase.from("screening_notes").select("id,screening_item_id,user_id,author_name,message,created_at").order("created_at"),
     ]);
-    const error = itemsResult.error ?? evaluatorsResult.error ?? checksResult.error;
+    const error = itemsResult.error ?? evaluatorsResult.error ?? checksResult.error ?? notesResult.error;
     if (error) {
       toast({ title: "Could not load screening dashboard", description: error.message, variant: "destructive" });
     } else {
       setItems((itemsResult.data ?? []) as ScreeningItem[]);
       setEvaluators((evaluatorsResult.data ?? []) as Evaluator[]);
       setChecks((checksResult.data ?? []) as ScreeningCheck[]);
+      setNotes((notesResult.data ?? []) as ScreeningNote[]);
     }
     setLoading(false);
   }, [toast]);
@@ -134,8 +149,10 @@ const ScreeningDashboard = () => {
   }, [isPrimaryAdmin, toast]);
 
   const divisionItems = useMemo(
-    () => items.filter((item) => item.division === division),
-    [division, items],
+    () => items
+      .filter((item) => item.division === division)
+      .sort((a, b) => newestFirst ? b.sequence_no - a.sequence_no : a.sequence_no - b.sequence_no),
+    [division, items, newestFirst],
   );
   const divisionEvaluators = useMemo(
     () => evaluators.filter((evaluator) => evaluator.division === division),
@@ -152,6 +169,11 @@ const ScreeningDashboard = () => {
   const assignedColumns = divisionEvaluators.filter((evaluator) => evaluator.user_id === user?.id);
   const canCreateCurrent = createAccess[division];
   const canManageCurrent = manageAccess[division];
+  const latestNoteByItem = useMemo(() => {
+    const latest = new Map<string, ScreeningNote>();
+    for (const note of notes) latest.set(note.screening_item_id, note);
+    return latest;
+  }, [notes]);
 
   const summary = useMemo(() => ({
     total: divisionItems.length,
@@ -192,22 +214,40 @@ const ScreeningDashboard = () => {
     ]);
   };
 
-  const assignEvaluator = async (evaluator: Evaluator, userId: string) => {
-    const key = `assignment:${evaluator.id}`;
+  const addEvaluator = async (userId: string) => {
+    const member = members.find((entry) => entry.user_id === userId);
+    if (!member) return;
+    const key = "add-evaluator";
     setSavingKey(key);
     const { error } = await supabase
       .from("screening_evaluators")
-      .update({ user_id: userId === "unassigned" ? null : userId })
-      .eq("id", evaluator.id);
+      .insert({
+        division,
+        user_id: userId,
+        display_name: member.display_name.trim().split(/\s+/)[0],
+        display_order: Math.max(0, ...divisionEvaluators.map((entry) => entry.display_order)) + 1,
+      });
     setSavingKey("");
     if (error) {
-      toast({ title: "Could not assign evaluator", description: error.message, variant: "destructive" });
+      toast({ title: "Could not add evaluator", description: error.message, variant: "destructive" });
       return;
     }
-    setEvaluators((current) => current.map((entry) => (
-      entry.id === evaluator.id ? { ...entry, user_id: userId === "unassigned" ? null : userId } : entry
-    )));
-    toast({ title: "Evaluator assignment updated" });
+    setEvaluatorToAdd("");
+    toast({ title: `${member.display_name} added as evaluator` });
+    void loadScreening();
+  };
+
+  const removeEvaluator = async (evaluator: Evaluator) => {
+    if (!confirm(`Remove ${evaluator.display_name} from ${division} evaluators?`)) return;
+    setSavingKey(`remove:${evaluator.id}`);
+    const { error } = await supabase.from("screening_evaluators").delete().eq("id", evaluator.id);
+    setSavingKey("");
+    if (error) {
+      toast({ title: "Could not remove evaluator", description: error.message, variant: "destructive" });
+      return;
+    }
+    setEvaluators((current) => current.filter((entry) => entry.id !== evaluator.id));
+    toast({ title: "Evaluator removed" });
   };
 
   const openCreate = () => {
@@ -223,8 +263,8 @@ const ScreeningDashboard = () => {
       submitted_at: item.submitted_at ?? "",
       due_at: item.due_at ?? "",
       link: item.link ?? "",
-      notes: item.notes ?? "",
     });
+    setNoteMessage("");
     setDialogOpen(true);
   };
 
@@ -246,7 +286,6 @@ const ScreeningDashboard = () => {
       submitted_at: form.submitted_at || null,
       due_at: form.due_at || null,
       link: form.link.trim() || null,
-      notes: form.notes.trim() || null,
     };
     const result = editingItem
       ? await supabase.from("screening_items").update(payload).eq("id", editingItem.id)
@@ -264,6 +303,24 @@ const ScreeningDashboard = () => {
     setDialogOpen(false);
     toast({ title: editingItem ? "Screening item updated" : "Screening item added" });
     void loadScreening();
+  };
+
+  const addNote = async () => {
+    if (!editingItem || !user || !noteMessage.trim()) return;
+    setSavingKey("note");
+    const { data, error } = await supabase
+      .from("screening_notes")
+      .insert({ screening_item_id: editingItem.id, user_id: user.id, message: noteMessage.trim() })
+      .select("id,screening_item_id,user_id,author_name,message,created_at")
+      .single();
+    setSavingKey("");
+    if (error) {
+      toast({ title: "Could not add note", description: error.message, variant: "destructive" });
+      return;
+    }
+    setNotes((current) => [...current, data as ScreeningNote]);
+    setNoteMessage("");
+    toast({ title: "Note added" });
   };
 
   const deleteItem = async (item: ScreeningItem) => {
@@ -291,7 +348,7 @@ const ScreeningDashboard = () => {
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" asChild><Link to="/member">File Manager</Link></Button>
-            {isPrimaryAdmin && <Button variant="outline" onClick={() => setAssignmentOpen(true)}><Settings2 className="h-4 w-4" /> Assign Evaluators</Button>}
+            {isPrimaryAdmin && <Button variant="outline" onClick={() => setAssignmentOpen(true)}><Settings2 className="h-4 w-4" /> Manage Evaluators</Button>}
             {canCreateCurrent && <Button onClick={openCreate}><Plus className="h-4 w-4" /> Add Screening</Button>}
           </div>
         </div>
@@ -303,6 +360,12 @@ const ScreeningDashboard = () => {
             {divisions.map((item) => <TabsTrigger key={item} value={item}>{item}</TabsTrigger>)}
           </TabsList>
         </Tabs>
+        <div className="mt-4 flex justify-end">
+          <Button variant="outline" size="sm" onClick={() => setNewestFirst((current) => !current)}>
+            <ArrowDownUp className="h-4 w-4" />
+            {newestFirst ? "Newest first" : "Oldest first"}
+          </Button>
+        </div>
 
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
           {[
@@ -379,7 +442,11 @@ const ScreeningDashboard = () => {
                         </td>
                       );
                     })}
-                    <td className="max-w-80 px-4 py-4 text-xs leading-relaxed text-muted-foreground">{item.notes || "-"}</td>
+                    <td className="max-w-80 px-4 py-4 text-xs leading-relaxed text-muted-foreground">
+                      {latestNoteByItem.get(item.id)
+                        ? <><span className="font-semibold text-foreground">{latestNoteByItem.get(item.id)?.author_name}:</span> {latestNoteByItem.get(item.id)?.message}</>
+                        : item.notes || "-"}
+                    </td>
                     {canManageCurrent && (
                       <td className="px-3 py-4">
                         <div className="flex justify-end gap-1">
@@ -421,7 +488,41 @@ const ScreeningDashboard = () => {
               <div className="grid gap-2"><Label htmlFor="due-at">Due Date</Label><Input id="due-at" type="date" value={form.due_at} onChange={(event) => setForm({ ...form, due_at: event.target.value })} /></div>
             </div>
             <div className="grid gap-2"><Label htmlFor="screening-link">Document Link</Label><Input id="screening-link" type="url" placeholder="https://..." value={form.link} onChange={(event) => setForm({ ...form, link: event.target.value })} /></div>
-            <div className="grid gap-2"><Label htmlFor="screening-notes">Notes</Label><Textarea id="screening-notes" rows={4} value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} /></div>
+            {editingItem && (
+              <div className="grid gap-3 border-t border-border pt-4">
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4 text-accent" />
+                  <Label>Notes</Label>
+                </div>
+                {editingItem.notes && (
+                  <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                    <p className="text-xs font-semibold uppercase opacity-70">Imported note</p>
+                    <p className="mt-1">{editingItem.notes}</p>
+                  </div>
+                )}
+                <div className="max-h-48 space-y-2 overflow-y-auto">
+                  {notes.filter((note) => note.screening_item_id === editingItem.id).map((note) => (
+                    <div key={note.id} className="rounded-md border border-border bg-muted/30 p-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm font-semibold text-foreground">{note.author_name}</p>
+                        <p className="text-xs text-muted-foreground">{new Date(note.created_at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}</p>
+                      </div>
+                      <p className="mt-1 text-sm text-muted-foreground">{note.message}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex items-end gap-2">
+                  <div className="grid flex-1 gap-2">
+                    <Label htmlFor="new-note">Add note</Label>
+                    <Textarea id="new-note" rows={2} placeholder="Write your feedback..." value={noteMessage} onChange={(event) => setNoteMessage(event.target.value)} />
+                  </div>
+                  <Button variant="outline" disabled={!noteMessage.trim() || savingKey === "note"} onClick={() => void addNote()}>
+                    {savingKey === "note" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                    Add
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
           <DialogFooter><Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button><Button disabled={!form.material.trim() || savingKey === "item"} onClick={() => void saveItem()}>{savingKey === "item" && <Loader2 className="h-4 w-4 animate-spin" />} Save</Button></DialogFooter>
         </DialogContent>
@@ -429,31 +530,41 @@ const ScreeningDashboard = () => {
 
       <Dialog open={assignmentOpen} onOpenChange={setAssignmentOpen}>
         <DialogContent className="sm:max-w-xl">
-          <DialogHeader><DialogTitle>Assign {division} Evaluators</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{division} Evaluators</DialogTitle></DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Connect each checklist column to one member account. The displayed column name can stay short and does not need to match the account name.
+            Add members who can review, add notes, and manage screening items for this division. Dashboard columns use their first name.
           </p>
-          <div className="grid max-h-[55vh] gap-3 overflow-y-auto py-2">
+          <div className="flex items-end gap-2 rounded-md border border-dashed border-border bg-muted/20 p-3">
+            <div className="grid flex-1 gap-2">
+              <Label>Add evaluator</Label>
+              <Select value={evaluatorToAdd} onValueChange={setEvaluatorToAdd}>
+                <SelectTrigger><SelectValue placeholder="Choose member by name or email" /></SelectTrigger>
+                <SelectContent>
+                  {members.filter((member) => !divisionEvaluators.some((evaluator) => evaluator.user_id === member.user_id)).map((member) => (
+                    <SelectItem key={member.user_id} value={member.user_id}>
+                      {member.display_name}{member.email ? ` (${member.email})` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button disabled={!evaluatorToAdd || savingKey === "add-evaluator"} onClick={() => void addEvaluator(evaluatorToAdd)}>
+              <UserPlus className="h-4 w-4" /> Add
+            </Button>
+          </div>
+          <div className="grid max-h-[45vh] gap-2 overflow-y-auto py-2">
             {divisionEvaluators.map((evaluator) => (
-              <div key={evaluator.id} className="grid gap-2 rounded-md border border-border p-3 sm:grid-cols-[140px_1fr] sm:items-center">
-                <Label>{evaluator.display_name}</Label>
-                <Select
-                  value={evaluator.user_id ?? "unassigned"}
-                  disabled={savingKey === `assignment:${evaluator.id}`}
-                  onValueChange={(value) => void assignEvaluator(evaluator, value)}
-                >
-                  <SelectTrigger><SelectValue placeholder="Choose member" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="unassigned">Not assigned</SelectItem>
-                    {members.map((member) => (
-                      <SelectItem key={member.user_id} value={member.user_id}>
-                        {member.display_name}{member.email ? ` (${member.email})` : ""}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div key={evaluator.id} className="flex items-center justify-between gap-3 rounded-md border border-border p-3">
+                <div>
+                  <p className="font-medium text-foreground">{members.find((member) => member.user_id === evaluator.user_id)?.display_name ?? evaluator.display_name}</p>
+                  <p className="text-xs text-muted-foreground">{members.find((member) => member.user_id === evaluator.user_id)?.email ?? "No email"}</p>
+                </div>
+                <Button variant="ghost" size="icon" title="Remove evaluator" disabled={savingKey === `remove:${evaluator.id}`} onClick={() => void removeEvaluator(evaluator)}>
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
             ))}
+            {divisionEvaluators.length === 0 && <p className="py-8 text-center text-sm text-muted-foreground">No evaluators added yet.</p>}
           </div>
           <DialogFooter><Button onClick={() => setAssignmentOpen(false)}>Done</Button></DialogFooter>
         </DialogContent>
