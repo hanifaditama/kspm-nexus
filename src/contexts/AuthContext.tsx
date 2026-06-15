@@ -99,6 +99,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           });
         },
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "user_roles",
+          filter: `user_id=eq.${session.user.id}`,
+        },
+        () => {
+          void loadAuthState(session).then((next) => {
+            setIsAdmin(next.isAdmin);
+            setIsPrimaryAdmin(next.isPrimaryAdmin);
+            setPermissions(next.permissions);
+          });
+        },
+      )
       .subscribe();
 
     return () => {

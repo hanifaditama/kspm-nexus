@@ -100,6 +100,31 @@ const AdminAccess = () => {
     toast({ title: "Access updated" });
   };
 
+  const toggleAdministrator = async (member: MemberProfile, enabled: boolean) => {
+    const key = `${member.user_id}:administrator`;
+    setSavingKey(key);
+    const { error } = enabled
+      ? await supabase.from("user_roles").insert({ user_id: member.user_id, role: "admin" })
+      : await supabase.from("user_roles").delete().eq("user_id", member.user_id).eq("role", "admin");
+    setSavingKey("");
+    if (error) {
+      toast({ title: "Could not update administrator", description: error.message, variant: "destructive" });
+      return;
+    }
+    setAdminIds((current) => {
+      const next = new Set(current);
+      if (enabled) next.add(member.user_id);
+      else next.delete(member.user_id);
+      return next;
+    });
+    toast({
+      title: enabled ? "Administrator added" : "Administrator revoked",
+      description: enabled
+        ? `${member.display_name} now has full content management access.`
+        : `${member.display_name} no longer has administrator access.`,
+    });
+  };
+
   const transferPrimaryAdministrator = async (member: MemberProfile) => {
     setTransferringId(member.user_id);
     const { error } = await supabase.rpc("transfer_primary_administrator", {
@@ -123,7 +148,7 @@ const AdminAccess = () => {
           </div>
           <div>
             <h1 className="text-2xl font-semibold text-foreground">Access Control</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Create accounts, assign content access, and transfer the primary administrator role.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Create accounts, assign content access, manage secondary administrators, and transfer primary ownership.</p>
           </div>
         </div>
         <CreateMemberDialog onCreated={() => void loadAccess()} />
@@ -152,6 +177,7 @@ const AdminAccess = () => {
                     {contentPermissionLabels[permission]}
                   </th>
                 ))}
+                <th className="px-3 py-3 text-center font-medium text-muted-foreground">Administrator</th>
                 <th className="px-4 py-3 text-right font-medium text-muted-foreground">Primary administrator</th>
               </tr>
             </thead>
@@ -181,6 +207,17 @@ const AdminAccess = () => {
                         </td>
                       );
                     })}
+                    <td className="px-3 py-4 text-center">
+                      <Switch
+                        aria-label={`Administrator access for ${member.display_name}`}
+                        checked={fullAccess}
+                        disabled={member.user_id === primaryAdminId || savingKey === `${member.user_id}:administrator`}
+                        onCheckedChange={(checked) => void toggleAdministrator(member, checked)}
+                      />
+                      <p className="mt-1 text-[11px] text-muted-foreground">
+                        {member.user_id === primaryAdminId ? "Primary" : fullAccess ? "Full access" : "Member"}
+                      </p>
+                    </td>
                     <td className="px-4 py-4 text-right">
                       {member.user_id === primaryAdminId ? (
                         <span className="inline-flex items-center gap-1.5 text-xs font-medium text-accent">
