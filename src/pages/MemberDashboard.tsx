@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FileCheck2, LogOut, Upload, Search } from "lucide-react";
+import { CalendarDays, FileCheck2, LogOut, Upload, Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { MemberFile, MemberFolder } from "@/components/dashboard/types";
@@ -279,6 +279,12 @@ const MemberDashboard = () => {
             </p>
           </div>
           <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/member/calendar">
+                <CalendarDays className="mr-2 h-4 w-4" />
+                Calendar
+              </Link>
+            </Button>
             <Button variant="outline" size="sm" asChild>
               <Link to="/member/screening">
                 <FileCheck2 className="mr-2 h-4 w-4" />

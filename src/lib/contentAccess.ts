@@ -1,4 +1,4 @@
-export const contentPermissions = ["recruitment", "articles", "events", "team", "programs"] as const;
+export const contentPermissions = ["recruitment", "articles", "events", "team", "programs", "calendar"] as const;
 
 export type ContentPermission = (typeof contentPermissions)[number];
 
@@ -8,4 +8,5 @@ export const contentPermissionLabels: Record<ContentPermission, string> = {
   events: "Events",
   team: "Team",
   programs: "Programs",
+  calendar: "Member Calendar",
 };

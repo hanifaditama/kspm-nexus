@@ -12,7 +12,7 @@ const json = (body: unknown, status = 200) =>
   });
 
 const clean = (value: unknown) => (typeof value === "string" ? value.trim() : "");
-const validPermissions = new Set(["recruitment", "articles", "events", "team", "programs"]);
+const validPermissions = new Set(["recruitment", "articles", "events", "team", "programs", "calendar"]);
 
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });

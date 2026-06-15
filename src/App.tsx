@@ -19,6 +19,7 @@ const ArticleDetail = lazy(() => import("./pages/ArticleDetail"));
 const MemberLogin = lazy(() => import("./pages/MemberLogin"));
 const MemberDashboard = lazy(() => import("./pages/MemberDashboard"));
 const ScreeningDashboard = lazy(() => import("./pages/ScreeningDashboard"));
+const MemberCalendar = lazy(() => import("./pages/MemberCalendar"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
@@ -67,6 +68,7 @@ const App = () => (
                 <Route path="/login" element={<PublicOnlyRoute><MemberLogin /></PublicOnlyRoute>} />
                 <Route path="/member" element={<ProtectedRoute><MemberDashboard /></ProtectedRoute>} />
                 <Route path="/member/screening" element={<ProtectedRoute><ScreeningDashboard /></ProtectedRoute>} />
+                <Route path="/member/calendar" element={<ProtectedRoute><MemberCalendar /></ProtectedRoute>} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/admin" element={<ProtectedRoute requireContentManager><AdminLayout /></ProtectedRoute>}>
                   <Route index element={<AdminHome />} />
