@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Crown, Search, ShieldCheck } from "lucide-react";
+import { Crown, Search, ShieldCheck, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +39,7 @@ const AdminAccess = () => {
   const [loading, setLoading] = useState(true);
   const [savingKey, setSavingKey] = useState("");
   const [transferringId, setTransferringId] = useState("");
+  const [removingId, setRemovingId] = useState("");
   const { toast } = useToast();
 
   const loadAccess = useCallback(async () => {
@@ -139,6 +140,30 @@ const AdminAccess = () => {
     window.location.assign("/member");
   };
 
+  const removeMember = async (member: MemberProfile) => {
+    setRemovingId(member.user_id);
+    const { data, error } = await supabase.functions.invoke<{ message: string }>("remove-member", {
+      body: { userId: member.user_id },
+    });
+    setRemovingId("");
+    if (error) {
+      toast({ title: "Could not remove member", description: error.message, variant: "destructive" });
+      return;
+    }
+    setMembers((current) => current.filter((item) => item.user_id !== member.user_id));
+    setPermissions((current) => {
+      const next = { ...current };
+      delete next[member.user_id];
+      return next;
+    });
+    setAdminIds((current) => {
+      const next = new Set(current);
+      next.delete(member.user_id);
+      return next;
+    });
+    toast({ title: "Member removed", description: data?.message ?? `${member.display_name}'s account was removed.` });
+  };
+
   return (
     <div>
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
@@ -148,7 +173,7 @@ const AdminAccess = () => {
           </div>
           <div>
             <h1 className="text-2xl font-semibold text-foreground">Access Control</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Create accounts, assign content access, manage secondary administrators, and transfer primary ownership.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Create or remove accounts, assign content access, manage secondary administrators, and transfer primary ownership.</p>
           </div>
         </div>
         <CreateMemberDialog onCreated={() => void loadAccess()} />
@@ -179,6 +204,7 @@ const AdminAccess = () => {
                 ))}
                 <th className="px-3 py-3 text-center font-medium text-muted-foreground">Administrator</th>
                 <th className="px-4 py-3 text-right font-medium text-muted-foreground">Primary administrator</th>
+                <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -244,6 +270,35 @@ const AdminAccess = () => {
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
                               <AlertDialogAction onClick={() => void transferPrimaryAdministrator(member)}>
                                 Transfer access
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
+                    </td>
+                    <td className="px-4 py-4 text-right">
+                      {member.user_id !== primaryAdminId && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" title={`Remove ${member.display_name}`} disabled={removingId === member.user_id}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Remove member account?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This permanently removes {member.display_name} ({member.email ?? "no login email"}) from authentication,
+                                access control, and member resources. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                onClick={() => void removeMember(member)}
+                              >
+                                Remove member
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
