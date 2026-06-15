@@ -92,6 +92,8 @@ const ScreeningDashboard = () => {
   const [editingItem, setEditingItem] = useState<ScreeningItem | null>(null);
   const [form, setForm] = useState(blankForm);
   const [noteMessage, setNoteMessage] = useState("");
+  const [editingNoteId, setEditingNoteId] = useState("");
+  const [editingNoteMessage, setEditingNoteMessage] = useState("");
   const [evaluatorToAdd, setEvaluatorToAdd] = useState("");
   const [newestFirst, setNewestFirst] = useState(true);
 
@@ -323,6 +325,37 @@ const ScreeningDashboard = () => {
     toast({ title: "Note added" });
   };
 
+  const updateNote = async (note: ScreeningNote) => {
+    if (!editingNoteMessage.trim()) return;
+    setSavingKey(`note:${note.id}`);
+    const { error } = await supabase
+      .from("screening_notes")
+      .update({ message: editingNoteMessage.trim() })
+      .eq("id", note.id);
+    setSavingKey("");
+    if (error) {
+      toast({ title: "Could not update note", description: error.message, variant: "destructive" });
+      return;
+    }
+    setNotes((current) => current.map((entry) => entry.id === note.id ? { ...entry, message: editingNoteMessage.trim() } : entry));
+    setEditingNoteId("");
+    setEditingNoteMessage("");
+    toast({ title: "Note updated" });
+  };
+
+  const deleteNote = async (note: ScreeningNote) => {
+    if (!confirm("Delete this note?")) return;
+    setSavingKey(`note:${note.id}`);
+    const { error } = await supabase.from("screening_notes").delete().eq("id", note.id);
+    setSavingKey("");
+    if (error) {
+      toast({ title: "Could not delete note", description: error.message, variant: "destructive" });
+      return;
+    }
+    setNotes((current) => current.filter((entry) => entry.id !== note.id));
+    toast({ title: "Note deleted" });
+  };
+
   const deleteItem = async (item: ScreeningItem) => {
     if (!confirm(`Delete "${item.material}"?`)) return;
     const { error } = await supabase.from("screening_items").delete().eq("id", item.id);
@@ -505,9 +538,38 @@ const ScreeningDashboard = () => {
                     <div key={note.id} className="rounded-md border border-border bg-muted/30 p-3">
                       <div className="flex items-center justify-between gap-3">
                         <p className="text-sm font-semibold text-foreground">{note.author_name}</p>
-                        <p className="text-xs text-muted-foreground">{new Date(note.created_at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}</p>
+                        <div className="flex items-center gap-1">
+                          <p className="mr-1 text-xs text-muted-foreground">{new Date(note.created_at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}</p>
+                          {note.user_id === user?.id && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              title="Edit note"
+                              onClick={() => {
+                                setEditingNoteId(note.id);
+                                setEditingNoteMessage(note.message);
+                              }}
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
+                          {note.user_id === user?.id && (
+                            <Button variant="ghost" size="icon" className="h-7 w-7" title="Delete note" disabled={savingKey === `note:${note.id}`} onClick={() => void deleteNote(note)}>
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                      <p className="mt-1 text-sm text-muted-foreground">{note.message}</p>
+                      {editingNoteId === note.id ? (
+                        <div className="mt-2 grid gap-2">
+                          <Textarea rows={2} value={editingNoteMessage} onChange={(event) => setEditingNoteMessage(event.target.value)} />
+                          <div className="flex justify-end gap-2">
+                            <Button variant="ghost" size="sm" onClick={() => { setEditingNoteId(""); setEditingNoteMessage(""); }}>Cancel</Button>
+                            <Button size="sm" disabled={!editingNoteMessage.trim() || savingKey === `note:${note.id}`} onClick={() => void updateNote(note)}>Save note</Button>
+                          </div>
+                        </div>
+                      ) : <p className="mt-1 text-sm text-muted-foreground">{note.message}</p>}
                     </div>
                   ))}
                 </div>
