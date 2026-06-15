@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface RecruitmentSettings {
@@ -12,24 +12,37 @@ export interface RecruitmentSettings {
 }
 
 export const useRecruitmentStatus = () => {
-  const query = useQuery({
-    queryKey: ["site-settings", "recruitment"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("site_settings")
-        .select("recruitment_open,recruitment_eyebrow,recruitment_title,recruitment_description,recruitment_deadline,recruitment_requirements,recruitment_application_url")
-        .eq("id", "main")
-        .maybeSingle();
-      if (error) throw error;
-      return data as RecruitmentSettings | null;
-    },
-    staleTime: 5 * 60_000,
-  });
+  const [isOpen, setIsOpen] = useState<boolean>(true);
+  const [settings, setSettings] = useState<RecruitmentSettings | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  return {
-    isOpen: query.data?.recruitment_open ?? false,
-    settings: query.data ?? null,
-    loading: query.isLoading,
-    refresh: query.refetch,
+  const refresh = async () => {
+    const { data } = await supabase
+      .from("site_settings")
+      .select("recruitment_open,recruitment_eyebrow,recruitment_title,recruitment_description,recruitment_deadline,recruitment_requirements,recruitment_application_url")
+      .eq("id", "main")
+      .maybeSingle();
+    if (data) {
+      setIsOpen(data.recruitment_open);
+      setSettings(data);
+    }
+    setLoading(false);
   };
+
+  useEffect(() => {
+    refresh();
+    const channel = supabase
+      .channel(`site_settings_changes_${Math.random().toString(36).slice(2)}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "site_settings" },
+        () => refresh()
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  return { isOpen, settings, loading, refresh };
 };

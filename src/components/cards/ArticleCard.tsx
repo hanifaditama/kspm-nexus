@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import type { Article } from "@/types/content";
 import { ArrowUpRight } from "lucide-react";
-import { optimizedImageSrcSet, optimizedImageUrl } from "@/lib/images";
 
 const ArticleCard = ({ article }: { article: Article }) => (
   <Link to={`/articles/${article.slug}`} className="group">
@@ -9,9 +8,7 @@ const ArticleCard = ({ article }: { article: Article }) => (
       {article.mainImage && (
         <div className="aspect-[16/9] w-full overflow-hidden bg-muted">
           <img
-            src={optimizedImageUrl(article.mainImage, 720)}
-            srcSet={optimizedImageSrcSet(article.mainImage, [480, 720, 960])}
-            sizes="(min-width: 1024px) 30vw, (min-width: 768px) 45vw, 100vw"
+            src={article.mainImage}
             alt={article.title}
             loading="lazy"
             decoding="async"

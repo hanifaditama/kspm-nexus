@@ -55,26 +55,24 @@ const Navbar = () => {
         </nav>
 
         <div className="flex items-center gap-3">
-          {/* Keep this slot stable while the remote recruitment status loads. */}
-          <div className="hidden w-[9.75rem] sm:block">
-            {isRecruitmentOpen ? (
-              <Link
-                to="/recruitment"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent/10 px-3.5 py-1.5 text-xs font-semibold text-accent transition-colors hover:bg-accent/20"
-              >
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
-                </span>
-                Open Recruitment
-              </Link>
-            ) : (
-              <span className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-muted px-3.5 py-1.5 text-xs font-medium text-muted-foreground">
-                <span className="h-2 w-2 rounded-full bg-muted-foreground/40" />
-                Recruitment Closed
+          {/* Recruitment Status */}
+          {isRecruitmentOpen ? (
+            <Link
+              to="/recruitment"
+              className="hidden items-center gap-2 rounded-full bg-accent/10 px-3.5 py-1.5 text-xs font-semibold text-accent transition-colors hover:bg-accent/20 sm:inline-flex"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
               </span>
-            )}
-          </div>
+              Open Recruitment
+            </Link>
+          ) : (
+            <span className="hidden items-center gap-2 rounded-full bg-muted px-3.5 py-1.5 text-xs font-medium text-muted-foreground sm:inline-flex">
+              <span className="h-2 w-2 rounded-full bg-muted-foreground/40" />
+              Recruitment Closed
+            </span>
+          )}
 
           {/* User menu */}
           {user ? (

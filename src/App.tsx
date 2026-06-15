@@ -1,7 +1,9 @@
 import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Layout from "@/components/layout/Layout";
 import { ProtectedRoute, PublicOnlyRoute } from "@/routes/ProtectedRoute";
@@ -47,12 +49,14 @@ const RouteFallback = () => (
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <Toaster />
-    <BrowserRouter>
-      <AuthProvider>
-        <Layout>
-          <Suspense fallback={<RouteFallback />}>
-            <Routes>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <AuthProvider>
+          <Layout>
+            <Suspense fallback={<RouteFallback />}>
+              <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/programs" element={<Programs />} />
@@ -76,11 +80,12 @@ const App = () => (
                   <Route path="access" element={<ProtectedRoute requirePrimaryAdmin><AdminAccess /></ProtectedRoute>} />
                 </Route>
                 <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </Layout>
-      </AuthProvider>
-    </BrowserRouter>
+              </Routes>
+            </Suspense>
+          </Layout>
+        </AuthProvider>
+      </BrowserRouter>
+    </TooltipProvider>
   </QueryClientProvider>
 );
 

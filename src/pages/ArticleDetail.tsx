@@ -4,7 +4,6 @@ import { getArticleBySlug, getArticles } from "@/lib/content";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Share2 } from "lucide-react";
 import DOMPurify from "dompurify";
-import { optimizedImageSrcSet, optimizedImageUrl } from "@/lib/images";
 
 // ─── Portable Text renderer (Medium-style, unstyled — CSS handles it) ─────
 function renderPortableText(blocks: any[]): React.ReactNode[] {
@@ -176,13 +175,8 @@ const ArticleDetail = () => {
       {article.mainImage && (
         <figure className="mx-auto mt-10 max-w-[1000px] px-0 md:px-6">
           <img
-            src={optimizedImageUrl(article.mainImage, 1400, 78)}
-            srcSet={optimizedImageSrcSet(article.mainImage, [720, 1000, 1400], 78)}
-            sizes="(min-width: 1000px) 1000px, 100vw"
+            src={article.mainImage}
             alt={article.title}
-            width={1400}
-            height={788}
-            decoding="async"
             className="h-auto w-full object-cover"
           />
         </figure>
