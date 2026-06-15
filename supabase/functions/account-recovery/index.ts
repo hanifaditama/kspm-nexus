@@ -80,11 +80,11 @@ Deno.serve(async (request) => {
     body: JSON.stringify({
       from,
       to: [profile.recovery_email],
-      subject: "Reset your KSPM Nexus password",
+      subject: "Reset your UPH Investment Club password",
       text: [
         `Hello ${profile.display_name},`,
         "",
-        "Use the link below to create a new KSPM Nexus password:",
+        "Use the link below to create a new UPH Investment Club password:",
         linkData.properties.action_link,
         "",
         "If you did not request this reset, you can ignore this email.",

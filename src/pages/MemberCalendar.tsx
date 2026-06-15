@@ -123,7 +123,7 @@ const MemberCalendar = () => {
               <CalendarDays className="h-5 w-5 text-accent" />
               <h1 className="text-xl font-semibold text-foreground">Member Calendar</h1>
             </div>
-            <p className="mt-1 text-sm text-muted-foreground">Internal schedule for KSPM members.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Internal schedule for UPH Investment Club members.</p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" asChild><Link to="/member">File Manager</Link></Button>

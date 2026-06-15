@@ -11,6 +11,7 @@ import FolderBreadcrumb from "@/components/dashboard/FolderBreadcrumb";
 import CreateFolderDialog from "@/components/dashboard/CreateFolderDialog";
 import FileTable from "@/components/dashboard/FileTable";
 import FilePreviewPanel from "@/components/dashboard/FilePreviewPanel";
+import ChangePasswordDialog from "@/components/dashboard/ChangePasswordDialog";
 
 
 const MemberDashboard = () => {
@@ -292,6 +293,7 @@ const MemberDashboard = () => {
               </Link>
             </Button>
             <CreateFolderDialog onCreateFolder={handleCreateFolder} />
+            <ChangePasswordDialog />
             {profile?.can_upload && (
               <label className="cursor-pointer">
                 <input type="file" className="hidden" onChange={handleUpload} disabled={uploading} />

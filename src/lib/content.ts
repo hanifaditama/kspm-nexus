@@ -19,7 +19,7 @@ export async function getArticles(limit?: number) {
     excerpt: article.excerpt ?? "",
     category: article.category?.trim() || "General",
     publishedAt: article.published_at,
-    author: { name: article.author_name ?? "KSPM Nexus" },
+    author: { name: article.author_name ?? "UPH Investment Club" },
     mainImage: article.cover_image,
     content: null as string | null,
   }));
@@ -40,7 +40,7 @@ export async function getArticleBySlug(slug: string) {
     excerpt: data.excerpt ?? "",
     category: data.category?.trim() || "General",
     publishedAt: data.published_at,
-    author: { name: data.author_name ?? "KSPM Nexus" },
+    author: { name: data.author_name ?? "UPH Investment Club" },
     mainImage: data.cover_image,
     content: data.content,
   };
@@ -51,7 +51,7 @@ export async function getEvents(limit?: number) {
     .from("events")
     .select("id,title,slug,type,event_date,event_time,location,description,image")
     .order("event_date", { ascending: true });
-  if (limit) query = query.limit(limit);
+  if (limit) query = query.gte("event_date", new Date().toISOString()).limit(limit);
   const { data, error } = await query;
   assertNoError(error);
   return (data ?? []).map((event) => ({

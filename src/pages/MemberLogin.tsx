@@ -62,8 +62,8 @@ const MemberLogin = () => {
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (newPassword.length < 6) {
-      setError("Password must be at least 6 characters.");
+    if (newPassword.length < 8) {
+      setError("Password must be at least 8 characters.");
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -118,7 +118,7 @@ const MemberLogin = () => {
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
             {view === "login" && "Sign in to access member resources"}
-            {view === "forgot" && "Enter your KSPM login email or recovery email"}
+            {view === "forgot" && "Enter your Investment Club login email or recovery email"}
             {view === "change" && "Sign in and set a new password"}
           </p>
         </div>
@@ -133,7 +133,7 @@ const MemberLogin = () => {
               <Label htmlFor="email">Email</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input id="email" name="username" type="email" autoComplete="username" placeholder="member@kspm.org" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10" required />
+                <Input id="email" name="username" type="email" autoComplete="username" placeholder="member login email" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10" required />
               </div>
             </div>
             <div className="space-y-2">
@@ -177,10 +177,10 @@ const MemberLogin = () => {
               <div className="rounded-md bg-accent/10 px-4 py-3 text-sm text-accent">{success}</div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="reset-email">KSPM or recovery email</Label>
+              <Label htmlFor="reset-email">Investment Club or recovery email</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input id="reset-email" type="email" placeholder="name@kspm.uph or Gmail" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10" required />
+                <Input id="reset-email" type="email" placeholder="login or recovery email" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10" required />
               </div>
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
@@ -202,7 +202,7 @@ const MemberLogin = () => {
               <Label htmlFor="cp-email">Email</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input id="cp-email" type="email" placeholder="member@kspm.org" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10" required />
+                <Input id="cp-email" type="email" placeholder="member login email" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10" required />
               </div>
             </div>
             <div className="space-y-2">
@@ -230,7 +230,7 @@ const MemberLogin = () => {
         )}
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          Access is restricted to KSPM members only.
+          Access is restricted to UPH Investment Club members only.
         </p>
       </div>
     </section>

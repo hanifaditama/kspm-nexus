@@ -62,15 +62,7 @@ const Articles = () => {
 
       <MarketTicker />
 
-      <header className="border-b border-border bg-background">
-        <div className="container py-10 md:py-14">
-          <p className="text-sm font-semibold uppercase tracking-widest text-accent">Research & Insights</p>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground md:text-5xl">Market Research and Investment Insights</h1>
-          <p className="mt-4 max-w-2xl leading-relaxed text-muted-foreground">
-            Explore equity research, market updates, company analysis, and investment perspectives created by UPH Investment Club members.
-          </p>
-        </div>
-      </header>
+      <h1 className="sr-only">UPH Investment Club Articles</h1>
 
       {error && (
         <div className="container py-6">

@@ -18,7 +18,7 @@ const Team = () => {
       <SectionHeader
         label="Team"
         title="Meet Our Team"
-        description="The dedicated individuals driving KSPM's mission forward."
+        description="The dedicated individuals driving UPH Investment Club's mission forward."
         headingLevel="h1"
       />
       {error && <p className="mb-6 rounded-md bg-destructive/10 p-4 text-sm text-destructive">Team members could not be loaded.</p>}

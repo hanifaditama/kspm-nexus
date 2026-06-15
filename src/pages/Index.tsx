@@ -56,12 +56,12 @@ const Index = () => {
         <div className="container relative z-10 py-24 md:py-36">
           <div className="mx-auto max-w-5xl text-center">
             <span className="mb-6 inline-block rounded-full border border-white/20 bg-white/10 px-5 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/90 backdrop-blur-sm">
-              KSPM UPH
+              UPH Investment Club
             </span>
             <h1 className="font-heading text-4xl font-bold leading-tight tracking-tight text-white md:text-5xl lg:text-6xl">
-              Kelompok Studi{" "}
+              UPH{" "}
               <span className="bg-gradient-to-r from-[hsl(var(--gold))] to-[hsl(40,80%,65%)] bg-clip-text text-transparent">
-                Pasar Modal
+                Investment Club
               </span>
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/75">
@@ -160,7 +160,7 @@ const Index = () => {
           <div className="mb-12 text-center">
             <span className="mb-3 inline-block text-sm font-medium uppercase tracking-widest text-accent">Team</span>
             <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">Our Team</h2>
-            <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-muted-foreground">Meet the people behind KSPM UPH.</p>
+            <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-muted-foreground">Meet the people behind UPH Investment Club.</p>
           </div>
           {loading ? (
             <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
@@ -192,7 +192,7 @@ const Index = () => {
         <section className="content-auto border-t border-border">
           <div className="container py-20 md:py-28">
             <div className="mx-auto max-w-2xl rounded-2xl bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--navy-light))] p-10 text-center shadow-xl md:p-16">
-              <h2 className="font-heading text-3xl font-bold text-white md:text-4xl">Ready to Join KSPM?</h2>
+              <h2 className="font-heading text-3xl font-bold text-white md:text-4xl">Ready to Join UPH Investment Club?</h2>
               <p className="mx-auto mt-4 max-w-md text-base leading-relaxed text-white/75">
                 Be part of a community passionate about capital markets and financial literacy.
               </p>

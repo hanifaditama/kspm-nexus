@@ -6,21 +6,28 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { KeyRound } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const ChangePasswordDialog = () => {
   const [open, setOpen] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    if (newPassword.length < 6) {
-      setError("Password must be at least 6 characters.");
+    if (!user?.email) {
+      setError("Your account email could not be verified.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      setError("Password must be at least 8 characters.");
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -29,12 +36,22 @@ const ChangePasswordDialog = () => {
     }
 
     setLoading(true);
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: currentPassword,
+    });
+    if (signInError) {
+      setError("Current password is incorrect.");
+      setLoading(false);
+      return;
+    }
     const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
 
     if (updateError) {
       setError(updateError.message);
     } else {
       toast({ title: "Password updated successfully" });
+      setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
       setOpen(false);
@@ -61,10 +78,22 @@ const ChangePasswordDialog = () => {
             </div>
           )}
           <div className="space-y-2">
+            <Label htmlFor="current-password">Current Password</Label>
+            <Input
+              id="current-password"
+              type="password"
+              autoComplete="current-password"
+              value={currentPassword}
+              onChange={(event) => setCurrentPassword(event.target.value)}
+              required
+            />
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="new-password">New Password</Label>
             <Input
               id="new-password"
               type="password"
+              autoComplete="new-password"
               placeholder="••••••••"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
@@ -76,6 +105,7 @@ const ChangePasswordDialog = () => {
             <Input
               id="confirm-password"
               type="password"
+              autoComplete="new-password"
               placeholder="••••••••"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}

@@ -93,11 +93,11 @@ const CreateMemberDialog = ({ onCreated }: Props) => {
             <Input id="new-member-name" value={displayName} onChange={(event) => setDisplayName(event.target.value)} />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="new-member-login">KSPM login email</Label>
+            <Label htmlFor="new-member-login">Investment Club login email</Label>
             <Input
               id="new-member-login"
               type="email"
-              placeholder="name@kspm.uph"
+              placeholder="member login email"
               value={loginEmail}
               onChange={(event) => setLoginEmail(event.target.value)}
             />

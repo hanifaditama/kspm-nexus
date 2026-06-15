@@ -91,11 +91,11 @@ Deno.serve(async (request) => {
       body: JSON.stringify({
         from,
         to: [recoveryEmail],
-        subject: "Your KSPM Nexus account",
+        subject: "Your UPH Investment Club account",
         text: [
           `Hello ${displayName},`,
           "",
-          "Your KSPM Nexus account has been created.",
+          "Your UPH Investment Club account has been created.",
           `Login email: ${loginEmail}`,
           `Temporary password: ${temporaryPassword}`,
           appUrl ? `Sign in: ${appUrl}/login` : "",

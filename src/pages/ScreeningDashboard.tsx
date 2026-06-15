@@ -15,7 +15,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 
 type Division = "BPH" | "CMP" | "EVENT" | "RESEARCH";
-type ScreeningStatus = "SCREENING BY KSPM" | "MINOR REVISION" | "APPROVED BY KSPM";
+type ScreeningStatus = "SCREENING BY INVESTMENT CLUB" | "MINOR REVISION" | "APPROVED BY INVESTMENT CLUB";
 
 interface ScreeningItem {
   id: string;
@@ -59,13 +59,13 @@ interface MemberProfile {
 }
 
 const divisions: Division[] = ["BPH", "CMP", "EVENT", "RESEARCH"];
-const statuses: ScreeningStatus[] = ["SCREENING BY KSPM", "MINOR REVISION", "APPROVED BY KSPM"];
+const statuses: ScreeningStatus[] = ["SCREENING BY INVESTMENT CLUB", "MINOR REVISION", "APPROVED BY INVESTMENT CLUB"];
 const blankForm = { material: "", submitted_at: "", due_at: "", link: "" };
 
 const statusStyle: Record<ScreeningStatus, string> = {
-  "SCREENING BY KSPM": "border-amber-300 bg-amber-100 text-amber-900 hover:bg-amber-100",
+  "SCREENING BY INVESTMENT CLUB": "border-amber-300 bg-amber-100 text-amber-900 hover:bg-amber-100",
   "MINOR REVISION": "border-orange-300 bg-orange-100 text-orange-900 hover:bg-orange-100",
-  "APPROVED BY KSPM": "border-emerald-300 bg-emerald-100 text-emerald-900 hover:bg-emerald-100",
+  "APPROVED BY INVESTMENT CLUB": "border-emerald-300 bg-emerald-100 text-emerald-900 hover:bg-emerald-100",
 };
 
 const formatDate = (value: string | null) => {
@@ -179,10 +179,10 @@ const ScreeningDashboard = () => {
 
   const summary = useMemo(() => ({
     total: divisionItems.length,
-    screening: divisionItems.filter((item) => item.status === "SCREENING BY KSPM").length,
+    screening: divisionItems.filter((item) => item.status === "SCREENING BY INVESTMENT CLUB").length,
     revision: divisionItems.filter((item) => item.status === "MINOR REVISION").length,
-    approved: divisionItems.filter((item) => item.status === "APPROVED BY KSPM").length,
-    overdue: divisionItems.filter((item) => item.due_at && item.status !== "APPROVED BY KSPM" && item.due_at < new Date().toISOString().slice(0, 10)).length,
+    approved: divisionItems.filter((item) => item.status === "APPROVED BY INVESTMENT CLUB").length,
+    overdue: divisionItems.filter((item) => item.due_at && item.status !== "APPROVED BY INVESTMENT CLUB" && item.due_at < new Date().toISOString().slice(0, 10)).length,
   }), [divisionItems]);
 
   const updateStatus = async (item: ScreeningItem, status: ScreeningStatus) => {
