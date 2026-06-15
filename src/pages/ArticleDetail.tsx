@@ -4,6 +4,7 @@ import { getArticleBySlug, getArticles } from "@/lib/content";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Share2 } from "lucide-react";
 import DOMPurify from "dompurify";
+import SEO from "@/components/SEO";
 
 // ─── Portable Text renderer (Medium-style, unstyled — CSS handles it) ─────
 function renderPortableText(blocks: any[]): React.ReactNode[] {
@@ -97,6 +98,7 @@ const ArticleDetail = () => {
   if (!article) {
     return (
       <div className="container py-24 text-center">
+        <SEO title="Article Not Found" path={`/articles/${slug ?? ""}`} noIndex />
         <h1 className="text-2xl font-semibold text-foreground">Article not found</h1>
         <Link to="/articles" className="mt-4 inline-block text-sm text-accent hover:text-accent/80">
           ← Back to Articles
@@ -120,6 +122,27 @@ const ArticleDetail = () => {
 
   return (
     <article className="bg-white pb-24">
+      <SEO
+        title={article.title}
+        path={`/articles/${article.slug}`}
+        description={article.excerpt || "Read equity research and investment insights from UPH Investment Club."}
+        image={article.mainImage || "/og-image.png"}
+        type="article"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Article",
+          headline: article.title,
+          description: article.excerpt,
+          image: article.mainImage,
+          datePublished: article.publishedAt,
+          author: { "@type": "Person", name: article.author?.name ?? "UPH Investment Club" },
+          publisher: {
+            "@type": "Organization",
+            name: "UPH Investment Club",
+            logo: { "@type": "ImageObject", url: "https://investmentclubuph.vercel.app/uphic-logo.png" },
+          },
+        }}
+      />
       {/* Top bar */}
       <div className="border-b border-[#f2f2f2]">
         <div className="mx-auto flex max-w-[1192px] items-center justify-between px-6 py-3">

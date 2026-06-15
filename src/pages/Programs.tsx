@@ -2,16 +2,19 @@ import Section from "@/components/layout/Section";
 import SectionHeader from "@/components/layout/SectionHeader";
 import ProgramCard from "@/components/cards/ProgramCard";
 import { usePrograms } from "@/hooks/useContentQueries";
+import SEO from "@/components/SEO";
 
 const Programs = () => {
   const { data: programs = [], isLoading: loading, error } = usePrograms();
 
   return (
     <Section>
+      <SEO title="Programs" path="/programs" description="Explore UPH Investment Club programs including equity research, financial education, stock pitch training, market discussion, and competition preparation." />
       <SectionHeader
         label="Programs"
         title="Our Programs"
         description="Explore our comprehensive programs designed to build expertise in capital markets, from beginner to advanced levels."
+        headingLevel="h1"
       />
       {error && <p className="mb-6 rounded-md bg-destructive/10 p-4 text-sm text-destructive">Programs could not be loaded.</p>}
       {loading ? (

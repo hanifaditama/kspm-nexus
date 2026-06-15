@@ -8,6 +8,7 @@ import Section from "@/components/layout/Section";
 import SectionHeader from "@/components/layout/SectionHeader";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useRecruitmentStatus } from "@/hooks/useRecruitmentStatus";
+import SEO from "@/components/SEO";
 
 const steps = [
   { icon: FileText, title: "Registration", description: "Submit your application through the official form." },
@@ -60,8 +61,10 @@ const Recruitment = () => {
 
   if (!isOpen) {
     return (
-      <section className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-muted/30 py-20">
-        <div className="container max-w-xl text-center">
+      <>
+        <SEO title="Join Us" path="/recruitment" description="Join UPH Investment Club and grow your knowledge, network, and experience in finance, investment, research, and capital markets." />
+        <section className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-muted/30 py-20">
+          <div className="container max-w-xl text-center">
           <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-muted">
             <Lock className="h-6 w-6 text-muted-foreground" />
           </div>
@@ -72,8 +75,9 @@ const Recruitment = () => {
           <Link to="/" className="mt-8 inline-block rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
             Back to Home
           </Link>
-        </div>
-      </section>
+          </div>
+        </section>
+      </>
     );
   }
 
@@ -87,6 +91,7 @@ const Recruitment = () => {
 
   return (
     <>
+      <SEO title="Join Us" path="/recruitment" description="Join UPH Investment Club and grow your knowledge, network, and experience in finance, investment, research, and capital markets." />
       <section className="bg-primary py-20 text-primary-foreground md:py-28">
         <div className="container">
           <p className="mb-3 text-sm font-medium uppercase tracking-widest text-primary-foreground/60">{settings?.recruitment_eyebrow}</p>

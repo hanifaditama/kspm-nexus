@@ -5,6 +5,7 @@ import ArticleCard from "@/components/cards/ArticleCard";
 import { useArticles } from "@/hooks/useContentQueries";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import MarketTicker from "@/components/MarketTicker";
+import SEO from "@/components/SEO";
 
 const normalizeCategory = (category: string) => category.trim().toLocaleLowerCase();
 
@@ -35,6 +36,7 @@ const Articles = () => {
 
   return (
     <>
+      <SEO title="Research" path="/articles" description="Explore equity research, market updates, company analysis, and investment insights created by UPH Investment Club members." />
       {/* Category bar - Bloomberg style */}
       <div className="sticky top-16 z-30 border-b border-white/10 bg-[#0a0a0a]">
         <div className="container flex items-center gap-0 overflow-x-auto py-0 scrollbar-hide">
@@ -59,6 +61,16 @@ const Articles = () => {
 
 
       <MarketTicker />
+
+      <header className="border-b border-border bg-background">
+        <div className="container py-10 md:py-14">
+          <p className="text-sm font-semibold uppercase tracking-widest text-accent">Research & Insights</p>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground md:text-5xl">Market Research and Investment Insights</h1>
+          <p className="mt-4 max-w-2xl leading-relaxed text-muted-foreground">
+            Explore equity research, market updates, company analysis, and investment perspectives created by UPH Investment Club members.
+          </p>
+        </div>
+      </header>
 
       {error && (
         <div className="container py-6">
@@ -108,9 +120,9 @@ const Articles = () => {
                     <span className="text-xs font-semibold uppercase tracking-widest text-accent">
                       {featured.category}
                     </span>
-                    <h1 className="mt-2 max-w-3xl font-heading text-2xl font-bold leading-tight text-foreground transition-colors group-hover:text-accent md:text-4xl md:leading-tight">
+                    <h2 className="mt-2 max-w-3xl font-heading text-2xl font-bold leading-tight text-foreground transition-colors group-hover:text-accent md:text-4xl md:leading-tight">
                       {featured.title}
-                    </h1>
+                    </h2>
                     <p className="mt-3 max-w-2xl text-base leading-relaxed text-muted-foreground md:text-lg">
                       {featured.excerpt}
                     </p>

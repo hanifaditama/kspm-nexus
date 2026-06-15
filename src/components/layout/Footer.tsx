@@ -7,7 +7,7 @@ const Footer = () => (
       <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-[1.5fr_repeat(3,1fr)]">
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <img src="/uphic-logo.webp" alt="" width={300} height={116} loading="lazy" decoding="async" className="h-11 w-auto object-contain brightness-0 invert" />
+            <img src="/uphic-logo.webp" alt="UPH Investment Club" width={300} height={116} loading="lazy" decoding="async" className="h-11 w-auto object-contain brightness-0 invert" />
             <span className="text-lg font-semibold">Investment Club by UPH</span>
           </div>
           <p className="text-sm leading-relaxed text-primary-foreground/70">

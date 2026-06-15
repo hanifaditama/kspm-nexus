@@ -3,6 +3,7 @@ import Section from "@/components/layout/Section";
 import SectionHeader from "@/components/layout/SectionHeader";
 import TeamCard from "@/components/cards/TeamCard";
 import { useTeam } from "@/hooks/useContentQueries";
+import SEO from "@/components/SEO";
 
 const Team = () => {
   const { data: team = [], isLoading: loading, error } = useTeam();
@@ -13,10 +14,12 @@ const Team = () => {
 
   return (
     <Section>
+      <SEO title="Team" path="/team" description="Meet the executive board, divisions, and members behind UPH Investment Club." />
       <SectionHeader
         label="Team"
         title="Meet Our Team"
         description="The dedicated individuals driving KSPM's mission forward."
+        headingLevel="h1"
       />
       {error && <p className="mb-6 rounded-md bg-destructive/10 p-4 text-sm text-destructive">Team members could not be loaded.</p>}
 

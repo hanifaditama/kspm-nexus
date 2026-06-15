@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -48,45 +49,47 @@ const RouteFallback = () => (
 );
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <Layout>
-            <Suspense fallback={<RouteFallback />}>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/programs" element={<Programs />} />
-                <Route path="/articles" element={<Articles />} />
-                <Route path="/articles/:slug" element={<ArticleDetail />} />
-                <Route path="/events" element={<Events />} />
-                <Route path="/team" element={<Team />} />
-                <Route path="/recruitment" element={<Recruitment />} />
-                <Route path="/login" element={<PublicOnlyRoute><MemberLogin /></PublicOnlyRoute>} />
-                <Route path="/member" element={<ProtectedRoute><MemberDashboard /></ProtectedRoute>} />
-                <Route path="/member/screening" element={<ProtectedRoute><ScreeningDashboard /></ProtectedRoute>} />
-                <Route path="/member/calendar" element={<ProtectedRoute><MemberCalendar /></ProtectedRoute>} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/admin" element={<ProtectedRoute requireContentManager><AdminLayout /></ProtectedRoute>}>
-                  <Route index element={<AdminHome />} />
-                  <Route path="articles" element={<ProtectedRoute requirePermission="articles"><AdminArticles /></ProtectedRoute>} />
-                  <Route path="events" element={<ProtectedRoute requirePermission="events"><AdminEvents /></ProtectedRoute>} />
-                  <Route path="team" element={<ProtectedRoute requirePermission="team"><AdminTeam /></ProtectedRoute>} />
-                  <Route path="programs" element={<ProtectedRoute requirePermission="programs"><AdminPrograms /></ProtectedRoute>} />
-                  <Route path="recruitment" element={<ProtectedRoute requirePermission="recruitment"><AdminRecruitment /></ProtectedRoute>} />
-                  <Route path="access" element={<ProtectedRoute requirePrimaryAdmin><AdminAccess /></ProtectedRoute>} />
-                </Route>
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
-          </Layout>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <HelmetProvider>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <Layout>
+              <Suspense fallback={<RouteFallback />}>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/programs" element={<Programs />} />
+                  <Route path="/articles" element={<Articles />} />
+                  <Route path="/articles/:slug" element={<ArticleDetail />} />
+                  <Route path="/events" element={<Events />} />
+                  <Route path="/team" element={<Team />} />
+                  <Route path="/recruitment" element={<Recruitment />} />
+                  <Route path="/login" element={<PublicOnlyRoute><MemberLogin /></PublicOnlyRoute>} />
+                  <Route path="/member" element={<ProtectedRoute><MemberDashboard /></ProtectedRoute>} />
+                  <Route path="/member/screening" element={<ProtectedRoute><ScreeningDashboard /></ProtectedRoute>} />
+                  <Route path="/member/calendar" element={<ProtectedRoute><MemberCalendar /></ProtectedRoute>} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/admin" element={<ProtectedRoute requireContentManager><AdminLayout /></ProtectedRoute>}>
+                    <Route index element={<AdminHome />} />
+                    <Route path="articles" element={<ProtectedRoute requirePermission="articles"><AdminArticles /></ProtectedRoute>} />
+                    <Route path="events" element={<ProtectedRoute requirePermission="events"><AdminEvents /></ProtectedRoute>} />
+                    <Route path="team" element={<ProtectedRoute requirePermission="team"><AdminTeam /></ProtectedRoute>} />
+                    <Route path="programs" element={<ProtectedRoute requirePermission="programs"><AdminPrograms /></ProtectedRoute>} />
+                    <Route path="recruitment" element={<ProtectedRoute requirePermission="recruitment"><AdminRecruitment /></ProtectedRoute>} />
+                    <Route path="access" element={<ProtectedRoute requirePrimaryAdmin><AdminAccess /></ProtectedRoute>} />
+                  </Route>
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+            </Layout>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </HelmetProvider>
 );
 
 export default App;

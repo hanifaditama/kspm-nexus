@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Lock, Mail, KeyRound, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import SEO from "@/components/SEO";
 
 type View = "login" | "forgot" | "change";
 const SAVED_LOGIN_EMAIL_KEY = "kspm-saved-login-email";
@@ -100,6 +101,7 @@ const MemberLogin = () => {
 
   return (
     <section className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-background px-4">
+      <SEO title="Member Login" path="/login" noIndex />
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary">

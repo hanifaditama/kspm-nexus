@@ -2,16 +2,19 @@ import Section from "@/components/layout/Section";
 import SectionHeader from "@/components/layout/SectionHeader";
 import EventCard from "@/components/cards/EventCard";
 import { useEvents } from "@/hooks/useContentQueries";
+import SEO from "@/components/SEO";
 
 const Events = () => {
   const { data: events = [], isLoading: loading, error } = useEvents();
 
   return (
     <Section>
+      <SEO title="Events" path="/events" description="Discover upcoming and past events, seminars, workshops, company visits, and investment-related activities by UPH Investment Club." />
       <SectionHeader
         label="Events"
         title="Upcoming Events"
         description="Join our seminars, workshops, and competitions to expand your knowledge and network."
+        headingLevel="h1"
       />
       {error && <p className="mb-6 rounded-md bg-destructive/10 p-4 text-sm text-destructive">Events could not be loaded.</p>}
 

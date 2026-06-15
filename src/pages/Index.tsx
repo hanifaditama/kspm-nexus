@@ -6,6 +6,7 @@ import { useArticles, useEvents, useTeam } from "@/hooks/useContentQueries";
 import { useRecruitmentStatus } from "@/hooks/useRecruitmentStatus";
 import { ArrowRight } from "lucide-react";
 import MarketTicker from "@/components/MarketTicker";
+import SEO from "@/components/SEO";
 
 const Index = () => {
   const articlesQuery = useArticles(3);
@@ -20,6 +21,23 @@ const Index = () => {
 
   return (
     <div>
+      <SEO
+        description="A student-led investment and capital market community empowering UPH students through research, education, events, and financial market activities."
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "UPH Investment Club",
+          alternateName: "UPHIC",
+          url: "https://investmentclubuph.vercel.app",
+          logo: "https://investmentclubuph.vercel.app/uphic-logo.png",
+          email: "investment.club@uph.edu",
+          sameAs: [
+            "https://www.instagram.com/uph_investmentgallery/",
+            "https://medium.com/@uphinvestmentclub",
+            "https://www.linkedin.com/company/galeri-investasi-uph-karawaci/",
+          ],
+        }}
+      />
       {loadError && (
         <div className="border-b border-destructive/20 bg-destructive/10 px-4 py-3 text-center text-sm text-destructive">
           Some live content could not be loaded. Please try again shortly.
