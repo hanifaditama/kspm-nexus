@@ -2,6 +2,7 @@ import { ChangeEvent, useState } from "react";
 import { uploadContentImage } from "@/lib/uploadImage";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, X } from "lucide-react";
+import { optimizedImageUrl } from "@/lib/images";
 
 interface Props {
   value: string | null | undefined;
@@ -32,7 +33,7 @@ const ImageUploadField = ({ value, onChange, folder }: Props) => {
     <div className="flex items-center gap-3">
       {value ? (
         <div className="relative">
-          <img src={value} alt="" className="h-16 w-16 rounded-md border border-border object-cover" />
+          <img src={optimizedImageUrl(value, 128)} alt="" width={64} height={64} decoding="async" className="h-16 w-16 rounded-md border border-border object-cover" />
           <button
             type="button"
             onClick={() => onChange(null)}

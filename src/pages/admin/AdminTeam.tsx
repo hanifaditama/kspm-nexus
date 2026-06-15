@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Pencil, Trash2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
+import { optimizedImageUrl } from "@/lib/images";
 
 interface TeamRow {
   id: string;
@@ -114,7 +115,7 @@ const AdminTeam = () => {
               {items.map((m) => (
                 <tr key={m.id} className="border-b border-border last:border-0 hover:bg-muted/30">
                   <td className="flex items-center gap-3 px-4 py-3 font-medium text-foreground">
-                    {m.photo && <img src={m.photo} alt="" className="h-8 w-8 rounded-full object-cover" />}
+                    {m.photo && <img src={optimizedImageUrl(m.photo, 64)} alt="" width={32} height={32} loading="lazy" decoding="async" className="h-8 w-8 rounded-full object-cover" />}
                     {m.name}
                   </td>
                   <td className="hidden px-4 py-3 text-muted-foreground md:table-cell">{m.role}</td>

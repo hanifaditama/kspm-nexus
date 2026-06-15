@@ -1,12 +1,15 @@
 import type { TeamMember } from "@/types/content";
 import { Linkedin, User } from "lucide-react";
+import { optimizedImageSrcSet, optimizedImageUrl } from "@/lib/images";
 
 const TeamCard = ({ member }: { member: TeamMember }) => (
   <div className="group rounded-lg border border-border bg-card p-6 text-center transition-all duration-300 hover:border-accent/30 hover:shadow-sm">
     <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-muted text-muted-foreground">
       {member.image ? (
         <img
-          src={member.image}
+          src={optimizedImageUrl(member.image, 192)}
+          srcSet={optimizedImageSrcSet(member.image, [128, 192, 256])}
+          sizes="80px"
           alt={member.name}
           loading="lazy"
           decoding="async"

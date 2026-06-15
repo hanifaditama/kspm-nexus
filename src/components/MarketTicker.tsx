@@ -57,13 +57,16 @@ const MarketTicker = () => {
   }, []);
 
   useEffect(() => {
-    void load();
-    const interval = window.setInterval(() => void load(), 60_000);
+    const loadWhenIdle = window.setTimeout(() => void load(), 250);
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === "visible") void load();
+    }, 60_000);
     const handleVisibility = () => {
       if (document.visibilityState === "visible") void load();
     };
     document.addEventListener("visibilitychange", handleVisibility);
     return () => {
+      window.clearTimeout(loadWhenIdle);
       window.clearInterval(interval);
       document.removeEventListener("visibilitychange", handleVisibility);
     };

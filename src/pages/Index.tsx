@@ -16,7 +16,7 @@ const Index = () => {
   const team = teamQuery.data ?? [];
   const loading = articlesQuery.isLoading || eventsQuery.isLoading || teamQuery.isLoading;
   const loadError = articlesQuery.error || eventsQuery.error || teamQuery.error;
-  const { isOpen: isRecruitmentOpen } = useRecruitmentStatus();
+  const { isOpen: isRecruitmentOpen, loading: recruitmentLoading } = useRecruitmentStatus();
 
   return (
     <div>
@@ -49,17 +49,21 @@ const Index = () => {
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/75">
               Empowering students with knowledge in capital markets, investment, and financial literacy through education, research, and community.
             </p>
-            <div className="mt-10 flex flex-wrap justify-center gap-4">
+            <div className="mt-10 flex min-h-[50px] flex-wrap justify-center gap-4">
               <Link
                 to="/about"
                 className="rounded-lg bg-white px-7 py-3.5 text-sm font-semibold text-[hsl(var(--primary))] shadow-lg transition-all hover:bg-white/90 hover:shadow-xl"
               >
                 Learn More
               </Link>
-              {isRecruitmentOpen && (
+              {(isRecruitmentOpen || recruitmentLoading) && (
                 <Link
                   to="/recruitment"
-                  className="rounded-lg border border-white/30 bg-white/10 px-7 py-3.5 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20"
+                  aria-hidden={recruitmentLoading}
+                  tabIndex={recruitmentLoading ? -1 : undefined}
+                  className={`rounded-lg border border-white/30 bg-white/10 px-7 py-3.5 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20 ${
+                    recruitmentLoading ? "invisible pointer-events-none" : ""
+                  }`}
                 >
                   Join Us
                 </Link>
@@ -71,7 +75,7 @@ const Index = () => {
 
 
       {/* Latest Articles */}
-      <section className="content-auto py-20 md:py-28">
+      <section className="py-20 md:py-28">
         <div className="container">
           <div className="mb-12 text-center">
             <span className="mb-3 inline-block text-sm font-medium uppercase tracking-widest text-accent">Articles</span>
@@ -104,7 +108,7 @@ const Index = () => {
       </section>
 
       {/* Upcoming Events */}
-      <section className="content-auto border-y border-border bg-muted/30 py-20 md:py-28">
+      <section className="border-y border-border bg-muted/30 py-20 md:py-28">
         <div className="container">
           <div className="mb-12 text-center">
             <span className="mb-3 inline-block text-sm font-medium uppercase tracking-widest text-accent">Events</span>
@@ -137,7 +141,7 @@ const Index = () => {
       </section>
 
       {/* Team Preview */}
-      <section className="content-auto py-20 md:py-28">
+      <section className="py-20 md:py-28">
         <div className="container">
           <div className="mb-12 text-center">
             <span className="mb-3 inline-block text-sm font-medium uppercase tracking-widest text-accent">Team</span>
@@ -171,7 +175,7 @@ const Index = () => {
 
       {/* CTA */}
       {isRecruitmentOpen && (
-        <section className="content-auto border-t border-border">
+        <section className="border-t border-border">
           <div className="container py-20 md:py-28">
             <div className="mx-auto max-w-2xl rounded-2xl bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--navy-light))] p-10 text-center shadow-xl md:p-16">
               <h2 className="font-heading text-3xl font-bold text-white md:text-4xl">Ready to Join KSPM?</h2>

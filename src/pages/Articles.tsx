@@ -5,6 +5,7 @@ import ArticleCard from "@/components/cards/ArticleCard";
 import { useArticles } from "@/hooks/useContentQueries";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import MarketTicker from "@/components/MarketTicker";
+import { optimizedImageSrcSet, optimizedImageUrl } from "@/lib/images";
 
 const normalizeCategory = (category: string) => category.trim().toLocaleLowerCase();
 
@@ -98,8 +99,14 @@ const Articles = () => {
                   {featured.mainImage && (
                     <div className="aspect-[16/10] w-full overflow-hidden rounded-lg bg-muted">
                       <img
-                        src={featured.mainImage}
+                        src={optimizedImageUrl(featured.mainImage, 1200)}
+                        srcSet={optimizedImageSrcSet(featured.mainImage, [640, 960, 1200])}
+                        sizes="(min-width: 768px) 50vw, 100vw"
                         alt={featured.title}
+                        width={800}
+                        height={500}
+                        fetchPriority="high"
+                        decoding="async"
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                     </div>
