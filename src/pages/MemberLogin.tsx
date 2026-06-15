@@ -84,6 +84,7 @@ const MemberLogin = () => {
     if (updateError) {
       setError(updateError.message);
     } else {
+      await supabase.auth.signOut({ scope: "others" });
       toast({ title: "Password updated successfully" });
       setView("login");
       setPassword("");

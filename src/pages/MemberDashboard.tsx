@@ -13,6 +13,24 @@ import FileTable from "@/components/dashboard/FileTable";
 import FilePreviewPanel from "@/components/dashboard/FilePreviewPanel";
 import ChangePasswordDialog from "@/components/dashboard/ChangePasswordDialog";
 
+const allowedMemberFileTypes = new Set([
+  "application/pdf",
+  "application/json",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "image/gif",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "audio/mpeg",
+  "audio/ogg",
+  "audio/wav",
+  "text/csv",
+  "text/plain",
+  "video/mp4",
+  "video/webm",
+]);
 
 const MemberDashboard = () => {
   const { user, profile, loading: authLoading, signOut } = useAuth();
@@ -128,6 +146,11 @@ const MemberDashboard = () => {
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
+    if (!allowedMemberFileTypes.has(file.type)) {
+      toast({ title: "File type is not allowed", description: "Upload documents, PDF, text, spreadsheet, presentation, safe image, audio, or video files.", variant: "destructive" });
+      e.target.value = "";
+      return;
+    }
     if (file.size > 25 * 1024 * 1024) {
       toast({ title: "File is too large", description: "Uploads must be 25 MB or smaller.", variant: "destructive" });
       e.target.value = "";

@@ -50,6 +50,7 @@ const ChangePasswordDialog = () => {
     if (updateError) {
       setError(updateError.message);
     } else {
+      await supabase.auth.signOut({ scope: "others" });
       toast({ title: "Password updated successfully" });
       setCurrentPassword("");
       setNewPassword("");

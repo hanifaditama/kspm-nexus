@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import { getArticleBySlug, getArticles } from "@/lib/content";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Share2 } from "lucide-react";
-import DOMPurify from "dompurify";
 import SEO from "@/components/SEO";
+import { sanitizeArticleHtml } from "@/lib/articleSecurity";
 
 // ─── Portable Text renderer (Medium-style, unstyled — CSS handles it) ─────
 function renderPortableText(blocks: any[]): React.ReactNode[] {
@@ -211,7 +211,7 @@ const ArticleDetail = () => {
           {!content && <p>Full article content coming soon.</p>}
           {content && isPortableText && renderPortableText(content)}
           {content && !isPortableText && isHtmlContent(content as string) && (
-            <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content as string) }} />
+            <div dangerouslySetInnerHTML={{ __html: sanitizeArticleHtml(content as string) }} />
           )}
           {content && !isPortableText && !isHtmlContent(content as string) && renderPlainText(content as string)}
         </div>

@@ -28,6 +28,7 @@ import {
 import { uploadContentImage } from "@/lib/uploadImage";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { normalizeExternalUrl } from "@/lib/articleSecurity";
 
 interface Props {
   value: string;
@@ -119,7 +120,12 @@ const RichTextEditor = ({ value, onChange }: Props) => {
       editor.chain().focus().extendMarkRange("link").unsetLink().run();
       return;
     }
-    editor.chain().focus().extendMarkRange("link").setLink({ href: url.trim() }).run();
+    const safeUrl = normalizeExternalUrl(url.trim());
+    if (!safeUrl) {
+      toast({ title: "Invalid link", description: "Only HTTP, HTTPS, and mail links are allowed.", variant: "destructive" });
+      return;
+    }
+    editor.chain().focus().extendMarkRange("link").setLink({ href: safeUrl }).run();
   };
 
   const insertImage = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -237,7 +243,7 @@ const RichTextEditor = ({ value, onChange }: Props) => {
         <ToolbarButton label="Horizontal divider" onClick={() => editor.chain().focus().setHorizontalRule().run()}>
           <Minus className="h-4 w-4" />
         </ToolbarButton>
-        <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={insertImage} />
+        <input ref={imageInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={insertImage} />
       </div>
 
       <EditorContent editor={editor} />

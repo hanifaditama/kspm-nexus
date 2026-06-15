@@ -1,3 +1,12 @@
+import {
+  corsHeaders,
+  enforceRateLimit,
+  getAdminClient,
+  json,
+  rejectInvalidRequest,
+  requestIp,
+} from "../_shared/security.ts";
+
 const INDEX_SYMBOLS = ["^JKSE", "^GSPC"];
 const IDX_WATCHLIST = [
   "ACES.JK", "ADRO.JK", "AKRA.JK", "AMMN.JK", "ANTM.JK", "ARTO.JK", "ASII.JK",
@@ -9,11 +18,6 @@ const IDX_WATCHLIST = [
   "UNTR.JK", "UNVR.JK",
 ];
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
 let cached: { expiresAt: number; body: string } | null = null;
 
 const nameForSymbol = (symbol: string) => {
@@ -23,12 +27,23 @@ const nameForSymbol = (symbol: string) => {
 };
 
 Deno.serve(async (request) => {
-  if (request.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  if (request.method === "OPTIONS") return new Response("ok", { headers: corsHeaders(request) });
+  if (request.method !== "POST") return json(request, { message: "Method not allowed." }, 405);
+  const invalid = rejectInvalidRequest(request, 1_024);
+  if (invalid) return invalid;
 
   if (cached && cached.expiresAt > Date.now()) {
     return new Response(cached.body, {
-      headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "public, max-age=45" },
+      headers: { ...corsHeaders(request), "Content-Type": "application/json", "Cache-Control": "public, max-age=45" },
     });
+  }
+
+  try {
+    const allowed = await enforceRateLimit(getAdminClient(), "market-data", requestIp(request), 60, 15 * 60 * 1000);
+    if (!allowed) return json(request, { message: "Market data request limit reached." }, 429);
+  } catch (error) {
+    console.error("Market-data rate limit failed", error);
+    return json(request, { message: "Market data is temporarily unavailable." }, 503);
   }
 
   const allSymbols = [...INDEX_SYMBOLS, ...IDX_WATCHLIST];
@@ -38,15 +53,12 @@ Deno.serve(async (request) => {
   const responses = await Promise.all(batches.map((batch) =>
     fetch(
       `https://query1.finance.yahoo.com/v7/finance/spark?symbols=${encodeURIComponent(batch.join(","))}&range=1d&interval=5m`,
-      { headers: { "User-Agent": "Mozilla/5.0 KSPM-Nexus/1.0" } },
+      { headers: { "User-Agent": "UPH-Investment-Club/1.0" } },
     )
   ));
 
   if (responses.some((response) => !response.ok)) {
-    return new Response(JSON.stringify({ message: "Market data source unavailable." }), {
-      status: 502,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return json(request, { message: "Market data source unavailable." }, 502);
   }
 
   const payloads = await Promise.all(responses.map((response) => response.json()));
@@ -71,20 +83,14 @@ Deno.serve(async (request) => {
 
   const body = JSON.stringify({
     indexes: INDEX_SYMBOLS.flatMap((symbol) => quotes.find((quote: any) => quote.symbol === symbol) ?? []),
-    gainers: quotes
-      .filter((quote: any) => quote.kind === "stock" && quote.changePercent > 0)
-      .sort((a: any, b: any) => b.changePercent - a.changePercent)
-      .slice(0, 5),
-    losers: quotes
-      .filter((quote: any) => quote.kind === "stock" && quote.changePercent < 0)
-      .sort((a: any, b: any) => a.changePercent - b.changePercent)
-      .slice(0, 5),
+    gainers: quotes.filter((quote: any) => quote.kind === "stock" && quote.changePercent > 0).sort((a: any, b: any) => b.changePercent - a.changePercent).slice(0, 5),
+    losers: quotes.filter((quote: any) => quote.kind === "stock" && quote.changePercent < 0).sort((a: any, b: any) => a.changePercent - b.changePercent).slice(0, 5),
     updatedAt: new Date().toISOString(),
     source: "Yahoo Finance public market data",
   });
 
   cached = { expiresAt: Date.now() + 60_000, body };
   return new Response(body, {
-    headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "public, max-age=45" },
+    headers: { ...corsHeaders(request), "Content-Type": "application/json", "Cache-Control": "public, max-age=45" },
   });
 });

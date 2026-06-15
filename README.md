@@ -31,14 +31,16 @@ supabase db push
 supabase functions deploy market-data
 supabase functions deploy create-member
 supabase functions deploy account-recovery
-supabase secrets set RESEND_API_KEY=... APP_URL=... KSPM_EMAIL_DOMAIN=kspm.uph ACCOUNT_FROM_EMAIL=... ACCOUNT_HASH_SALT=...
+supabase secrets set RESEND_API_KEY=... APP_URL=... KSPM_EMAIL_DOMAIN=kspm.uph ACCOUNT_FROM_EMAIL=... ACCOUNT_HASH_SALT=... RATE_LIMIT_SALT=... ALLOWED_ORIGINS=...
 ```
 
-Administrators can create member accounts from **Admin > Access Control**. The account uses a KSPM login email and a separate recovery email. Initial credentials and custom password recovery links are delivered to the recovery email through Resend. New members must replace their temporary password on first sign-in. `APP_URL` must match the deployed frontend URL, and `ACCOUNT_FROM_EMAIL` must use a sender/domain verified in Resend.
+Administrators can invite member accounts from **Admin > Access Control**. The account uses an Investment Club login email and a separate recovery email. A one-time activation link is delivered to the recovery email through Resend; passwords are never generated for or shared with members. `APP_URL` must match the deployed frontend URL, and `ACCOUNT_FROM_EMAIL` must use a sender/domain verified in Resend.
 
 Only the Primary Administrator can open **Access Control**, create member accounts, or assign permissions. The Primary Administrator can transfer ownership to another member from that page. A transfer grants full administrator access to the new owner and removes the previous owner's administrator role.
 
 Add `${APP_URL}/reset-password` to the Supabase Auth redirect URL allow list so generated recovery links can open the password form.
+
+`ALLOWED_ORIGINS` is a comma-separated allowlist containing the production URL and trusted development URLs. Keep `REQUIRE_ADMIN_AAL2=false` until MFA enrollment is available and the primary administrator has enrolled MFA.
 
 The market ticker uses free public Yahoo Finance chart data through the `market-data` Edge Function, cached for 60 seconds. IDX top gainers are calculated from the liquid-stock watchlist in the function and are not a full-exchange ranking.
 
@@ -49,6 +51,9 @@ The market ticker uses free public Yahoo Finance chart data through the `market-
 - Never expose `SUPABASE_SERVICE_ROLE_KEY` in a `VITE_` variable or frontend deployment setting.
 - Admin CRUD access is enforced by both frontend route guards and Supabase RLS.
 - Public `USING (true)` policies are limited to intentionally public-read content. Member files and folders remain readable only to authenticated members.
+- Member files are intentionally shared among authenticated members. Storage rejects active/executable formats and enforces file-size limits.
+- The browser automatically signs out sessions after 12 hours of inactivity. Password changes revoke other active sessions.
+- See `SECURITY.md` for deployment controls and incident response.
 
 ## Sanity Studio
 

@@ -48,7 +48,7 @@ const ImageUploadField = ({ value, onChange, folder }: Props) => {
         </div>
       )}
       <label className="cursor-pointer rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted">
-        <input type="file" accept="image/*" className="hidden" onChange={handleFile} disabled={uploading} />
+        <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={handleFile} disabled={uploading} />
         {uploading ? "Uploading..." : value ? "Replace" : "Upload image"}
       </label>
     </div>

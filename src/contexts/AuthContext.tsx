@@ -4,6 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { loadAuthState, signInWithPassword, signOutCurrentUser } from "@/services/authService";
 import type { ContentPermission } from "@/lib/contentAccess";
 
+const SESSION_ACTIVITY_KEY = "uphic-session-last-activity";
+const SESSION_IDLE_TIMEOUT_MS = 12 * 60 * 60 * 1000;
+
 interface AuthContextType {
   session: Session | null;
   user: User | null;
@@ -45,6 +48,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [permissions, setPermissions] = useState<ContentPermission[]>([]);
   const [mustChangePassword, setMustChangePassword] = useState(false);
   const [loading, setLoading] = useState(true);
+  const activeUserId = session?.user.id;
 
   const syncSession = useCallback(async (nextSession: Session | null) => {
     setLoading(true);
@@ -122,6 +126,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [session]);
 
+  useEffect(() => {
+    if (!activeUserId) return;
+    const storedActivity = Number(localStorage.getItem(SESSION_ACTIVITY_KEY) ?? 0);
+    if (storedActivity && Date.now() - storedActivity > SESSION_IDLE_TIMEOUT_MS) {
+      void signOutCurrentUser();
+      return;
+    }
+    let lastWrite = 0;
+    const recordActivity = () => {
+      const now = Date.now();
+      if (now - lastWrite < 60_000) return;
+      lastWrite = now;
+      localStorage.setItem(SESSION_ACTIVITY_KEY, String(now));
+    };
+    const checkExpiry = () => {
+      const lastActivity = Number(localStorage.getItem(SESSION_ACTIVITY_KEY) ?? Date.now());
+      if (Date.now() - lastActivity > SESSION_IDLE_TIMEOUT_MS) void signOutCurrentUser();
+    };
+    recordActivity();
+    const events: (keyof WindowEventMap)[] = ["click", "keydown", "pointerdown", "scroll"];
+    events.forEach((event) => window.addEventListener(event, recordActivity, { passive: true }));
+    const interval = window.setInterval(checkExpiry, 60_000);
+    return () => {
+      events.forEach((event) => window.removeEventListener(event, recordActivity));
+      window.clearInterval(interval);
+    };
+  }, [activeUserId]);
+
   const signIn = async (email: string, password: string) => {
     const { error } = await signInWithPassword(email, password);
     return { error: error?.message ?? null };
@@ -137,6 +169,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setIsPrimaryAdmin(false);
       setPermissions([]);
       setMustChangePassword(false);
+      localStorage.removeItem(SESSION_ACTIVITY_KEY);
     }
     return { error: error?.message ?? null };
   };

@@ -61,7 +61,7 @@ const FilePreviewPanel = ({ file, previewUrl, loading, onClose, onDownload }: Pr
           </div>
         )}
         {!loading && previewUrl && isPdf(file.file_type) && (
-          <iframe src={previewUrl} className="h-full min-h-[680px] w-full" title={file.file_name} />
+          <iframe src={previewUrl} sandbox="allow-same-origin" className="h-full min-h-[680px] w-full" title={file.file_name} />
         )}
         {!loading && previewUrl && isVideo(file.file_type) && (
           <div className="flex h-full min-h-72 items-center justify-center bg-black p-3">

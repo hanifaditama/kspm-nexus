@@ -80,6 +80,7 @@ const ResetPassword = () => {
     if (updateError) {
       setError(updateError.message);
     } else {
+      await supabase.auth.signOut({ scope: "others" });
       toast({ title: "Password updated successfully" });
       navigate(canManageContent ? "/admin" : "/member");
     }
@@ -97,7 +98,7 @@ const ResetPassword = () => {
 
   const title = mustChangePassword ? "Create Your Password" : recoverySession ? "Reset Password" : "Change Password";
   const description = mustChangePassword
-    ? "Replace your temporary password before continuing"
+    ? "Create a secure password before continuing"
     : recoverySession
       ? "Create a new password for your account"
       : "Confirm your current password before creating a new one";

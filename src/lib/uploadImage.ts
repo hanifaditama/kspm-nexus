@@ -1,8 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
 
+const allowedImageTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+
 export async function uploadContentImage(file: File, folder: string): Promise<string> {
-  if (!file.type.startsWith("image/")) {
-    throw new Error("Please select an image file.");
+  if (!allowedImageTypes.has(file.type)) {
+    throw new Error("Please select a JPG, PNG, WebP, or GIF image.");
   }
   if (file.size > 5 * 1024 * 1024) {
     throw new Error("Images must be 5 MB or smaller.");

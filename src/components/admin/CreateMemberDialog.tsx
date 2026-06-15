@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { KeyRound, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -17,18 +17,11 @@ interface Props {
   onCreated: () => void;
 }
 
-const makePassword = () => {
-  const characters = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";
-  const values = crypto.getRandomValues(new Uint32Array(14));
-  return Array.from(values, (value) => characters[value % characters.length]).join("");
-};
-
 const CreateMemberDialog = ({ onCreated }: Props) => {
   const [open, setOpen] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [loginEmail, setLoginEmail] = useState("");
   const [recoveryEmail, setRecoveryEmail] = useState("");
-  const [temporaryPassword, setTemporaryPassword] = useState("");
   const [permissions, setPermissions] = useState<ContentPermission[]>([]);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
@@ -37,7 +30,6 @@ const CreateMemberDialog = ({ onCreated }: Props) => {
     setDisplayName("");
     setLoginEmail("");
     setRecoveryEmail("");
-    setTemporaryPassword("");
     setPermissions([]);
   };
 
@@ -50,7 +42,7 @@ const CreateMemberDialog = ({ onCreated }: Props) => {
   const createMember = async () => {
     setSaving(true);
     const { data, error } = await supabase.functions.invoke<{ message: string; emailSent: boolean }>("create-member", {
-      body: { displayName, loginEmail, recoveryEmail, temporaryPassword, permissions },
+      body: { displayName, loginEmail, recoveryEmail, permissions },
     });
     setSaving(false);
     if (error) {
@@ -69,8 +61,7 @@ const CreateMemberDialog = ({ onCreated }: Props) => {
   const valid =
     displayName.trim().length >= 2 &&
     loginEmail.includes("@") &&
-    recoveryEmail.includes("@") &&
-    temporaryPassword.length >= 8;
+    recoveryEmail.includes("@");
 
   return (
     <Dialog open={open} onOpenChange={(next) => {
@@ -80,12 +71,12 @@ const CreateMemberDialog = ({ onCreated }: Props) => {
       <DialogTrigger asChild>
         <Button>
           <Plus className="h-4 w-4" />
-          Create Member
+          Invite Member
         </Button>
       </DialogTrigger>
       <DialogContent className="max-h-[92vh] max-w-xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create Member Account</DialogTitle>
+          <DialogTitle>Invite Member</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-2">
           <div className="space-y-1.5">
@@ -112,19 +103,9 @@ const CreateMemberDialog = ({ onCreated }: Props) => {
               onChange={(event) => setRecoveryEmail(event.target.value)}
             />
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="new-member-password">Temporary password</Label>
-            <div className="flex gap-2">
-              <Input
-                id="new-member-password"
-                value={temporaryPassword}
-                onChange={(event) => setTemporaryPassword(event.target.value)}
-              />
-              <Button type="button" variant="outline" size="icon" title="Generate password" onClick={() => setTemporaryPassword(makePassword())}>
-                <KeyRound className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
+          <p className="rounded-md border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+            The member will receive a secure one-time link at their recovery email to create a password and activate the account. No password is shown or emailed.
+          </p>
           <div className="space-y-2">
             <Label>Initial content access</Label>
             <div className="divide-y divide-border rounded-md border border-border">
@@ -144,7 +125,7 @@ const CreateMemberDialog = ({ onCreated }: Props) => {
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
           <Button onClick={createMember} disabled={!valid || saving}>
-            {saving ? "Creating..." : "Create Member"}
+            {saving ? "Sending invite..." : "Send One-Time Invite"}
           </Button>
         </div>
       </DialogContent>
