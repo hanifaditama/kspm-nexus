@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { getRememberSession, supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,17 +9,19 @@ import { Lock, Mail, KeyRound, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 type View = "login" | "forgot" | "change";
+const SAVED_LOGIN_EMAIL_KEY = "kspm-saved-login-email";
+const SAVE_LOGIN_PREFERENCE_KEY = "kspm-save-login-preference";
 
 const MemberLogin = () => {
   const [view, setView] = useState<View>("login");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => localStorage.getItem(SAVED_LOGIN_EMAIL_KEY) ?? "");
   const [password, setPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-  const [remember, setRemember] = useState(getRememberSession);
+  const [saveLogin, setSaveLogin] = useState(() => localStorage.getItem(SAVE_LOGIN_PREFERENCE_KEY) !== "false");
   const { signIn } = useAuth();
   const { toast } = useToast();
 
@@ -27,9 +29,15 @@ const MemberLogin = () => {
     e.preventDefault();
     setError("");
     setLoading(true);
-    const { error: signInError } = await signIn(email, password, remember);
+    const { error: signInError } = await signIn(email, password);
     if (signInError) {
       setError("Invalid credentials. Please try again.");
+    } else if (saveLogin) {
+      localStorage.setItem(SAVED_LOGIN_EMAIL_KEY, email.trim().toLowerCase());
+      localStorage.setItem(SAVE_LOGIN_PREFERENCE_KEY, "true");
+    } else {
+      localStorage.removeItem(SAVED_LOGIN_EMAIL_KEY);
+      localStorage.setItem(SAVE_LOGIN_PREFERENCE_KEY, "false");
     }
     setLoading(false);
   };
@@ -115,7 +123,7 @@ const MemberLogin = () => {
 
         {/* LOGIN */}
         {view === "login" && (
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} autoComplete="on" className="space-y-4">
             {error && (
               <div className="rounded-md bg-destructive/10 px-4 py-3 text-sm text-destructive">{error}</div>
             )}
@@ -123,24 +131,24 @@ const MemberLogin = () => {
               <Label htmlFor="email">Email</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input id="email" type="email" placeholder="member@kspm.org" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10" required />
+                <Input id="email" name="username" type="email" autoComplete="username" placeholder="member@kspm.org" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10" required />
               </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10" required />
+                <Input id="password" name="password" type="password" autoComplete="current-password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10" required />
               </div>
             </div>
             <div className="flex items-center gap-2">
               <Checkbox
-                id="remember"
-                checked={remember}
-                onCheckedChange={(checked) => setRemember(checked === true)}
+                id="save-login"
+                checked={saveLogin}
+                onCheckedChange={(checked) => setSaveLogin(checked === true)}
               />
-              <Label htmlFor="remember" className="cursor-pointer text-xs font-normal text-muted-foreground">
-                Remember me on this device
+              <Label htmlFor="save-login" className="cursor-pointer text-xs font-normal text-muted-foreground">
+                Save login in browser
               </Label>
             </div>
             <Button type="submit" className="w-full" disabled={loading}>

@@ -1,5 +1,5 @@
 import type { Session, User } from "@supabase/supabase-js";
-import { setRememberSession, supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 import type { ContentPermission } from "@/lib/contentAccess";
 
 export interface AuthState {
@@ -49,8 +49,7 @@ export async function loadAuthState(session: Session | null): Promise<AuthState>
   };
 }
 
-export async function signInWithPassword(email: string, password: string, remember?: boolean) {
-  if (remember !== undefined) setRememberSession(remember);
+export async function signInWithPassword(email: string, password: string) {
   return supabase.auth.signInWithPassword({
     email: email.trim().toLowerCase(),
     password,
