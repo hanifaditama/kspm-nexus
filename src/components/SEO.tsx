@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 
 const SITE_NAME = "UPH Investment Club";
@@ -29,6 +30,10 @@ const SEO = ({
   const pageTitle = title ? `${title} | ${SITE_NAME}` : SITE_NAME;
   const canonical = absoluteUrl(path);
   const imageUrl = absoluteUrl(image);
+
+  useEffect(() => {
+    document.head.querySelectorAll("[data-static-seo]").forEach((element) => element.remove());
+  }, []);
 
   return (
     <Helmet>
