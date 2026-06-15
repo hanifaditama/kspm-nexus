@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { CheckCircle2, ExternalLink, FileCheck2, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { CheckCircle2, ExternalLink, FileCheck2, Loader2, Pencil, Plus, Settings2, Trash2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 
-type Division = "CMP" | "EVENT" | "RESEARCH";
+type Division = "BPH" | "CMP" | "EVENT" | "RESEARCH";
 type ScreeningStatus = "SCREENING BY KSPM" | "MINOR REVISION" | "APPROVED BY KSPM";
 
 interface ScreeningItem {
@@ -34,6 +34,7 @@ interface Evaluator {
   division: Division;
   display_name: string;
   display_order: number;
+  user_id: string | null;
 }
 
 interface ScreeningCheck {
@@ -42,7 +43,13 @@ interface ScreeningCheck {
   checked: boolean;
 }
 
-const divisions: Division[] = ["CMP", "EVENT", "RESEARCH"];
+interface MemberProfile {
+  user_id: string;
+  display_name: string;
+  email: string | null;
+}
+
+const divisions: Division[] = ["BPH", "CMP", "EVENT", "RESEARCH"];
 const statuses: ScreeningStatus[] = ["SCREENING BY KSPM", "MINOR REVISION", "APPROVED BY KSPM"];
 const blankForm = { material: "", submitted_at: "", due_at: "", link: "", notes: "" };
 
@@ -59,7 +66,7 @@ const formatDate = (value: string | null) => {
 };
 
 const ScreeningDashboard = () => {
-  const { user, profile, hasPermission } = useAuth();
+  const { user, isPrimaryAdmin, hasPermission } = useAuth();
   const { toast } = useToast();
   const [division, setDivision] = useState<Division>("CMP");
   const [items, setItems] = useState<ScreeningItem[]>([]);
@@ -68,6 +75,8 @@ const ScreeningDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [savingKey, setSavingKey] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [assignmentOpen, setAssignmentOpen] = useState(false);
+  const [members, setMembers] = useState<MemberProfile[]>([]);
   const [editingItem, setEditingItem] = useState<ScreeningItem | null>(null);
   const [form, setForm] = useState(blankForm);
   const canManage = hasPermission("screening");
@@ -75,8 +84,8 @@ const ScreeningDashboard = () => {
   const loadScreening = useCallback(async () => {
     setLoading(true);
     const [itemsResult, evaluatorsResult, checksResult] = await Promise.all([
-      supabase.from("screening_items").select("id,division,sequence_no,material,submitted_at,due_at,link,status,notes").order("sequence_no"),
-      supabase.from("screening_evaluators").select("id,division,display_name,display_order").order("display_order"),
+      supabase.from("screening_items").select("id,division,sequence_no,material,submitted_at,due_at,link,status,notes").order("sequence_no", { ascending: false }),
+      supabase.from("screening_evaluators").select("id,division,display_name,display_order,user_id").order("display_order"),
       supabase.from("screening_checks").select("screening_item_id,evaluator_id,checked"),
     ]);
     const error = itemsResult.error ?? evaluatorsResult.error ?? checksResult.error;
@@ -94,6 +103,21 @@ const ScreeningDashboard = () => {
     void loadScreening();
   }, [loadScreening]);
 
+  useEffect(() => {
+    if (!isPrimaryAdmin) return;
+    void supabase
+      .from("member_profiles")
+      .select("user_id,display_name,email")
+      .order("display_name")
+      .then(({ data, error }) => {
+        if (error) {
+          toast({ title: "Could not load members", description: error.message, variant: "destructive" });
+          return;
+        }
+        setMembers(data ?? []);
+      });
+  }, [isPrimaryAdmin, toast]);
+
   const divisionItems = useMemo(
     () => items.filter((item) => item.division === division),
     [division, items],
@@ -106,7 +130,7 @@ const ScreeningDashboard = () => {
     () => new Map(checks.map((check) => [`${check.screening_item_id}:${check.evaluator_id}`, check.checked])),
     [checks],
   );
-  const ownName = profile?.display_name.trim().toLowerCase() ?? "";
+  const assignedColumns = divisionEvaluators.filter((evaluator) => evaluator.user_id === user?.id);
 
   const summary = useMemo(() => ({
     total: divisionItems.length,
@@ -145,6 +169,24 @@ const ScreeningDashboard = () => {
       ...current.filter((entry) => !(entry.screening_item_id === item.id && entry.evaluator_id === evaluator.id)),
       { screening_item_id: item.id, evaluator_id: evaluator.id, checked },
     ]);
+  };
+
+  const assignEvaluator = async (evaluator: Evaluator, userId: string) => {
+    const key = `assignment:${evaluator.id}`;
+    setSavingKey(key);
+    const { error } = await supabase
+      .from("screening_evaluators")
+      .update({ user_id: userId === "unassigned" ? null : userId })
+      .eq("id", evaluator.id);
+    setSavingKey("");
+    if (error) {
+      toast({ title: "Could not assign evaluator", description: error.message, variant: "destructive" });
+      return;
+    }
+    setEvaluators((current) => current.map((entry) => (
+      entry.id === evaluator.id ? { ...entry, user_id: userId === "unassigned" ? null : userId } : entry
+    )));
+    toast({ title: "Evaluator assignment updated" });
   };
 
   const openCreate = () => {
@@ -228,6 +270,7 @@ const ScreeningDashboard = () => {
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" asChild><Link to="/member">File Manager</Link></Button>
+            {isPrimaryAdmin && <Button variant="outline" onClick={() => setAssignmentOpen(true)}><Settings2 className="h-4 w-4" /> Assign Evaluators</Button>}
             {canManage && <Button onClick={openCreate}><Plus className="h-4 w-4" /> Add Screening</Button>}
           </div>
         </div>
@@ -303,7 +346,7 @@ const ScreeningDashboard = () => {
                     </td>
                     {divisionEvaluators.map((evaluator) => {
                       const key = `${item.id}:${evaluator.id}`;
-                      const ownsColumn = evaluator.display_name.trim().toLowerCase() === ownName;
+                      const ownsColumn = evaluator.user_id === user?.id;
                       return (
                         <td key={evaluator.id} className="px-3 py-4 text-center">
                           <Checkbox
@@ -338,8 +381,9 @@ const ScreeningDashboard = () => {
           )}
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
-          Your checklist column: <span className="font-medium text-foreground">{profile?.display_name ?? "Not assigned"}</span>.
-          Only your matching column can be changed.
+          Your checklist column in {division}: <span className="font-medium text-foreground">
+            {assignedColumns.map((evaluator) => evaluator.display_name).join(", ") || "Not assigned"}
+          </span>. Only explicitly assigned columns can be changed.
         </p>
       </div>
 
@@ -356,6 +400,38 @@ const ScreeningDashboard = () => {
             <div className="grid gap-2"><Label htmlFor="screening-notes">Notes</Label><Textarea id="screening-notes" rows={4} value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} /></div>
           </div>
           <DialogFooter><Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button><Button disabled={!form.material.trim() || savingKey === "item"} onClick={() => void saveItem()}>{savingKey === "item" && <Loader2 className="h-4 w-4 animate-spin" />} Save</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={assignmentOpen} onOpenChange={setAssignmentOpen}>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader><DialogTitle>Assign {division} Evaluators</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Connect each checklist column to one member account. The displayed column name can stay short and does not need to match the account name.
+          </p>
+          <div className="grid max-h-[55vh] gap-3 overflow-y-auto py-2">
+            {divisionEvaluators.map((evaluator) => (
+              <div key={evaluator.id} className="grid gap-2 rounded-md border border-border p-3 sm:grid-cols-[140px_1fr] sm:items-center">
+                <Label>{evaluator.display_name}</Label>
+                <Select
+                  value={evaluator.user_id ?? "unassigned"}
+                  disabled={savingKey === `assignment:${evaluator.id}`}
+                  onValueChange={(value) => void assignEvaluator(evaluator, value)}
+                >
+                  <SelectTrigger><SelectValue placeholder="Choose member" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="unassigned">Not assigned</SelectItem>
+                    {members.map((member) => (
+                      <SelectItem key={member.user_id} value={member.user_id}>
+                        {member.display_name}{member.email ? ` (${member.email})` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ))}
+          </div>
+          <DialogFooter><Button onClick={() => setAssignmentOpen(false)}>Done</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </section>

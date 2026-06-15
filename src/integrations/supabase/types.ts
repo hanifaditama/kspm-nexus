@@ -279,18 +279,21 @@ export type Database = {
           display_order: number
           division: string
           id: string
+          user_id: string | null
         }
         Insert: {
           display_name: string
           display_order?: number
           division: string
           id?: string
+          user_id?: string | null
         }
         Update: {
           display_name?: string
           display_order?: number
           division?: string
           id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
