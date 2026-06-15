@@ -237,6 +237,108 @@ export type Database = {
         }
         Relationships: []
       }
+      screening_checks: {
+        Row: {
+          checked: boolean
+          checked_at: string | null
+          evaluator_id: string
+          screening_item_id: string
+        }
+        Insert: {
+          checked?: boolean
+          checked_at?: string | null
+          evaluator_id: string
+          screening_item_id: string
+        }
+        Update: {
+          checked?: boolean
+          checked_at?: string | null
+          evaluator_id?: string
+          screening_item_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "screening_checks_evaluator_id_fkey"
+            columns: ["evaluator_id"]
+            isOneToOne: false
+            referencedRelation: "screening_evaluators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "screening_checks_screening_item_id_fkey"
+            columns: ["screening_item_id"]
+            isOneToOne: false
+            referencedRelation: "screening_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      screening_evaluators: {
+        Row: {
+          display_name: string
+          display_order: number
+          division: string
+          id: string
+        }
+        Insert: {
+          display_name: string
+          display_order?: number
+          division: string
+          id?: string
+        }
+        Update: {
+          display_name?: string
+          display_order?: number
+          division?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      screening_items: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          division: string
+          due_at: string | null
+          id: string
+          link: string | null
+          material: string
+          notes: string | null
+          sequence_no: number
+          status: string
+          submitted_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          division: string
+          due_at?: string | null
+          id?: string
+          link?: string | null
+          material: string
+          notes?: string | null
+          sequence_no: number
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          division?: string
+          due_at?: string | null
+          id?: string
+          link?: string | null
+          material?: string
+          notes?: string | null
+          sequence_no?: number
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       primary_administrator: {
         Row: {
           id: string
@@ -394,6 +496,13 @@ export type Database = {
       is_primary_administrator: {
         Args: {
           _user_id: string
+        }
+        Returns: boolean
+      }
+      can_update_screening_check: {
+        Args: {
+          _evaluator_id: string
+          _screening_item_id: string
         }
         Returns: boolean
       }

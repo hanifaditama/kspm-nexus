@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, LogIn, User, Settings, LogOut, FolderOpen, KeyRound } from "lucide-react";
+import { Menu, X, LogIn, User, Settings, LogOut, FolderOpen, KeyRound, FileCheck2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRecruitmentStatus } from "@/hooks/useRecruitmentStatus";
 import {
@@ -85,6 +85,12 @@ const Navbar = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem asChild>
+                  <Link to="/member/screening" className="flex items-center gap-2">
+                    <FileCheck2 className="h-4 w-4" />
+                    Screening Dashboard
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
                   <Link to="/member" className="flex items-center gap-2">
                     <FolderOpen className="h-4 w-4" />
                     File Manager
@@ -162,9 +168,17 @@ const Navbar = () => {
             {user ? (
               <>
                 <Link
-                  to="/member"
+                  to="/member/screening"
                   onClick={() => setOpen(false)}
                   className="mt-2 flex items-center gap-2 rounded-md bg-muted px-3 py-2 text-sm font-medium text-foreground"
+                >
+                  <FileCheck2 className="h-4 w-4" />
+                  Screening Dashboard
+                </Link>
+                <Link
+                  to="/member"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-2 rounded-md bg-muted px-3 py-2 text-sm font-medium text-foreground"
                 >
                   <FolderOpen className="h-4 w-4" />
                   File Manager
