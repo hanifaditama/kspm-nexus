@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Pencil, Trash2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface TeamRow {
   id: string;
@@ -19,9 +21,16 @@ interface TeamRow {
   linkedin: string | null;
   photo: string | null;
   display_order: number;
+  user_id: string | null;
 }
 
-const empty: Partial<TeamRow> = { name: "", role: "", division: "", bio: "", linkedin: "", photo: null, display_order: 0 };
+interface MemberProfile {
+  user_id: string;
+  display_name: string;
+  email: string | null;
+}
+
+const empty: Partial<TeamRow> = { name: "", role: "", division: "", bio: "", linkedin: "", photo: null, display_order: 0, user_id: null };
 
 const AdminTeam = () => {
   const [items, setItems] = useState<TeamRow[]>([]);
@@ -29,7 +38,9 @@ const AdminTeam = () => {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Partial<TeamRow>>(empty);
   const [saving, setSaving] = useState(false);
+  const [members, setMembers] = useState<MemberProfile[]>([]);
   const { toast } = useToast();
+  const { isPrimaryAdmin } = useAuth();
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
@@ -39,6 +50,14 @@ const AdminTeam = () => {
     if (error) toast({ title: "Could not load team", description: error.message, variant: "destructive" });
   }, [toast]);
   useEffect(() => { void fetchItems(); }, [fetchItems]);
+  useEffect(() => {
+    if (!isPrimaryAdmin) return;
+    void supabase
+      .from("member_profiles")
+      .select("user_id,display_name,email")
+      .order("display_name")
+      .then(({ data }) => setMembers(data ?? []));
+  }, [isPrimaryAdmin]);
 
   const openNew = () => { setForm(empty); setOpen(true); };
   const openEdit = (item: TeamRow) => { setForm(item); setOpen(true); };
@@ -54,6 +73,7 @@ const AdminTeam = () => {
       linkedin: form.linkedin || null,
       photo: form.photo || null,
       display_order: form.display_order ?? 0,
+      user_id: isPrimaryAdmin ? form.user_id || null : undefined,
     };
     const { data, error } = form.id
       ? await supabase.from("team_members").update(payload).eq("id", form.id).select("*").single()
@@ -122,6 +142,23 @@ const AdminTeam = () => {
               <div><Label>Division</Label><Input value={form.division ?? ""} onChange={(e) => setForm({ ...form, division: e.target.value })} /></div>
               <div><Label>Display order</Label><Input type="number" value={form.display_order ?? 0} onChange={(e) => setForm({ ...form, display_order: Number(e.target.value) })} /></div>
             </div>
+            {isPrimaryAdmin && (
+              <div>
+                <Label>Website account</Label>
+                <Select value={form.user_id ?? "unassigned"} onValueChange={(value) => setForm({ ...form, user_id: value === "unassigned" ? null : value })}>
+                  <SelectTrigger className="mt-1"><SelectValue placeholder="Assign a website account" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="unassigned">Not assigned</SelectItem>
+                    {members.map((member) => (
+                      <SelectItem key={member.user_id} value={member.user_id}>
+                        {member.display_name}{member.email ? ` (${member.email})` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="mt-1 text-xs text-muted-foreground">Used to determine division access in the screening dashboard.</p>
+              </div>
+            )}
             <div><Label>LinkedIn URL</Label><Input value={form.linkedin ?? ""} onChange={(e) => setForm({ ...form, linkedin: e.target.value })} /></div>
             <div><Label>Bio</Label><Textarea rows={3} value={form.bio ?? ""} onChange={(e) => setForm({ ...form, bio: e.target.value })} /></div>
             <div><Label>Photo</Label><ImageUploadField folder="team" value={form.photo} onChange={(url) => setForm({ ...form, photo: url })} /></div>

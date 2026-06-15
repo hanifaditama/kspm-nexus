@@ -406,8 +406,9 @@ export type Database = {
           linkedin: string | null
           name: string
           photo: string | null
-          role: string
-          updated_at: string
+            role: string
+            updated_at: string
+            user_id: string | null
         }
         Insert: {
           bio?: string | null
@@ -418,8 +419,9 @@ export type Database = {
           linkedin?: string | null
           name: string
           photo?: string | null
-          role: string
-          updated_at?: string
+            role: string
+            updated_at?: string
+            user_id?: string | null
         }
         Update: {
           bio?: string | null
@@ -430,8 +432,9 @@ export type Database = {
           linkedin?: string | null
           name?: string
           photo?: string | null
-          role?: string
-          updated_at?: string
+            role?: string
+            updated_at?: string
+            user_id?: string | null
         }
         Relationships: []
       }
@@ -506,6 +509,26 @@ export type Database = {
         Args: {
           _evaluator_id: string
           _screening_item_id: string
+        }
+        Returns: boolean
+      }
+      can_create_screening_item: {
+        Args: {
+          _division: string
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      can_manage_screening_item: {
+        Args: {
+          _division: string
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_screening_executive: {
+        Args: {
+          _user_id: string
         }
         Returns: boolean
       }

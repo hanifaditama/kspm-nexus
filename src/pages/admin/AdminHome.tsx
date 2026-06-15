@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { FileText, Calendar, Users, BookOpen, Loader2, ShieldCheck, UserPlus, FileCheck2 } from "lucide-react";
+import { FileText, Calendar, Users, BookOpen, Loader2, ShieldCheck, UserPlus } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useRecruitmentStatus } from "@/hooks/useRecruitmentStatus";
@@ -15,7 +15,6 @@ const cards = [
   { to: "/admin/team", label: "Team", description: "Manage team member profiles", icon: Users, permission: "team" as ContentPermission },
   { to: "/admin/programs", label: "Programs", description: "Curate program offerings", icon: BookOpen, permission: "programs" as ContentPermission },
   { to: "/admin/recruitment", label: "Recruitment Page", description: "Edit recruitment content and application link", icon: UserPlus, permission: "recruitment" as ContentPermission },
-  { to: "/member/screening", label: "Screening Dashboard", description: "Manage screening materials, status, and notes", icon: FileCheck2, permission: "screening" as ContentPermission },
 ];
 
 const AdminHome = () => {

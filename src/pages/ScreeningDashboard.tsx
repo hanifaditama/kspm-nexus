@@ -54,9 +54,9 @@ const statuses: ScreeningStatus[] = ["SCREENING BY KSPM", "MINOR REVISION", "APP
 const blankForm = { material: "", submitted_at: "", due_at: "", link: "", notes: "" };
 
 const statusStyle: Record<ScreeningStatus, string> = {
-  "SCREENING BY KSPM": "border-amber-300 bg-amber-50 text-amber-800",
-  "MINOR REVISION": "border-orange-300 bg-orange-50 text-orange-800",
-  "APPROVED BY KSPM": "border-emerald-300 bg-emerald-50 text-emerald-800",
+  "SCREENING BY KSPM": "border-amber-300 bg-amber-100 text-amber-900 hover:bg-amber-100",
+  "MINOR REVISION": "border-orange-300 bg-orange-100 text-orange-900 hover:bg-orange-100",
+  "APPROVED BY KSPM": "border-emerald-300 bg-emerald-100 text-emerald-900 hover:bg-emerald-100",
 };
 
 const formatDate = (value: string | null) => {
@@ -66,7 +66,7 @@ const formatDate = (value: string | null) => {
 };
 
 const ScreeningDashboard = () => {
-  const { user, isPrimaryAdmin, hasPermission } = useAuth();
+  const { user, isPrimaryAdmin } = useAuth();
   const { toast } = useToast();
   const [division, setDivision] = useState<Division>("CMP");
   const [items, setItems] = useState<ScreeningItem[]>([]);
@@ -77,9 +77,10 @@ const ScreeningDashboard = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [assignmentOpen, setAssignmentOpen] = useState(false);
   const [members, setMembers] = useState<MemberProfile[]>([]);
+  const [createAccess, setCreateAccess] = useState<Record<Division, boolean>>({ BPH: false, CMP: false, EVENT: false, RESEARCH: false });
+  const [manageAccess, setManageAccess] = useState<Record<Division, boolean>>({ BPH: false, CMP: false, EVENT: false, RESEARCH: false });
   const [editingItem, setEditingItem] = useState<ScreeningItem | null>(null);
   const [form, setForm] = useState(blankForm);
-  const canManage = hasPermission("screening");
 
   const loadScreening = useCallback(async () => {
     setLoading(true);
@@ -104,6 +105,20 @@ const ScreeningDashboard = () => {
   }, [loadScreening]);
 
   useEffect(() => {
+    if (!user) return;
+    void Promise.all(divisions.map(async (item) => {
+      const [createResult, manageResult] = await Promise.all([
+        supabase.rpc("can_create_screening_item", { _user_id: user.id, _division: item }),
+        supabase.rpc("can_manage_screening_item", { _user_id: user.id, _division: item }),
+      ]);
+      return { item, canCreate: createResult.data ?? false, canManage: manageResult.data ?? false };
+    })).then((access) => {
+      setCreateAccess(Object.fromEntries(access.map((entry) => [entry.item, entry.canCreate])) as Record<Division, boolean>);
+      setManageAccess(Object.fromEntries(access.map((entry) => [entry.item, entry.canManage])) as Record<Division, boolean>);
+    });
+  }, [user]);
+
+  useEffect(() => {
     if (!isPrimaryAdmin) return;
     void supabase
       .from("member_profiles")
@@ -126,11 +141,17 @@ const ScreeningDashboard = () => {
     () => evaluators.filter((evaluator) => evaluator.division === division),
     [division, evaluators],
   );
+  const visibleEvaluators = useMemo(
+    () => divisionEvaluators.filter((evaluator) => evaluator.user_id),
+    [divisionEvaluators],
+  );
   const checkMap = useMemo(
     () => new Map(checks.map((check) => [`${check.screening_item_id}:${check.evaluator_id}`, check.checked])),
     [checks],
   );
   const assignedColumns = divisionEvaluators.filter((evaluator) => evaluator.user_id === user?.id);
+  const canCreateCurrent = createAccess[division];
+  const canManageCurrent = manageAccess[division];
 
   const summary = useMemo(() => ({
     total: divisionItems.length,
@@ -257,7 +278,7 @@ const ScreeningDashboard = () => {
 
   return (
     <section className="min-h-[calc(100vh-4rem)] bg-background">
-      <div className="border-b border-border bg-card">
+      <div className="border-b border-primary/15 bg-primary/[0.035]">
         <div className="container flex flex-col justify-between gap-4 py-6 sm:flex-row sm:items-center">
           <div>
             <div className="flex items-center gap-2">
@@ -271,34 +292,34 @@ const ScreeningDashboard = () => {
           <div className="flex items-center gap-2">
             <Button variant="outline" asChild><Link to="/member">File Manager</Link></Button>
             {isPrimaryAdmin && <Button variant="outline" onClick={() => setAssignmentOpen(true)}><Settings2 className="h-4 w-4" /> Assign Evaluators</Button>}
-            {canManage && <Button onClick={openCreate}><Plus className="h-4 w-4" /> Add Screening</Button>}
+            {canCreateCurrent && <Button onClick={openCreate}><Plus className="h-4 w-4" /> Add Screening</Button>}
           </div>
         </div>
       </div>
 
       <div className="container py-8">
         <Tabs value={division} onValueChange={(value) => setDivision(value as Division)}>
-          <TabsList>
+          <TabsList className="bg-primary/5">
             {divisions.map((item) => <TabsTrigger key={item} value={item}>{item}</TabsTrigger>)}
           </TabsList>
         </Tabs>
 
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
           {[
-            ["Total", summary.total],
-            ["Screening", summary.screening],
-            ["Revision", summary.revision],
-            ["Approved", summary.approved],
-            ["Overdue", summary.overdue],
-          ].map(([label, value]) => (
-            <div key={label} className="rounded-md border border-border bg-card px-4 py-3">
-              <p className="text-xs font-medium uppercase text-muted-foreground">{label}</p>
-              <p className="mt-1 text-2xl font-semibold text-foreground">{value}</p>
+            ["Total", summary.total, "border-sky-200 bg-sky-50 text-sky-900"],
+            ["Screening", summary.screening, "border-amber-200 bg-amber-50 text-amber-900"],
+            ["Revision", summary.revision, "border-orange-200 bg-orange-50 text-orange-900"],
+            ["Approved", summary.approved, "border-emerald-200 bg-emerald-50 text-emerald-900"],
+            ["Overdue", summary.overdue, "border-rose-200 bg-rose-50 text-rose-900"],
+          ].map(([label, value, style]) => (
+            <div key={label} className={`rounded-md border px-4 py-3 ${style}`}>
+              <p className="text-xs font-semibold uppercase opacity-70">{label}</p>
+              <p className="mt-1 text-2xl font-semibold">{value}</p>
             </div>
           ))}
         </div>
 
-        <div className="mt-6 overflow-x-auto rounded-md border border-border bg-card">
+        <div className="mt-6 overflow-x-auto rounded-md border border-border bg-card shadow-sm">
           {loading ? (
             <div className="flex min-h-52 items-center justify-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" /> Loading screening data...
@@ -313,18 +334,18 @@ const ScreeningDashboard = () => {
                   <th className="min-w-32 px-3 py-3 font-medium text-muted-foreground">Due Date</th>
                   <th className="min-w-20 px-3 py-3 font-medium text-muted-foreground">Link</th>
                   <th className="min-w-52 px-3 py-3 font-medium text-muted-foreground">Status</th>
-                  {divisionEvaluators.map((evaluator) => (
+                  {visibleEvaluators.map((evaluator) => (
                     <th key={evaluator.id} className="min-w-24 px-3 py-3 text-center font-medium text-muted-foreground">
                       {evaluator.display_name}
                     </th>
                   ))}
                   <th className="min-w-72 px-4 py-3 font-medium text-muted-foreground">Notes</th>
-                  {canManage && <th className="w-24 px-3 py-3 text-right font-medium text-muted-foreground">Actions</th>}
+                  {canManageCurrent && <th className="w-24 px-3 py-3 text-right font-medium text-muted-foreground">Actions</th>}
                 </tr>
               </thead>
               <tbody>
                 {divisionItems.map((item) => (
-                  <tr key={item.id} className="border-b border-border last:border-0">
+                  <tr key={item.id} className="border-b border-border transition-colors last:border-0 hover:bg-primary/[0.025]">
                     <td className="sticky left-0 z-10 bg-card px-3 py-4 text-center text-muted-foreground">{item.sequence_no}</td>
                     <td className="sticky left-14 z-10 bg-card px-4 py-4 font-medium text-foreground">{item.material}</td>
                     <td className="px-3 py-4 text-muted-foreground">{formatDate(item.submitted_at)}</td>
@@ -337,14 +358,14 @@ const ScreeningDashboard = () => {
                       ) : "-"}
                     </td>
                     <td className="px-3 py-4">
-                      {canManage ? (
+                      {canManageCurrent ? (
                         <Select value={item.status} disabled={savingKey === `status:${item.id}`} onValueChange={(value) => void updateStatus(item, value as ScreeningStatus)}>
-                          <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                          <SelectContent>{statuses.map((status) => <SelectItem key={status} value={status}>{status}</SelectItem>)}</SelectContent>
+                          <SelectTrigger className={`h-9 font-medium ${statusStyle[item.status]}`}><SelectValue /></SelectTrigger>
+                          <SelectContent>{statuses.map((status) => <SelectItem key={status} value={status}><span className={`rounded px-2 py-1 text-xs font-medium ${statusStyle[status]}`}>{status}</span></SelectItem>)}</SelectContent>
                         </Select>
                       ) : <Badge variant="outline" className={statusStyle[item.status]}>{item.status}</Badge>}
                     </td>
-                    {divisionEvaluators.map((evaluator) => {
+                    {visibleEvaluators.map((evaluator) => {
                       const key = `${item.id}:${evaluator.id}`;
                       const ownsColumn = evaluator.user_id === user?.id;
                       return (
@@ -359,7 +380,7 @@ const ScreeningDashboard = () => {
                       );
                     })}
                     <td className="max-w-80 px-4 py-4 text-xs leading-relaxed text-muted-foreground">{item.notes || "-"}</td>
-                    {canManage && (
+                    {canManageCurrent && (
                       <td className="px-3 py-4">
                         <div className="flex justify-end gap-1">
                           <Button variant="ghost" size="icon" title="Edit item" onClick={() => openEdit(item)}><Pencil className="h-4 w-4" /></Button>
@@ -385,6 +406,9 @@ const ScreeningDashboard = () => {
             {assignedColumns.map((evaluator) => evaluator.display_name).join(", ") || "Not assigned"}
           </span>. Only explicitly assigned columns can be changed.
         </p>
+        {!canCreateCurrent && (
+          <p className="mt-1 text-xs text-muted-foreground">Adding screening items is available to members of this division and the President/Vice President.</p>
+        )}
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
