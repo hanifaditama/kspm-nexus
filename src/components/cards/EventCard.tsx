@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Event } from "@/types/content";
-import { Calendar, Clock, MapPin, Users, ArrowUpRight } from "lucide-react";
+import { Calendar, Clock, MapPin, ArrowUpRight, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +19,7 @@ const typeColors: Record<string, string> = {
 
 const EventCard = ({ event }: { event: Event }) => {
   const [open, setOpen] = useState(false);
+  const hasRegistration = Boolean(event.registrationUrl);
 
   return (
     <>
@@ -51,6 +53,11 @@ const EventCard = ({ event }: { event: Event }) => {
             </div>
           )}
         </div>
+        {hasRegistration && (
+          <div className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-accent">
+            Register <ExternalLink className="h-3.5 w-3.5" />
+          </div>
+        )}
       </article>
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -84,13 +91,17 @@ const EventCard = ({ event }: { event: Event }) => {
             </div>
           </div>
 
-          <div className="mt-4 flex justify-end">
-            <button
-              onClick={() => setOpen(false)}
-              className="rounded-md bg-accent px-5 py-2 text-sm font-medium text-accent-foreground transition-colors hover:bg-accent/90"
-            >
+          <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <Button variant="outline" onClick={() => setOpen(false)}>
               Close
-            </button>
+            </Button>
+            {event.registrationUrl && (
+              <Button asChild>
+                <a href={event.registrationUrl} target="_blank" rel="noopener noreferrer">
+                  Register <ExternalLink className="h-4 w-4" />
+                </a>
+              </Button>
+            )}
           </div>
         </DialogContent>
       </Dialog>

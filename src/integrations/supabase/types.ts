@@ -98,6 +98,7 @@ export type Database = {
           id: string
           image: string | null
           location: string | null
+          registration_url: string | null
           slug: string
           title: string
           type: string
@@ -111,6 +112,7 @@ export type Database = {
           id?: string
           image?: string | null
           location?: string | null
+          registration_url?: string | null
           slug: string
           title: string
           type?: string
@@ -124,6 +126,7 @@ export type Database = {
           id?: string
           image?: string | null
           location?: string | null
+          registration_url?: string | null
           slug?: string
           title?: string
           type?: string

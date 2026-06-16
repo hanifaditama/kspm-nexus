@@ -18,6 +18,7 @@ interface EventRow {
   event_date: string;
   event_time: string | null;
   location: string | null;
+  registration_url: string | null;
   type: string;
   image: string | null;
 }
@@ -28,7 +29,7 @@ const types = ["seminar", "workshop", "competition", "webinar"];
 
 const empty: Partial<EventRow> = {
   title: "", slug: "", description: "", event_date: new Date().toISOString().slice(0, 16),
-  event_time: "", location: "", type: "seminar", image: null,
+  event_time: "", location: "", registration_url: "", type: "seminar", image: null,
 };
 
 const AdminEvents = () => {
@@ -64,6 +65,7 @@ const AdminEvents = () => {
       event_date: new Date(form.event_date).toISOString(),
       event_time: form.event_time || null,
       location: form.location || null,
+      registration_url: form.registration_url || null,
       type: form.type || "seminar",
       image: form.image || null,
     };
@@ -136,6 +138,15 @@ const AdminEvents = () => {
                 </select>
               </div>
               <div><Label>Location</Label><Input value={form.location ?? ""} onChange={(e) => setForm({ ...form, location: e.target.value })} /></div>
+            </div>
+            <div>
+              <Label>Registration link <span className="font-normal text-muted-foreground">(optional)</span></Label>
+              <Input
+                type="url"
+                placeholder="https://forms.gle/..."
+                value={form.registration_url ?? ""}
+                onChange={(e) => setForm({ ...form, registration_url: e.target.value })}
+              />
             </div>
             <div><Label>Description</Label><Textarea rows={4} value={form.description ?? ""} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
             <div><Label>Image</Label><ImageUploadField folder="events" value={form.image} onChange={(url) => setForm({ ...form, image: url })} /></div>

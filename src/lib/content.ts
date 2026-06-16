@@ -49,7 +49,7 @@ export async function getArticleBySlug(slug: string) {
 export async function getEvents(limit?: number) {
   let query = supabase
     .from("events")
-    .select("id,title,slug,type,event_date,event_time,location,description,image")
+    .select("id,title,slug,type,event_date,event_time,location,description,image,registration_url")
     .order("event_date", { ascending: true });
   if (limit) query = query.gte("event_date", new Date().toISOString()).limit(limit);
   const { data, error } = await query;
@@ -64,6 +64,7 @@ export async function getEvents(limit?: number) {
     location: event.location ?? "",
     description: event.description ?? "",
     image: event.image,
+    registrationUrl: event.registration_url ?? undefined,
   }));
 }
 

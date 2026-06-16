@@ -23,6 +23,7 @@ export interface Event {
   location: string;
   type: "seminar" | "workshop" | "competition" | "webinar";
   image?: string;
+  registrationUrl?: string;
 }
 
 export interface TeamMember {
