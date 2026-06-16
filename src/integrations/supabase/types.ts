@@ -413,6 +413,54 @@ export type Database = {
           },
         ]
       }
+      work_requests: {
+        Row: {
+          created_at: string
+          details: string | null
+          due_date: string
+          id: string
+          requested_by: string
+          requesting_division: string
+          responsible_person: string | null
+          status: string
+          submission_date: string
+          target_division: string
+          task: string
+          updated_at: string
+          work_link: string | null
+        }
+        Insert: {
+          created_at?: string
+          details?: string | null
+          due_date?: string
+          id?: string
+          requested_by: string
+          requesting_division: string
+          responsible_person?: string | null
+          status?: string
+          submission_date?: string
+          target_division: string
+          task: string
+          updated_at?: string
+          work_link?: string | null
+        }
+        Update: {
+          created_at?: string
+          details?: string | null
+          due_date?: string
+          id?: string
+          requested_by?: string
+          requesting_division?: string
+          responsible_person?: string | null
+          status?: string
+          submission_date?: string
+          target_division?: string
+          task?: string
+          updated_at?: string
+          work_link?: string | null
+        }
+        Relationships: []
+      }
       primary_administrator: {
         Row: {
           id: string
@@ -591,6 +639,13 @@ export type Database = {
         Returns: boolean
       }
       can_manage_screening_item: {
+        Args: {
+          _division: string
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      can_manage_work_request: {
         Args: {
           _division: string
           _user_id: string

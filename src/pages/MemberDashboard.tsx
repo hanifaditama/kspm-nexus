@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CalendarDays, FileCheck2, LogOut, Upload, Search } from "lucide-react";
+import { CalendarDays, ClipboardList, FileCheck2, LogOut, Upload, Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { MemberFile, MemberFolder } from "@/components/dashboard/types";
@@ -313,6 +313,12 @@ const MemberDashboard = () => {
               <Link to="/member/screening">
                 <FileCheck2 className="mr-2 h-4 w-4" />
                 Screening
+              </Link>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/member/work-requests">
+                <ClipboardList className="mr-2 h-4 w-4" />
+                Work Requests
               </Link>
             </Button>
             <CreateFolderDialog onCreateFolder={handleCreateFolder} />
