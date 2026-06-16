@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowDownUp, CheckCircle2, ExternalLink, FileCheck2, Loader2, MessageSquare, Pencil, Plus, Settings2, Trash2, UserPlus, X } from "lucide-react";
+import { AlertTriangle, ArrowDownUp, CheckCircle2, Clock3, ExternalLink, FileCheck2, Loader2, MessageSquare, Pencil, Plus, Settings2, ShieldCheck, Trash2, UserPlus, X, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -61,6 +61,14 @@ interface MemberProfile {
 const divisions: Division[] = ["BPH", "CMP", "EVENT", "RESEARCH"];
 const statuses: ScreeningStatus[] = ["SCREENING BY INVESTMENT CLUB", "MINOR REVISION", "APPROVED BY INVESTMENT CLUB"];
 const blankForm = { material: "", submitted_at: "", due_at: "", link: "" };
+type SummaryCard = [string, number, string, LucideIcon];
+
+const divisionMeta: Record<Division, { label: string; description: string; accent: string }> = {
+  BPH: { label: "BPH", description: "Board-level screening and internal organization review.", accent: "from-sky-500 to-blue-700" },
+  CMP: { label: "CMP", description: "Creative, media, publication, and content readiness checks.", accent: "from-fuchsia-500 to-rose-600" },
+  EVENT: { label: "Event", description: "Program, logistics, and event execution review flow.", accent: "from-amber-400 to-orange-600" },
+  RESEARCH: { label: "Research", description: "Market report, equity research, and analytical output review.", accent: "from-emerald-400 to-teal-700" },
+};
 
 const statusStyle: Record<ScreeningStatus, string> = {
   "SCREENING BY INVESTMENT CLUB": "border-amber-300 bg-amber-100 text-amber-900 hover:bg-amber-100",
@@ -367,55 +375,67 @@ const ScreeningDashboard = () => {
   };
 
   return (
-    <section className="min-h-[calc(100vh-4rem)] bg-background">
-      <div className="border-b border-primary/15 bg-primary/[0.035]">
-        <div className="container flex flex-col justify-between gap-4 py-6 sm:flex-row sm:items-center">
+    <section className="min-h-[calc(100vh-4rem)] bg-[linear-gradient(180deg,#f8fafc_0%,#ffffff_36%)]">
+      <div className="border-b border-border bg-[linear-gradient(135deg,hsl(var(--primary))_0%,#1f4778_58%,#168ac5_100%)] text-primary-foreground">
+        <div className="container flex flex-col justify-between gap-6 py-8 lg:flex-row lg:items-end">
           <div>
-            <div className="flex items-center gap-2">
-              <FileCheck2 className="h-5 w-5 text-accent" />
-              <h1 className="text-xl font-semibold text-foreground">Screening Dashboard</h1>
+            <div className="mb-4 inline-flex items-center gap-2 border border-primary-foreground/20 bg-primary-foreground/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest">
+              <FileCheck2 className="h-3.5 w-3.5" />
+              Screening Flow
             </div>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Track material review and complete the checklist assigned to your name.
+            <h1 className="text-3xl font-bold tracking-tight md:text-5xl">Screening Dashboard</h1>
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-primary-foreground/80 md:text-base">
+              Track material review, evaluator checklist progress, notes, and approval status across divisions.
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" asChild><Link to="/member">File Manager</Link></Button>
-            {isPrimaryAdmin && <Button variant="outline" onClick={() => setAssignmentOpen(true)}><Settings2 className="h-4 w-4" /> Manage Evaluators</Button>}
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="secondary" asChild><Link to="/member">File Manager</Link></Button>
+            {isPrimaryAdmin && <Button variant="secondary" onClick={() => setAssignmentOpen(true)}><Settings2 className="h-4 w-4" /> Manage Evaluators</Button>}
             {canCreateCurrent && <Button onClick={openCreate}><Plus className="h-4 w-4" /> Add Screening</Button>}
           </div>
         </div>
       </div>
 
       <div className="container py-8">
-        <Tabs value={division} onValueChange={(value) => setDivision(value as Division)}>
-          <TabsList className="bg-primary/5">
-            {divisions.map((item) => <TabsTrigger key={item} value={item}>{item}</TabsTrigger>)}
-          </TabsList>
-        </Tabs>
-        <div className="mt-4 flex justify-end">
-          <Button variant="outline" size="sm" onClick={() => setNewestFirst((current) => !current)}>
-            <ArrowDownUp className="h-4 w-4" />
-            {newestFirst ? "Newest first" : "Oldest first"}
-          </Button>
-        </div>
-
-        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
-          {[
-            ["Total", summary.total, "border-sky-200 bg-sky-50 text-sky-900"],
-            ["Screening", summary.screening, "border-amber-200 bg-amber-50 text-amber-900"],
-            ["Revision", summary.revision, "border-orange-200 bg-orange-50 text-orange-900"],
-            ["Approved", summary.approved, "border-emerald-200 bg-emerald-50 text-emerald-900"],
-            ["Overdue", summary.overdue, "border-rose-200 bg-rose-50 text-rose-900"],
-          ].map(([label, value, style]) => (
-            <div key={label} className={`rounded-md border px-4 py-3 ${style}`}>
-              <p className="text-xs font-semibold uppercase opacity-70">{label}</p>
-              <p className="mt-1 text-2xl font-semibold">{value}</p>
+        <div className="mb-6 grid gap-4 xl:grid-cols-[minmax(260px,360px)_1fr]">
+          <div className={`bg-gradient-to-br ${divisionMeta[division].accent} p-6 text-white`}>
+            <p className="text-xs font-semibold uppercase tracking-widest text-white/70">Active Division</p>
+            <h2 className="mt-3 text-3xl font-bold">{divisionMeta[division].label}</h2>
+            <p className="mt-3 text-sm leading-6 text-white/80">{divisionMeta[division].description}</p>
+            <p className="mt-6 text-xs text-white/70">
+              Your checklist column: <span className="font-semibold text-white">{assignedColumns.map((evaluator) => evaluator.display_name).join(", ") || "Not assigned"}</span>
+            </p>
+          </div>
+          <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <Tabs value={division} onValueChange={(value) => setDivision(value as Division)}>
+                <TabsList className="grid h-auto w-full grid-cols-2 bg-primary/5 lg:w-auto lg:grid-cols-4">
+                  {divisions.map((item) => <TabsTrigger key={item} value={item}>{item}</TabsTrigger>)}
+                </TabsList>
+              </Tabs>
+              <Button variant="outline" size="sm" onClick={() => setNewestFirst((current) => !current)}>
+                <ArrowDownUp className="h-4 w-4" />
+                {newestFirst ? "Newest first" : "Oldest first"}
+              </Button>
             </div>
-          ))}
+            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-5">
+              {([
+                ["Total", summary.total, "border-sky-200 bg-sky-50 text-sky-900", FileCheck2],
+                ["Screening", summary.screening, "border-amber-200 bg-amber-50 text-amber-900", Clock3],
+                ["Revision", summary.revision, "border-orange-200 bg-orange-50 text-orange-900", MessageSquare],
+                ["Approved", summary.approved, "border-emerald-200 bg-emerald-50 text-emerald-900", ShieldCheck],
+                ["Overdue", summary.overdue, "border-rose-200 bg-rose-50 text-rose-900", AlertTriangle],
+              ] satisfies SummaryCard[]).map(([label, value, style, Icon]) => (
+                <div key={label} className={`rounded-md border px-4 py-3 ${style}`}>
+                  <Icon className="mb-2 h-4 w-4 opacity-75" />
+                  <p className="text-xs font-semibold uppercase opacity-70">{label}</p>
+                  <p className="mt-1 text-2xl font-semibold">{value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-
-        <div className="mt-6 overflow-x-auto rounded-md border border-border bg-card shadow-sm">
+        <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-sm">
           {loading ? (
             <div className="flex min-h-52 items-center justify-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" /> Loading screening data...
@@ -423,9 +443,9 @@ const ScreeningDashboard = () => {
           ) : (
             <table className="w-full min-w-[1180px] text-sm">
               <thead>
-                <tr className="border-b border-border bg-muted/50 text-left">
-                  <th className="sticky left-0 z-20 w-14 bg-muted px-3 py-3 text-center font-medium text-muted-foreground">No.</th>
-                  <th className="sticky left-14 z-20 min-w-64 bg-muted px-4 py-3 font-medium text-muted-foreground">Screening Material</th>
+                <tr className="border-b border-border bg-slate-50 text-left">
+                  <th className="sticky left-0 z-20 w-14 bg-slate-50 px-3 py-3 text-center font-medium text-muted-foreground">No.</th>
+                  <th className="sticky left-14 z-20 min-w-64 bg-slate-50 px-4 py-3 font-medium text-muted-foreground">Screening Material</th>
                   <th className="min-w-32 px-3 py-3 font-medium text-muted-foreground">Submitted</th>
                   <th className="min-w-32 px-3 py-3 font-medium text-muted-foreground">Due Date</th>
                   <th className="min-w-20 px-3 py-3 font-medium text-muted-foreground">Link</th>
@@ -441,9 +461,9 @@ const ScreeningDashboard = () => {
               </thead>
               <tbody>
                 {divisionItems.map((item) => (
-                  <tr key={item.id} className="border-b border-border transition-colors last:border-0 hover:bg-primary/[0.025]">
+                  <tr key={item.id} className="border-b border-border transition-colors last:border-0 hover:bg-accent/[0.035]">
                     <td className="sticky left-0 z-10 bg-card px-3 py-4 text-center text-muted-foreground">{item.sequence_no}</td>
-                    <td className="sticky left-14 z-10 bg-card px-4 py-4 font-medium text-foreground">{item.material}</td>
+                    <td className="sticky left-14 z-10 bg-card px-4 py-4 font-semibold text-foreground">{item.material}</td>
                     <td className="px-3 py-4 text-muted-foreground">{formatDate(item.submitted_at)}</td>
                     <td className="px-3 py-4 text-muted-foreground">{formatDate(item.due_at)}</td>
                     <td className="px-3 py-4">
@@ -501,11 +521,7 @@ const ScreeningDashboard = () => {
             </div>
           )}
         </div>
-        <p className="mt-3 text-xs text-muted-foreground">
-          Your checklist column in {division}: <span className="font-medium text-foreground">
-            {assignedColumns.map((evaluator) => evaluator.display_name).join(", ") || "Not assigned"}
-          </span>. Only explicitly assigned columns can be changed.
-        </p>
+        <p className="mt-3 text-xs text-muted-foreground">Only explicitly assigned checklist columns can be changed.</p>
         {!canCreateCurrent && (
           <p className="mt-1 text-xs text-muted-foreground">Adding screening items is available to members of this division and the President/Vice President.</p>
         )}

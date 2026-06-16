@@ -413,6 +413,68 @@ export type Database = {
           },
         ]
       }
+      work_request_assignees: {
+        Row: {
+          created_at: string
+          display_name: string
+          display_order: number
+          division: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name: string
+          display_order?: number
+          division: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          display_order?: number
+          division?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      work_request_comments: {
+        Row: {
+          author_name: string
+          created_at: string
+          id: string
+          message: string
+          user_id: string
+          work_request_id: string
+        }
+        Insert: {
+          author_name?: string
+          created_at?: string
+          id?: string
+          message: string
+          user_id: string
+          work_request_id: string
+        }
+        Update: {
+          author_name?: string
+          created_at?: string
+          id?: string
+          message?: string
+          user_id?: string
+          work_request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_request_comments_work_request_id_fkey"
+            columns: ["work_request_id"]
+            isOneToOne: false
+            referencedRelation: "work_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       work_requests: {
         Row: {
           created_at: string
@@ -422,6 +484,7 @@ export type Database = {
           requested_by: string
           requesting_division: string
           responsible_person: string | null
+          responsible_user_id: string | null
           status: string
           submission_date: string
           target_division: string
@@ -437,6 +500,7 @@ export type Database = {
           requested_by: string
           requesting_division: string
           responsible_person?: string | null
+          responsible_user_id?: string | null
           status?: string
           submission_date?: string
           target_division: string
@@ -452,6 +516,7 @@ export type Database = {
           requested_by?: string
           requesting_division?: string
           responsible_person?: string | null
+          responsible_user_id?: string | null
           status?: string
           submission_date?: string
           target_division?: string

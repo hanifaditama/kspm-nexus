@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, ArrowUpRight, CalendarClock, CheckCircle2, ClipboardList, ExternalLink, FilePenLine, Hourglass, Plus, Search, Sparkles, Trash2, type LucideIcon } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, CalendarClock, CheckCircle2, ClipboardList, ExternalLink, FilePenLine, Hourglass, MessageSquare, Pencil, Plus, Search, Settings2, Sparkles, Trash2, UserPlus, X, type LucideIcon } from "lucide-react";
 import SEO from "@/components/SEO";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,8 +28,32 @@ interface WorkRequest {
   due_date: string;
   status: WorkStatus;
   responsible_person: string | null;
+  responsible_user_id: string | null;
   requested_by: string;
   created_at: string;
+}
+
+interface WorkAssignee {
+  id: string;
+  division: Division;
+  user_id: string;
+  display_name: string;
+  display_order: number;
+}
+
+interface WorkComment {
+  id: string;
+  work_request_id: string;
+  user_id: string;
+  author_name: string;
+  message: string;
+  created_at: string;
+}
+
+interface MemberProfile {
+  user_id: string;
+  display_name: string;
+  email: string | null;
 }
 
 const divisions: Division[] = ["BPH", "CMP", "EVENT", "RESEARCH"];
@@ -78,41 +102,63 @@ const isOverdue = (request: WorkRequest) =>
   request.status !== "Completed" && request.status !== "Cancelled" && request.due_date < new Date().toISOString().slice(0, 10);
 
 const WorkRequests = () => {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isPrimaryAdmin } = useAuth();
   const { toast } = useToast();
   const [requests, setRequests] = useState<WorkRequest[]>([]);
+  const [assignees, setAssignees] = useState<WorkAssignee[]>([]);
+  const [comments, setComments] = useState<WorkComment[]>([]);
+  const [members, setMembers] = useState<MemberProfile[]>([]);
   const [manageAccess, setManageAccess] = useState<Record<Division, boolean>>({ BPH: false, CMP: false, EVENT: false, RESEARCH: false });
   const [activeDivision, setActiveDivision] = useState<Division>("CMP");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [assignmentOpen, setAssignmentOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [savingKey, setSavingKey] = useState("");
   const [form, setForm] = useState(blankForm);
   const [editing, setEditing] = useState<WorkRequest | null>(null);
+  const [assigneeToAdd, setAssigneeToAdd] = useState("");
+  const [commentMessage, setCommentMessage] = useState("");
+  const [editingCommentId, setEditingCommentId] = useState("");
+  const [editingCommentMessage, setEditingCommentMessage] = useState("");
   const [editForm, setEditForm] = useState({
     requesting_division: "",
     task: "",
     details: "",
     submission_date: "",
     status: "Submitted" as WorkStatus,
-    responsible_person: "",
+    responsible_user_id: "",
     work_link: "",
   });
 
   const loadRequests = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("work_requests")
-      .select("id,target_division,requesting_division,task,details,work_link,submission_date,due_date,status,responsible_person,requested_by,created_at")
-      .order("created_at", { ascending: false });
+    const [requestsResult, assigneesResult, commentsResult] = await Promise.all([
+      supabase
+        .from("work_requests")
+        .select("id,target_division,requesting_division,task,details,work_link,submission_date,due_date,status,responsible_person,responsible_user_id,requested_by,created_at")
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("work_request_assignees")
+        .select("id,division,user_id,display_name,display_order")
+        .order("display_order", { ascending: true }),
+      supabase
+        .from("work_request_comments")
+        .select("id,work_request_id,user_id,author_name,message,created_at")
+        .order("created_at", { ascending: true }),
+    ]);
 
     setLoading(false);
+    const error = requestsResult.error ?? assigneesResult.error ?? commentsResult.error;
     if (error) {
       toast({ title: "Could not load work requests", description: error.message, variant: "destructive" });
       return;
     }
-    setRequests((data ?? []) as WorkRequest[]);
+    setRequests((requestsResult.data ?? []) as WorkRequest[]);
+    setAssignees((assigneesResult.data ?? []) as WorkAssignee[]);
+    setComments((commentsResult.data ?? []) as WorkComment[]);
   }, [toast]);
 
   useEffect(() => {
@@ -126,6 +172,21 @@ const WorkRequests = () => {
       return [division, data ?? false] as const;
     })).then((entries) => setManageAccess(Object.fromEntries(entries) as Record<Division, boolean>));
   }, [user]);
+
+  useEffect(() => {
+    if (!isPrimaryAdmin) return;
+    void supabase
+      .from("member_profiles")
+      .select("user_id,display_name,email")
+      .order("display_name")
+      .then(({ data, error }) => {
+        if (error) {
+          toast({ title: "Could not load members", description: error.message, variant: "destructive" });
+          return;
+        }
+        setMembers(data ?? []);
+      });
+  }, [isPrimaryAdmin, toast]);
 
   const divisionRequests = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -152,6 +213,25 @@ const WorkRequests = () => {
     overdue: divisionRequests.filter(isOverdue).length,
   }), [divisionRequests]);
 
+  const divisionAssignees = useMemo(
+    () => assignees.filter((assignee) => assignee.division === activeDivision),
+    [activeDivision, assignees],
+  );
+
+  const commentsByRequest = useMemo(() => {
+    const grouped = new Map<string, WorkComment[]>();
+    for (const comment of comments) {
+      grouped.set(comment.work_request_id, [...(grouped.get(comment.work_request_id) ?? []), comment]);
+    }
+    return grouped;
+  }, [comments]);
+
+  const latestCommentByRequest = useMemo(() => {
+    const latest = new Map<string, WorkComment>();
+    for (const comment of comments) latest.set(comment.work_request_id, comment);
+    return latest;
+  }, [comments]);
+
   const openCreate = (division = activeDivision) => {
     setForm({ ...blankForm, target_division: division });
     setDialogOpen(true);
@@ -170,7 +250,7 @@ const WorkRequests = () => {
         submission_date: form.submission_date,
         requested_by: user.id,
       })
-      .select("id,target_division,requesting_division,task,details,work_link,submission_date,due_date,status,responsible_person,requested_by,created_at")
+      .select("id,target_division,requesting_division,task,details,work_link,submission_date,due_date,status,responsible_person,responsible_user_id,requested_by,created_at")
       .single();
     setSaving(false);
     if (error) {
@@ -190,9 +270,12 @@ const WorkRequests = () => {
       details: request.details ?? "",
       submission_date: request.submission_date,
       status: request.status,
-      responsible_person: request.responsible_person ?? "",
+      responsible_user_id: request.responsible_user_id ?? "",
       work_link: request.work_link ?? "",
     });
+    setCommentMessage("");
+    setEditingCommentId("");
+    setEditingCommentMessage("");
     setEditOpen(true);
   };
 
@@ -201,6 +284,7 @@ const WorkRequests = () => {
     const canManage = manageAccess[editing.target_division] || isAdmin;
     const isOwner = editing.requested_by === user.id;
     if (!canManage && !isOwner) return;
+    const selectedAssignee = assignees.find((assignee) => assignee.user_id === editForm.responsible_user_id && assignee.division === editing.target_division);
 
     const payload = canManage
       ? {
@@ -209,7 +293,8 @@ const WorkRequests = () => {
         details: editForm.details.trim() || null,
         submission_date: editForm.submission_date,
         status: editForm.status,
-        responsible_person: editForm.responsible_person.trim() || null,
+        responsible_user_id: selectedAssignee?.user_id ?? null,
+        responsible_person: selectedAssignee?.display_name ?? null,
         work_link: editForm.work_link.trim() || null,
       }
       : {
@@ -224,7 +309,7 @@ const WorkRequests = () => {
       .from("work_requests")
       .update(payload)
       .eq("id", editing.id)
-      .select("id,target_division,requesting_division,task,details,work_link,submission_date,due_date,status,responsible_person,requested_by,created_at")
+      .select("id,target_division,requesting_division,task,details,work_link,submission_date,due_date,status,responsible_person,responsible_user_id,requested_by,created_at")
       .single();
     setSaving(false);
     if (error) {
@@ -241,7 +326,7 @@ const WorkRequests = () => {
       .from("work_requests")
       .update({ status })
       .eq("id", request.id)
-      .select("id,target_division,requesting_division,task,details,work_link,submission_date,due_date,status,responsible_person,requested_by,created_at")
+      .select("id,target_division,requesting_division,task,details,work_link,submission_date,due_date,status,responsible_person,responsible_user_id,requested_by,created_at")
       .single();
     if (error) {
       toast({ title: "Could not update status", description: error.message, variant: "destructive" });
@@ -259,6 +344,90 @@ const WorkRequests = () => {
     }
     setRequests((current) => current.filter((item) => item.id !== request.id));
     toast({ title: "Work request deleted" });
+  };
+
+  const addAssignee = async (userId: string) => {
+    const member = members.find((entry) => entry.user_id === userId);
+    if (!member) return;
+    setSavingKey("add-assignee");
+    const { error } = await supabase
+      .from("work_request_assignees")
+      .insert({
+        division: activeDivision,
+        user_id: userId,
+        display_name: member.display_name.trim().split(/\s+/)[0],
+        display_order: Math.max(0, ...divisionAssignees.map((entry) => entry.display_order)) + 1,
+      });
+    setSavingKey("");
+    if (error) {
+      toast({ title: "Could not add person in charge", description: error.message, variant: "destructive" });
+      return;
+    }
+    setAssigneeToAdd("");
+    toast({ title: `${member.display_name} added as Person in Charge` });
+    void loadRequests();
+  };
+
+  const removeAssignee = async (assignee: WorkAssignee) => {
+    if (!confirm(`Remove ${assignee.display_name} from ${activeDivision} Person in Charge options?`)) return;
+    setSavingKey(`remove-assignee:${assignee.id}`);
+    const { error } = await supabase.from("work_request_assignees").delete().eq("id", assignee.id);
+    setSavingKey("");
+    if (error) {
+      toast({ title: "Could not remove person in charge", description: error.message, variant: "destructive" });
+      return;
+    }
+    setAssignees((current) => current.filter((entry) => entry.id !== assignee.id));
+    toast({ title: "Person in Charge removed" });
+  };
+
+  const addComment = async () => {
+    if (!editing || !user || !commentMessage.trim()) return;
+    setSavingKey("comment");
+    const { data, error } = await supabase
+      .from("work_request_comments")
+      .insert({ work_request_id: editing.id, user_id: user.id, message: commentMessage.trim() })
+      .select("id,work_request_id,user_id,author_name,message,created_at")
+      .single();
+    setSavingKey("");
+    if (error) {
+      toast({ title: "Could not add comment", description: error.message, variant: "destructive" });
+      return;
+    }
+    setComments((current) => [...current, data as WorkComment]);
+    setCommentMessage("");
+    toast({ title: "Comment added" });
+  };
+
+  const updateComment = async (comment: WorkComment) => {
+    if (!editingCommentMessage.trim()) return;
+    setSavingKey(`comment:${comment.id}`);
+    const { error } = await supabase
+      .from("work_request_comments")
+      .update({ message: editingCommentMessage.trim() })
+      .eq("id", comment.id);
+    setSavingKey("");
+    if (error) {
+      toast({ title: "Could not update comment", description: error.message, variant: "destructive" });
+      return;
+    }
+    setComments((current) => current.map((entry) => entry.id === comment.id ? { ...entry, message: editingCommentMessage.trim() } : entry));
+    setEditingCommentId("");
+    setEditingCommentMessage("");
+    toast({ title: "Comment updated" });
+  };
+
+  const deleteComment = async (comment: WorkComment) => {
+    if (!confirm("Delete this comment?")) return;
+    setSavingKey(`comment:${comment.id}`);
+    const { error } = await supabase.from("work_request_comments").delete().eq("id", comment.id);
+    setSavingKey("");
+    if (error) {
+      toast({ title: "Could not delete comment", description: error.message, variant: "destructive" });
+      return;
+    }
+    setComments((current) => current.filter((entry) => entry.id !== comment.id));
+    toast({ title: "Comment deleted" });
   };
 
   const activeMeta = divisionMeta[activeDivision];
@@ -301,15 +470,22 @@ const WorkRequests = () => {
       </div>
 
       <div className="container py-8">
-        <div className="mb-6 grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
+        <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <Tabs value={activeDivision} onValueChange={(value) => setActiveDivision(value as Division)}>
             <TabsList className="grid h-auto w-full grid-cols-2 lg:w-auto lg:grid-cols-4">
               {divisions.map((division) => <TabsTrigger key={division} value={division}>{divisionMeta[division].label}</TabsTrigger>)}
             </TabsList>
           </Tabs>
-          <Button onClick={() => openCreate()}>
-            <Plus className="h-4 w-4" /> New Request
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={() => openCreate()}>
+              <Plus className="h-4 w-4" /> New Request
+            </Button>
+            {isPrimaryAdmin && (
+              <Button variant="outline" onClick={() => setAssignmentOpen(true)}>
+                <Settings2 className="h-4 w-4" /> Manage PICs
+              </Button>
+            )}
+          </div>
         </div>
 
         <div className="mb-6 grid gap-4 xl:grid-cols-[minmax(260px,360px)_1fr]">
@@ -360,6 +536,8 @@ const WorkRequests = () => {
                   const canManage = manageAccess[request.target_division] || isAdmin;
                   const canEdit = canManage || request.requested_by === user?.id;
                   const overdue = isOverdue(request);
+                  const latestComment = latestCommentByRequest.get(request.id);
+                  const commentCount = commentsByRequest.get(request.id)?.length ?? 0;
                   return (
                     <article key={request.id} className="rounded-lg border border-border bg-background p-4 transition-colors hover:border-accent/50">
                       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -374,8 +552,14 @@ const WorkRequests = () => {
                           <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground">
                             <span>Submitted {formatDate(request.submission_date)}</span>
                             <span>Due {formatDate(request.due_date)}</span>
-                            <span>PIC: {request.responsible_person || "-"}</span>
+                            <span>Person in Charge: {request.responsible_person || "-"}</span>
+                            <span className="inline-flex items-center gap-1"><MessageSquare className="h-3.5 w-3.5" /> {commentCount}</span>
                           </div>
+                          {latestComment && (
+                            <div className="mt-3 rounded-md border border-border bg-muted/30 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
+                              <span className="font-semibold text-foreground">{latestComment.author_name}:</span> {latestComment.message}
+                            </div>
+                          )}
                         </div>
                         <div className="flex shrink-0 flex-wrap items-center gap-2">
                           {request.work_link && (
@@ -497,8 +681,18 @@ const WorkRequests = () => {
                       </Select>
                     </div>
                     <div className="grid gap-2">
-                      <Label>Penanggung jawab</Label>
-                      <Input placeholder="Name" value={editForm.responsible_person} onChange={(event) => setEditForm({ ...editForm, responsible_person: event.target.value })} />
+                      <Label>Person in Charge</Label>
+                      <Select value={editForm.responsible_user_id || "none"} onValueChange={(value) => setEditForm({ ...editForm, responsible_user_id: value === "none" ? "" : value })}>
+                        <SelectTrigger><SelectValue placeholder="Choose person" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Not assigned</SelectItem>
+                          {assignees.filter((assignee) => assignee.division === editing.target_division).map((assignee) => (
+                            <SelectItem key={assignee.id} value={assignee.user_id}>
+                              {members.find((member) => member.user_id === assignee.user_id)?.display_name ?? assignee.display_name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                   <div className="grid gap-2">
@@ -507,6 +701,64 @@ const WorkRequests = () => {
                   </div>
                 </>
               )}
+              <div className="grid gap-3 border-t border-border pt-4">
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4 text-accent" />
+                  <Label>Comments</Label>
+                </div>
+                <div className="max-h-52 space-y-2 overflow-y-auto">
+                  {(commentsByRequest.get(editing.id) ?? []).map((comment) => (
+                    <div key={comment.id} className="rounded-md border border-border bg-muted/30 p-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm font-semibold text-foreground">{comment.author_name}</p>
+                        <div className="flex items-center gap-1">
+                          <p className="mr-1 text-xs text-muted-foreground">{new Date(comment.created_at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}</p>
+                          {comment.user_id === user?.id && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              title="Edit comment"
+                              onClick={() => {
+                                setEditingCommentId(comment.id);
+                                setEditingCommentMessage(comment.message);
+                              }}
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
+                          {comment.user_id === user?.id && (
+                            <Button variant="ghost" size="icon" className="h-7 w-7" title="Delete comment" disabled={savingKey === `comment:${comment.id}`} onClick={() => void deleteComment(comment)}>
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                      {editingCommentId === comment.id ? (
+                        <div className="mt-2 grid gap-2">
+                          <Textarea rows={2} value={editingCommentMessage} onChange={(event) => setEditingCommentMessage(event.target.value)} />
+                          <div className="flex justify-end gap-2">
+                            <Button variant="ghost" size="sm" onClick={() => { setEditingCommentId(""); setEditingCommentMessage(""); }}>Cancel</Button>
+                            <Button size="sm" disabled={!editingCommentMessage.trim() || savingKey === `comment:${comment.id}`} onClick={() => void updateComment(comment)}>Save comment</Button>
+                          </div>
+                        </div>
+                      ) : <p className="mt-1 text-sm text-muted-foreground">{comment.message}</p>}
+                    </div>
+                  ))}
+                  {(commentsByRequest.get(editing.id) ?? []).length === 0 && (
+                    <p className="rounded-md border border-dashed border-border py-6 text-center text-sm text-muted-foreground">No comments yet.</p>
+                  )}
+                </div>
+                <div className="flex items-end gap-2">
+                  <div className="grid flex-1 gap-2">
+                    <Label htmlFor="work-request-comment">Add comment</Label>
+                    <Textarea id="work-request-comment" rows={2} placeholder="Write an update, question, or revision note..." value={commentMessage} onChange={(event) => setCommentMessage(event.target.value)} />
+                  </div>
+                  <Button variant="outline" disabled={!commentMessage.trim() || savingKey === "comment"} onClick={() => void addComment()}>
+                    <Plus className="h-4 w-4" /> Add
+                  </Button>
+                </div>
+              </div>
             </div>
           )}
           <DialogFooter>
@@ -515,6 +767,48 @@ const WorkRequests = () => {
               {saving ? "Saving..." : "Save Changes"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={assignmentOpen} onOpenChange={setAssignmentOpen}>
+        <DialogContent className="max-h-[92vh] max-w-xl overflow-y-auto">
+          <DialogHeader><DialogTitle>{activeDivision} Person in Charge</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Add members who can be assigned as Person in Charge for {divisionMeta[activeDivision].label} requests. The dashboard displays their first name.
+          </p>
+          <div className="flex items-end gap-2 rounded-md border border-dashed border-border bg-muted/20 p-3">
+            <div className="grid flex-1 gap-2">
+              <Label>Add Person in Charge</Label>
+              <Select value={assigneeToAdd} onValueChange={setAssigneeToAdd}>
+                <SelectTrigger><SelectValue placeholder="Choose member by name or email" /></SelectTrigger>
+                <SelectContent>
+                  {members.filter((member) => !divisionAssignees.some((assignee) => assignee.user_id === member.user_id)).map((member) => (
+                    <SelectItem key={member.user_id} value={member.user_id}>
+                      {member.display_name}{member.email ? ` (${member.email})` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button disabled={!assigneeToAdd || savingKey === "add-assignee"} onClick={() => void addAssignee(assigneeToAdd)}>
+              <UserPlus className="h-4 w-4" /> Add
+            </Button>
+          </div>
+          <div className="grid gap-2 py-2">
+            {divisionAssignees.map((assignee) => (
+              <div key={assignee.id} className="flex items-center justify-between gap-3 rounded-md border border-border p-3">
+                <div>
+                  <p className="font-medium text-foreground">{members.find((member) => member.user_id === assignee.user_id)?.display_name ?? assignee.display_name}</p>
+                  <p className="text-xs text-muted-foreground">{members.find((member) => member.user_id === assignee.user_id)?.email ?? "No email"}</p>
+                </div>
+                <Button variant="ghost" size="icon" title="Remove Person in Charge" disabled={savingKey === `remove-assignee:${assignee.id}`} onClick={() => void removeAssignee(assignee)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+            {divisionAssignees.length === 0 && <p className="py-8 text-center text-sm text-muted-foreground">No Person in Charge options added yet.</p>}
+          </div>
+          <DialogFooter><Button onClick={() => setAssignmentOpen(false)}>Done</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </section>
