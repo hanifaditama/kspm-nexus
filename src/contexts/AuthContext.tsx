@@ -6,6 +6,11 @@ import type { ContentPermission } from "@/lib/contentAccess";
 
 const SESSION_ACTIVITY_KEY = "uphic-session-last-activity";
 const SESSION_IDLE_TIMEOUT_MS = 12 * 60 * 60 * 1000;
+const AUTH_EVENTS_THAT_REFRESH_ACTIVITY = new Set(["SIGNED_IN", "PASSWORD_RECOVERY", "TOKEN_REFRESHED", "USER_UPDATED"]);
+
+const markSessionActivity = () => {
+  localStorage.setItem(SESSION_ACTIVITY_KEY, String(Date.now()));
+};
 
 interface AuthContextType {
   session: Session | null;
@@ -52,15 +57,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const syncSession = useCallback(async (nextSession: Session | null) => {
     setLoading(true);
-    const next = await loadAuthState(nextSession);
-    setSession(next.session);
-    setUser(next.user);
-    setProfile(next.profile);
-    setIsAdmin(next.isAdmin);
-    setIsPrimaryAdmin(next.isPrimaryAdmin);
-    setPermissions(next.permissions);
-    setMustChangePassword(next.mustChangePassword);
-    setLoading(false);
+    try {
+      const next = await loadAuthState(nextSession);
+      setSession(next.session);
+      setUser(next.user);
+      setProfile(next.profile);
+      setIsAdmin(next.isAdmin);
+      setIsPrimaryAdmin(next.isPrimaryAdmin);
+      setPermissions(next.permissions);
+      setMustChangePassword(next.mustChangePassword);
+    } catch (error) {
+      console.error("Unable to load auth state", error);
+      const fallbackUser = nextSession?.user ?? null;
+      setSession(nextSession);
+      setUser(fallbackUser);
+      setProfile(null);
+      setIsAdmin(false);
+      setIsPrimaryAdmin(false);
+      setPermissions([]);
+      setMustChangePassword(fallbackUser?.user_metadata?.must_change_password === true);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -72,7 +90,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      if (nextSession?.user && AUTH_EVENTS_THAT_REFRESH_ACTIVITY.has(event)) {
+        markSessionActivity();
+      }
       if (active) void syncSession(nextSession);
     });
 
@@ -138,7 +159,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const now = Date.now();
       if (now - lastWrite < 60_000) return;
       lastWrite = now;
-      localStorage.setItem(SESSION_ACTIVITY_KEY, String(now));
+      markSessionActivity();
     };
     const checkExpiry = () => {
       const lastActivity = Number(localStorage.getItem(SESSION_ACTIVITY_KEY) ?? Date.now());
@@ -156,6 +177,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     const { error } = await signInWithPassword(email, password);
+    if (!error) markSessionActivity();
     return { error: error?.message ?? null };
   };
 
