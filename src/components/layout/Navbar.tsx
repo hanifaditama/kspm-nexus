@@ -24,7 +24,7 @@ const Navbar = () => {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { user, profile, canManageContent, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const { isOpen: isRecruitmentOpen } = useRecruitmentStatus();
   const firstName = (profile?.display_name ?? user?.email ?? "Member").split(/\s+/)[0];
 
@@ -113,14 +113,12 @@ const Navbar = () => {
                     File Manager
                   </Link>
                 </DropdownMenuItem>
-                {canManageContent && (
-                  <DropdownMenuItem asChild>
-                    <Link to="/admin" className="flex items-center gap-2 rounded-xl">
-                      <Settings className="h-4 w-4" />
-                      Content Panel
-                    </Link>
-                  </DropdownMenuItem>
-                )}
+                <DropdownMenuItem asChild>
+                  <Link to="/admin" className="flex items-center gap-2 rounded-xl">
+                    <Settings className="h-4 w-4" />
+                    Content Panel
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="rounded-xl text-destructive focus:text-destructive">
                   <LogOut className="mr-2 h-4 w-4" />
@@ -202,16 +200,14 @@ const Navbar = () => {
                   <FolderOpen className="h-4 w-4" />
                   File Manager
                 </Link>
-                {canManageContent && (
-                  <Link
-                    to="/admin"
-                    onClick={() => setOpen(false)}
-                    className="flex items-center gap-2 rounded-md bg-primary/10 px-3 py-2 text-sm font-medium text-primary"
-                  >
-                    <Settings className="h-4 w-4" />
-                    Content Panel
-                  </Link>
-                )}
+                <Link
+                  to="/admin"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-2 rounded-md bg-primary/10 px-3 py-2 text-sm font-medium text-primary"
+                >
+                  <Settings className="h-4 w-4" />
+                  Content Panel
+                </Link>
                 <button
                   onClick={() => {
                     setOpen(false);

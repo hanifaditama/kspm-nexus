@@ -13,28 +13,27 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
-import type { ContentPermission } from "@/lib/contentAccess";
 import WorkspaceTopbarTools from "@/components/dashboard/WorkspaceTopbarTools";
 import WorkspaceThemeSwitch from "@/components/dashboard/WorkspaceThemeSwitch";
 
 const navItems = [
   { to: "/admin", label: "Overview", icon: LayoutDashboard, end: true },
-  { to: "/admin/articles", label: "Articles", icon: FileText, permission: "articles" as ContentPermission },
-  { to: "/admin/events", label: "Events", icon: Calendar, permission: "events" as ContentPermission },
-  { to: "/admin/team", label: "Team", icon: Users, permission: "team" as ContentPermission },
-  { to: "/admin/programs", label: "Programs", icon: BookOpen, permission: "programs" as ContentPermission },
-  { to: "/admin/recruitment", label: "Recruitment", icon: UserPlus, permission: "recruitment" as ContentPermission },
-  { to: "/member/calendar", label: "Calendar", icon: CalendarDays, permission: "calendar" as ContentPermission },
+  { to: "/admin/articles", label: "Articles", icon: FileText },
+  { to: "/admin/events", label: "Events", icon: Calendar },
+  { to: "/admin/team", label: "Team", icon: Users },
+  { to: "/admin/programs", label: "Programs", icon: BookOpen },
+  { to: "/admin/recruitment", label: "Recruitment", icon: UserPlus },
+  { to: "/member/calendar", label: "Calendar", icon: CalendarDays },
   { to: "/member/work-requests", label: "Requests", icon: ClipboardList },
-  { to: "/admin/access", label: "Access", icon: ShieldCheck, primaryAdminOnly: true },
+  { to: "/admin/access", label: "Access", icon: ShieldCheck, adminOnly: true },
 ];
 
 const AdminLayout = () => {
   const { pathname } = useLocation();
-  const { isPrimaryAdmin, hasPermission } = useAuth();
+  const { isAdmin } = useAuth();
   const visibleItems = navItems.filter((item) => {
-    if (item.primaryAdminOnly) return isPrimaryAdmin;
-    return !item.permission || hasPermission(item.permission);
+    if (item.adminOnly) return isAdmin;
+    return true;
   });
 
   return (

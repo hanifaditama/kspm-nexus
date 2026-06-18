@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import useAccessDeniedToast from "@/hooks/useAccessDeniedToast";
 
 type Division = "BPH" | "CMP" | "EVENT" | "RESEARCH";
 type ScreeningStatus = "SCREENING BY INVESTMENT CLUB" | "MINOR REVISION" | "APPROVED BY INVESTMENT CLUB";
@@ -85,6 +86,7 @@ const formatDate = (value: string | null) => {
 const ScreeningDashboard = () => {
   const { user, isPrimaryAdmin } = useAuth();
   const { toast } = useToast();
+  const denyAccess = useAccessDeniedToast();
   const [division, setDivision] = useState<Division>("CMP");
   const [items, setItems] = useState<ScreeningItem[]>([]);
   const [evaluators, setEvaluators] = useState<Evaluator[]>([]);
@@ -194,6 +196,7 @@ const ScreeningDashboard = () => {
   }), [divisionItems]);
 
   const updateStatus = async (item: ScreeningItem, status: ScreeningStatus) => {
+    if (!manageAccess[item.division]) return denyAccess("You don't have access to update screening status.");
     setSavingKey(`status:${item.id}`);
     const { error } = await supabase.from("screening_items").update({ status }).eq("id", item.id);
     setSavingKey("");
@@ -205,6 +208,7 @@ const ScreeningDashboard = () => {
   };
 
   const toggleCheck = async (item: ScreeningItem, evaluator: Evaluator, checked: boolean) => {
+    if (evaluator.user_id !== user?.id) return denyAccess("You don't have access to update this checklist column.");
     const key = `${item.id}:${evaluator.id}`;
     setSavingKey(key);
     const { error } = await supabase.from("screening_checks").upsert({
@@ -261,12 +265,14 @@ const ScreeningDashboard = () => {
   };
 
   const openCreate = () => {
+    if (!canCreateCurrent) return denyAccess("You don't have access to add screening items for this division.");
     setEditingItem(null);
     setForm(blankForm);
     setDialogOpen(true);
   };
 
   const openEdit = (item: ScreeningItem) => {
+    if (!manageAccess[item.division]) return denyAccess("You don't have access to edit this screening item.");
     setEditingItem(item);
     setForm({
       material: item.material,
@@ -289,6 +295,9 @@ const ScreeningDashboard = () => {
   };
 
   const saveItem = async () => {
+    if (editingItem ? !manageAccess[editingItem.division] : !canCreateCurrent) {
+      return denyAccess("You don't have access to save this screening item.");
+    }
     if (!form.material.trim() || !user) return;
     setSavingKey("item");
     const payload = {
@@ -317,6 +326,7 @@ const ScreeningDashboard = () => {
 
   const addNote = async () => {
     if (!editingItem || !user || !noteMessage.trim()) return;
+    if (!manageAccess[editingItem.division]) return denyAccess("You don't have access to add notes for this screening item.");
     setSavingKey("note");
     const { data, error } = await supabase
       .from("screening_notes")
@@ -365,6 +375,7 @@ const ScreeningDashboard = () => {
   };
 
   const deleteItem = async (item: ScreeningItem) => {
+    if (!manageAccess[item.division]) return denyAccess("You don't have access to delete this screening item.");
     if (!confirm(`Delete "${item.material}"?`)) return;
     const { error } = await supabase.from("screening_items").delete().eq("id", item.id);
     if (error) {
@@ -383,7 +394,7 @@ const ScreeningDashboard = () => {
       actions={
         <>
           {isPrimaryAdmin && <Button variant="outline" className="rounded-full border-black/10 bg-white dark:border-white/10 dark:bg-[#1c1b18]" onClick={() => setAssignmentOpen(true)}><Settings2 className="h-4 w-4" /> Manage Evaluators</Button>}
-          {canCreateCurrent && <Button className="rounded-full bg-[#1d1c18] text-white hover:bg-[#34322d]" onClick={openCreate}><Plus className="h-4 w-4" /> Add Screening</Button>}
+          <Button className="rounded-full bg-[#1d1c18] text-white hover:bg-[#34322d]" onClick={openCreate}><Plus className="h-4 w-4" /> Add Screening</Button>
         </>
       }
     >
@@ -447,7 +458,7 @@ const ScreeningDashboard = () => {
                     </th>
                   ))}
                   <th className="min-w-72 px-4 py-3 font-medium text-muted-foreground">Notes</th>
-                  {canManageCurrent && <th className="w-24 px-3 py-3 text-right font-medium text-muted-foreground">Actions</th>}
+                  <th className="w-24 px-3 py-3 text-right font-medium text-muted-foreground">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -491,14 +502,12 @@ const ScreeningDashboard = () => {
                         ? <><span className="font-semibold text-foreground">{latestNoteByItem.get(item.id)?.author_name}:</span> {latestNoteByItem.get(item.id)?.message}</>
                         : item.notes || "-"}
                     </td>
-                    {canManageCurrent && (
-                      <td className="px-3 py-4">
-                        <div className="flex justify-end gap-1">
-                          <Button variant="ghost" size="icon" title="Edit item" onClick={() => openEdit(item)}><Pencil className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="icon" title="Delete item" onClick={() => void deleteItem(item)}><Trash2 className="h-4 w-4" /></Button>
-                        </div>
-                      </td>
-                    )}
+                    <td className="px-3 py-4">
+                      <div className="flex justify-end gap-1">
+                        <Button variant="ghost" size="icon" title="Edit item" onClick={() => openEdit(item)}><Pencil className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" title="Delete item" onClick={() => void deleteItem(item)}><Trash2 className="h-4 w-4" /></Button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>

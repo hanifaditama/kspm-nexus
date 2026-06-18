@@ -9,8 +9,14 @@ import { KeyRound } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 
-const ChangePasswordDialog = ({ trigger }: { trigger?: ReactNode }) => {
-  const [open, setOpen] = useState(false);
+interface ChangePasswordDialogProps {
+  trigger?: ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+const ChangePasswordDialog = ({ trigger, open: controlledOpen, onOpenChange }: ChangePasswordDialogProps) => {
+  const [internalOpen, setInternalOpen] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -18,6 +24,8 @@ const ChangePasswordDialog = ({ trigger }: { trigger?: ReactNode }) => {
   const [error, setError] = useState("");
   const { toast } = useToast();
   const { user } = useAuth();
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,14 +71,16 @@ const ChangePasswordDialog = ({ trigger }: { trigger?: ReactNode }) => {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger ?? (
-          <Button variant="outline" size="sm">
-            <KeyRound className="mr-2 h-4 w-4" />
-            Change Password
-          </Button>
-        )}
-      </DialogTrigger>
+      {trigger !== null && (
+        <DialogTrigger asChild>
+          {trigger ?? (
+            <Button variant="outline" size="sm">
+              <KeyRound className="mr-2 h-4 w-4" />
+              Change Password
+            </Button>
+          )}
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle>Change Password</DialogTitle>

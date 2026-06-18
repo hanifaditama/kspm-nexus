@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import type { ContentPermission } from "@/lib/contentAccess";
+import useAccessDeniedToast from "@/hooks/useAccessDeniedToast";
 
 const cards = [
   { to: "/admin/articles", label: "Articles", description: "Publish and edit articles", icon: FileText, permission: "articles" as ContentPermission },
@@ -22,11 +23,12 @@ const AdminHome = () => {
   const { isOpen, loading, refresh } = useRecruitmentStatus();
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
-  const { isPrimaryAdmin, hasPermission } = useAuth();
+  const { isAdmin, hasPermission } = useAuth();
+  const denyAccess = useAccessDeniedToast();
   const canEditRecruitment = hasPermission("recruitment");
-  const visibleCards = cards.filter((card) => hasPermission(card.permission));
 
   const toggleRecruitment = async (next: boolean) => {
+    if (!canEditRecruitment) return denyAccess("You don't have access to update recruitment status.");
     setSaving(true);
     const { error } = await supabase
       .from("site_settings")
@@ -46,7 +48,7 @@ const AdminHome = () => {
       <h1 className="text-3xl font-semibold tracking-normal text-[#191916] dark:text-white">Content Management</h1>
       <p className="mt-1 text-sm text-[#686760] dark:text-[#b6b3aa]">Create, edit, and delete content displayed on the public site.</p>
 
-      {canEditRecruitment && <div className="mt-8 rounded-xl border border-black/5 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-[#1c1b18]">
+      <div className="mt-8 rounded-xl border border-black/5 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-[#1c1b18]">
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2 className="text-base font-semibold text-[#191916] dark:text-white">Recruitment Status</h2>
@@ -67,10 +69,10 @@ const AdminHome = () => {
             />
           </div>
         </div>
-      </div>}
+      </div>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
-        {visibleCards.map((c) => {
+        {cards.map((c) => {
           const Icon = c.icon;
           return (
             <Link
@@ -87,7 +89,7 @@ const AdminHome = () => {
           );
         })}
       </div>
-      {isPrimaryAdmin && (
+      {isAdmin && (
         <Link
           to="/admin/access"
           className="mt-4 flex items-center gap-4 rounded-xl border border-black/5 bg-white p-5 shadow-sm transition-colors hover:border-black/15 dark:border-white/10 dark:bg-[#1c1b18] dark:hover:border-white/20"
@@ -100,11 +102,6 @@ const AdminHome = () => {
             <p className="mt-1 text-sm text-[#686760] dark:text-[#b6b3aa]">Choose which members can manage each content area.</p>
           </div>
         </Link>
-      )}
-      {!canEditRecruitment && visibleCards.length === 0 && (
-        <p className="mt-8 rounded-md border border-dashed border-border py-10 text-center text-sm text-muted-foreground">
-          No content access has been assigned to this account.
-        </p>
       )}
     </div>
   );

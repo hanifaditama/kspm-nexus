@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import useAccessDeniedToast from "@/hooks/useAccessDeniedToast";
 
 interface RecruitmentForm {
   recruitment_eyebrow: string;
@@ -31,6 +33,9 @@ const AdminRecruitment = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
+  const { hasPermission } = useAuth();
+  const denyAccess = useAccessDeniedToast();
+  const canEdit = hasPermission("recruitment");
 
   useEffect(() => {
     void supabase
@@ -58,6 +63,7 @@ const AdminRecruitment = () => {
   }, [toast]);
 
   const save = async () => {
+    if (!canEdit) return denyAccess("You don't have access to edit the recruitment page.");
     const requirements = requirementsText.split("\n").map((item) => item.trim()).filter(Boolean);
     setSaving(true);
     const { error } = await supabase

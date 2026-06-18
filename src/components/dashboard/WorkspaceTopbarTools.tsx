@@ -2,14 +2,19 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   Bell,
+  BookOpen,
   CalendarDays,
   CheckCircle2,
   Clock3,
   FileCheck2,
   FileText,
+  FolderOpen,
   KeyRound,
+  LayoutDashboard,
   LogOut,
   Search,
+  ShieldCheck,
+  UserPlus,
   Users,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -45,8 +50,10 @@ interface SearchItem {
   id: string;
   title: string;
   subtitle: string;
-  to: string;
+  to?: string;
+  action?: "change-password";
   icon: LucideIcon;
+  keywords?: string;
 }
 
 interface DeadlineNotification {
@@ -87,11 +94,27 @@ const themeClasses = {
     "h-9 w-9 rounded-full text-[#5e5d57] hover:bg-[#f1f1ef] hover:text-[#191916] dark:text-[#c9c7bd] dark:hover:bg-white/10 dark:hover:text-white",
 };
 
+const workspaceSearchItems: SearchItem[] = [
+  { id: "section:member-overview", title: "File Manager", subtitle: "Member overview, files, folders, upload, preview", to: "/member", icon: FolderOpen, keywords: "dashboard overview file manager upload document preview" },
+  { id: "section:screening", title: "Screening Dashboard", subtitle: "Screening checklist, evaluator, notes, status", to: "/member/screening", icon: FileCheck2, keywords: "screening evaluator checklist review approval revision notes" },
+  { id: "section:calendar", title: "Member Calendar", subtitle: "Internal calendar and member schedule", to: "/member/calendar", icon: CalendarDays, keywords: "calendar schedule event date deadline" },
+  { id: "section:requests", title: "Work Requests", subtitle: "Request form, PIC, comments, status", to: "/member/work-requests", icon: Clock3, keywords: "work request requests form pic person in charge comment" },
+  { id: "section:change-password", title: "Change Password", subtitle: "Update your account password", action: "change-password", icon: KeyRound, keywords: "account security password change reset" },
+  { id: "section:admin", title: "Content Management", subtitle: "Admin overview and public content management", to: "/admin", icon: LayoutDashboard, keywords: "admin manage content panel overview dashboard" },
+  { id: "section:articles", title: "Articles", subtitle: "View article management", to: "/admin/articles", icon: FileText, keywords: "article articles research insight post blog" },
+  { id: "section:events", title: "Events", subtitle: "View event management", to: "/admin/events", icon: CalendarDays, keywords: "event events seminar workshop registration" },
+  { id: "section:team", title: "Team", subtitle: "View team member management", to: "/admin/team", icon: Users, keywords: "team member profile division" },
+  { id: "section:programs", title: "Programs", subtitle: "View program management", to: "/admin/programs", icon: BookOpen, keywords: "program programs learning class" },
+  { id: "section:recruitment", title: "Recruitment Page", subtitle: "View recruitment content and application link", to: "/admin/recruitment", icon: UserPlus, keywords: "recruitment join us application open recruitment" },
+  { id: "section:access", title: "Access Control", subtitle: "Administrator-only member access settings", to: "/admin/access", icon: ShieldCheck, keywords: "access control administrator permission role member" },
+];
+
 const WorkspaceTopbarTools = ({ navItems }: { navItems: WorkspaceNavItem[] }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { profile, user, signOut } = useAuth();
   const [searchOpen, setSearchOpen] = useState(false);
+  const [passwordOpen, setPasswordOpen] = useState(false);
   const [searchItems, setSearchItems] = useState<SearchItem[]>([]);
   const [notifications, setNotifications] = useState<DeadlineNotification[]>([]);
   const firstName = (profile?.display_name ?? user?.email ?? "Member").split(/\s+/)[0];
@@ -106,13 +129,17 @@ const WorkspaceTopbarTools = ({ navItems }: { navItems: WorkspaceNavItem[] }) =>
   };
 
   const loadSearchItems = useCallback(async () => {
-    const baseItems: SearchItem[] = navItems.map((item) => ({
+    const navBaseItems: SearchItem[] = navItems.map((item) => ({
       id: `nav:${item.to}`,
       title: item.label,
       subtitle: "Workspace section",
       to: item.to,
       icon: item.icon,
     }));
+    const baseItems = [
+      ...workspaceSearchItems,
+      ...navBaseItems.filter((navItem) => !workspaceSearchItems.some((item) => item.to === navItem.to)),
+    ];
     setSearchItems(baseItems);
 
     const [articles, team, events, calendar, screening, workRequests] = await Promise.all([
@@ -257,9 +284,13 @@ const WorkspaceTopbarTools = ({ navItems }: { navItems: WorkspaceNavItem[] }) =>
     void loadSearchItems();
   };
 
-  const goTo = (to: string) => {
+  const selectSearchItem = (item: SearchItem) => {
     setSearchOpen(false);
-    navigate(to);
+    if (item.action === "change-password") {
+      setPasswordOpen(true);
+      return;
+    }
+    if (item.to) navigate(item.to);
   };
 
   return (
@@ -338,12 +369,12 @@ const WorkspaceTopbarTools = ({ navItems }: { navItems: WorkspaceNavItem[] }) =>
       </DropdownMenu>
 
       <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
-        <CommandInput placeholder="Search articles, team, calendar, screening, requests..." />
+        <CommandInput placeholder="Search dashboard, screening, requests, articles, change password..." />
         <CommandList>
           <CommandEmpty>No results found.</CommandEmpty>
           <CommandGroup heading="Navigation">
             {groupedItems.navigation.map((item) => (
-              <CommandItem key={item.id} value={`${item.title} ${item.subtitle}`} onSelect={() => goTo(item.to)}>
+              <CommandItem key={item.id} value={`${item.title} ${item.subtitle} ${item.keywords ?? ""}`} onSelect={() => selectSearchItem(item)}>
                 <item.icon className="mr-2 h-4 w-4" />
                 <span>{item.title}</span>
               </CommandItem>
@@ -351,7 +382,7 @@ const WorkspaceTopbarTools = ({ navItems }: { navItems: WorkspaceNavItem[] }) =>
           </CommandGroup>
           <CommandGroup heading="Content">
             {groupedItems.content.map((item) => (
-              <CommandItem key={item.id} value={`${item.title} ${item.subtitle}`} onSelect={() => goTo(item.to)}>
+              <CommandItem key={item.id} value={`${item.title} ${item.subtitle} ${item.keywords ?? ""}`} onSelect={() => selectSearchItem(item)}>
                 <item.icon className="mr-2 h-4 w-4" />
                 <span className="min-w-0">
                   <span className="block truncate">{item.title}</span>
@@ -362,6 +393,7 @@ const WorkspaceTopbarTools = ({ navItems }: { navItems: WorkspaceNavItem[] }) =>
           </CommandGroup>
         </CommandList>
       </CommandDialog>
+      <ChangePasswordDialog trigger={null} open={passwordOpen} onOpenChange={setPasswordOpen} />
     </>
   );
 };

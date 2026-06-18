@@ -74,14 +74,14 @@ const App = () => (
                   <Route path="/member/calendar" element={<ProtectedRoute><MemberCalendar /></ProtectedRoute>} />
                   <Route path="/member/work-requests" element={<ProtectedRoute><WorkRequests /></ProtectedRoute>} />
                   <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/admin" element={<ProtectedRoute requireContentManager><AdminLayout /></ProtectedRoute>}>
+                  <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
                     <Route index element={<AdminHome />} />
-                    <Route path="articles" element={<ProtectedRoute requirePermission="articles"><AdminArticles /></ProtectedRoute>} />
-                    <Route path="events" element={<ProtectedRoute requirePermission="events"><AdminEvents /></ProtectedRoute>} />
-                    <Route path="team" element={<ProtectedRoute requirePermission="team"><AdminTeam /></ProtectedRoute>} />
-                    <Route path="programs" element={<ProtectedRoute requirePermission="programs"><AdminPrograms /></ProtectedRoute>} />
-                    <Route path="recruitment" element={<ProtectedRoute requirePermission="recruitment"><AdminRecruitment /></ProtectedRoute>} />
-                    <Route path="access" element={<ProtectedRoute requirePrimaryAdmin><AdminAccess /></ProtectedRoute>} />
+                    <Route path="articles" element={<AdminArticles />} />
+                    <Route path="events" element={<AdminEvents />} />
+                    <Route path="team" element={<AdminTeam />} />
+                    <Route path="programs" element={<AdminPrograms />} />
+                    <Route path="recruitment" element={<AdminRecruitment />} />
+                    <Route path="access" element={<ProtectedRoute requireAdmin><AdminAccess /></ProtectedRoute>} />
                   </Route>
                   <Route path="*" element={<NotFound />} />
                 </Routes>

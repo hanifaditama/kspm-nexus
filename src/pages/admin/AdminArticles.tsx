@@ -10,6 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Pencil, Trash2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import useAccessDeniedToast from "@/hooks/useAccessDeniedToast";
 
 interface Article {
   id: string;
@@ -43,6 +45,9 @@ const AdminArticles = () => {
   const [form, setForm] = useState<Partial<Article>>(empty);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
+  const { hasPermission } = useAuth();
+  const denyAccess = useAccessDeniedToast();
+  const canEdit = hasPermission("articles");
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
@@ -54,10 +59,19 @@ const AdminArticles = () => {
 
   useEffect(() => { void fetchItems(); }, [fetchItems]);
 
-  const openNew = () => { setForm(empty); setOpen(true); };
-  const openEdit = (item: Article) => { setForm(item); setOpen(true); };
+  const openNew = () => {
+    if (!canEdit) return denyAccess("You don't have access to create articles.");
+    setForm(empty);
+    setOpen(true);
+  };
+  const openEdit = (item: Article) => {
+    if (!canEdit) return denyAccess("You don't have access to edit articles.");
+    setForm(item);
+    setOpen(true);
+  };
 
   const save = async () => {
+    if (!canEdit) return denyAccess("You don't have access to save articles.");
     if (!form.title) return;
     setSaving(true);
     const slug = form.slug || slugify(form.title);
@@ -86,6 +100,7 @@ const AdminArticles = () => {
   };
 
   const remove = async (id: string) => {
+    if (!canEdit) return denyAccess("You don't have access to delete articles.");
     if (!confirm("Delete this article?")) return;
     const { error } = await supabase.from("articles").delete().eq("id", id);
     if (error) return toast({ title: "Delete failed", description: error.message, variant: "destructive" });

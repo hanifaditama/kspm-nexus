@@ -9,6 +9,7 @@ import MemberShell from "@/components/dashboard/MemberShell";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import useAccessDeniedToast from "@/hooks/useAccessDeniedToast";
 
 interface CalendarEvent {
   id: string;
@@ -24,6 +25,7 @@ const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MemberCalendar = () => {
   const { user, hasPermission } = useAuth();
   const { toast } = useToast();
+  const denyAccess = useAccessDeniedToast();
   const [month, setMonth] = useState(new Date());
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,7 +67,7 @@ const MemberCalendar = () => {
   };
 
   const openCreate = (date = new Date()) => {
-    if (!canEdit) return;
+    if (!canEdit) return denyAccess("You don't have access to add calendar events.");
     const value = format(date, "yyyy-MM-dd");
     setEditingEvent(null);
     setForm({ ...emptyForm, event_date: value });
@@ -73,13 +75,14 @@ const MemberCalendar = () => {
   };
 
   const openEdit = (event: CalendarEvent) => {
-    if (!canEdit) return;
+    if (!canEdit) return denyAccess("You don't have access to edit calendar events.");
     setEditingEvent(event);
     setForm({ title: event.title, event_date: event.event_date, end_date: event.end_date ?? "", color: event.color });
     setDialogOpen(true);
   };
 
   const saveEvent = async () => {
+    if (!canEdit) return denyAccess("You don't have access to save calendar events.");
     if (!user || !form.title.trim() || !form.event_date) return;
     setSaving(true);
     const payload = {
@@ -102,6 +105,7 @@ const MemberCalendar = () => {
   };
 
   const deleteEvent = async () => {
+    if (!canEdit) return denyAccess("You don't have access to delete calendar events.");
     if (!editingEvent || !confirm(`Delete "${editingEvent.title}"?`)) return;
     setSaving(true);
     const { error } = await supabase.from("calendar_events").delete().eq("id", editingEvent.id);
@@ -120,7 +124,7 @@ const MemberCalendar = () => {
       eyebrow="Schedule"
       icon={CalendarDays}
       description="Internal schedule for UPH Investment Club members."
-      actions={canEdit && <Button onClick={() => openCreate()} className="rounded-full bg-[#1d1c18] text-white hover:bg-[#34322d]"><Plus className="h-4 w-4" /> Add Event</Button>}
+      actions={<Button onClick={() => openCreate()} className="rounded-full bg-[#1d1c18] text-white hover:bg-[#34322d]"><Plus className="h-4 w-4" /> Add Event</Button>}
     >
       <div className="overflow-hidden rounded-lg border border-black/5 bg-white shadow-sm dark:border-white/10 dark:bg-[#1c1b18]">
         <div className="flex items-center justify-between border-b border-black/5 bg-white px-3 py-3 dark:border-white/10 dark:bg-[#1c1b18]">
@@ -145,8 +149,8 @@ const MemberCalendar = () => {
                 return (
                   <div
                     key={date.toISOString()}
-                    role={canEdit ? "button" : undefined}
-                    tabIndex={canEdit ? 0 : undefined}
+                    role="button"
+                    tabIndex={0}
                     className={`min-h-32 border-b border-r border-black/5 p-2 text-left align-top transition-colors hover:bg-[#f1f1ef] dark:border-white/10 dark:hover:bg-white/10 ${!isSameMonth(date, month) ? "bg-[#f6f7f5] text-muted-foreground/50 dark:bg-white/5 dark:text-white/35" : "bg-white dark:bg-[#1c1b18] dark:text-white"}`}
                     onClick={() => openCreate(date)}
                   >
@@ -155,8 +159,8 @@ const MemberCalendar = () => {
                       {dateEvents.map((event) => (
                         <span
                           key={event.id}
-                          role={canEdit ? "button" : undefined}
-                          tabIndex={canEdit ? 0 : undefined}
+                          role="button"
+                          tabIndex={0}
                           className="block truncate rounded px-1.5 py-1 text-[11px] font-medium text-white shadow-sm"
                           style={{ backgroundColor: event.color }}
                           title={event.title}

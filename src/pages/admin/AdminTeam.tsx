@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Pencil, Trash2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
+import useAccessDeniedToast from "@/hooks/useAccessDeniedToast";
 
 interface TeamRow {
   id: string;
@@ -40,7 +41,9 @@ const AdminTeam = () => {
   const [saving, setSaving] = useState(false);
   const [members, setMembers] = useState<MemberProfile[]>([]);
   const { toast } = useToast();
-  const { isPrimaryAdmin } = useAuth();
+  const { isPrimaryAdmin, hasPermission } = useAuth();
+  const denyAccess = useAccessDeniedToast();
+  const canEdit = hasPermission("team");
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
@@ -59,10 +62,19 @@ const AdminTeam = () => {
       .then(({ data }) => setMembers(data ?? []));
   }, [isPrimaryAdmin]);
 
-  const openNew = () => { setForm(empty); setOpen(true); };
-  const openEdit = (item: TeamRow) => { setForm(item); setOpen(true); };
+  const openNew = () => {
+    if (!canEdit) return denyAccess("You don't have access to create team members.");
+    setForm(empty);
+    setOpen(true);
+  };
+  const openEdit = (item: TeamRow) => {
+    if (!canEdit) return denyAccess("You don't have access to edit team members.");
+    setForm(item);
+    setOpen(true);
+  };
 
   const save = async () => {
+    if (!canEdit) return denyAccess("You don't have access to save team members.");
     if (!form.name || !form.role) return;
     setSaving(true);
     const payload = {
@@ -91,6 +103,7 @@ const AdminTeam = () => {
   };
 
   const remove = async (id: string) => {
+    if (!canEdit) return denyAccess("You don't have access to delete team members.");
     if (!confirm("Delete this team member?")) return;
     const { error } = await supabase.from("team_members").delete().eq("id", id);
     if (error) return toast({ title: "Delete failed", description: error.message, variant: "destructive" });

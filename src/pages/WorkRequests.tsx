@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import useAccessDeniedToast from "@/hooks/useAccessDeniedToast";
 
 type Division = "BPH" | "CMP" | "EVENT" | "RESEARCH";
 type WorkStatus = "Submitted" | "On Progress" | "Upscreening" | "Needs Revision" | "Completed" | "Cancelled";
@@ -104,6 +105,7 @@ const isOverdue = (request: WorkRequest) =>
 const WorkRequests = () => {
   const { user, isAdmin, isPrimaryAdmin } = useAuth();
   const { toast } = useToast();
+  const denyAccess = useAccessDeniedToast();
   const [requests, setRequests] = useState<WorkRequest[]>([]);
   const [assignees, setAssignees] = useState<WorkAssignee[]>([]);
   const [comments, setComments] = useState<WorkComment[]>([]);
@@ -263,6 +265,9 @@ const WorkRequests = () => {
   };
 
   const openEdit = (request: WorkRequest) => {
+    const canManage = manageAccess[request.target_division] || isAdmin;
+    const isOwner = request.requested_by === user?.id;
+    if (!canManage && !isOwner) return denyAccess("You don't have access to edit this work request.");
     setEditing(request);
     setEditForm({
       requesting_division: request.requesting_division,
@@ -283,7 +288,7 @@ const WorkRequests = () => {
     if (!editing || !user) return;
     const canManage = manageAccess[editing.target_division] || isAdmin;
     const isOwner = editing.requested_by === user.id;
-    if (!canManage && !isOwner) return;
+    if (!canManage && !isOwner) return denyAccess("You don't have access to save this work request.");
     const selectedAssignee = assignees.find((assignee) => assignee.user_id === editForm.responsible_user_id && assignee.division === editing.target_division);
 
     const payload = canManage
@@ -322,6 +327,7 @@ const WorkRequests = () => {
   };
 
   const updateStatus = async (request: WorkRequest, status: WorkStatus) => {
+    if (!(manageAccess[request.target_division] || isAdmin)) return denyAccess("You don't have access to update this work request status.");
     const { data, error } = await supabase
       .from("work_requests")
       .update({ status })
@@ -336,6 +342,9 @@ const WorkRequests = () => {
   };
 
   const deleteRequest = async (request: WorkRequest) => {
+    const canManage = manageAccess[request.target_division] || isAdmin;
+    const isOwner = request.requested_by === user?.id;
+    if (!canManage && !isOwner) return denyAccess("You don't have access to delete this work request.");
     if (!confirm(`Delete "${request.task}"?`)) return;
     const { error } = await supabase.from("work_requests").delete().eq("id", request.id);
     if (error) {
@@ -523,7 +532,6 @@ const WorkRequests = () => {
               <div className="grid gap-3">
                 {divisionRequests.map((request) => {
                   const canManage = manageAccess[request.target_division] || isAdmin;
-                  const canEdit = canManage || request.requested_by === user?.id;
                   const overdue = isOverdue(request);
                   const latestComment = latestCommentByRequest.get(request.id);
                   const commentCount = commentsByRequest.get(request.id)?.length ?? 0;
@@ -564,16 +572,12 @@ const WorkRequests = () => {
                               <SelectContent>{statuses.map((status) => <SelectItem key={status} value={status}>{status}</SelectItem>)}</SelectContent>
                             </Select>
                           )}
-                          {canEdit && (
-                            <Button variant="outline" size="sm" onClick={() => openEdit(request)}>
-                              <FilePenLine className="h-3.5 w-3.5" /> Edit
-                            </Button>
-                          )}
-                          {canEdit && (
-                            <Button variant="outline" size="icon" onClick={() => void deleteRequest(request)} aria-label={`Delete ${request.task}`}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
+                          <Button variant="outline" size="sm" onClick={() => openEdit(request)}>
+                            <FilePenLine className="h-3.5 w-3.5" /> Edit
+                          </Button>
+                          <Button variant="outline" size="icon" onClick={() => void deleteRequest(request)} aria-label={`Delete ${request.task}`}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
                     </article>

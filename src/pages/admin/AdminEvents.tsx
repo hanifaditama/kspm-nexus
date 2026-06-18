@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Pencil, Trash2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import useAccessDeniedToast from "@/hooks/useAccessDeniedToast";
 
 interface EventRow {
   id: string;
@@ -39,6 +41,9 @@ const AdminEvents = () => {
   const [form, setForm] = useState<Partial<EventRow>>(empty);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
+  const { hasPermission } = useAuth();
+  const denyAccess = useAccessDeniedToast();
+  const canEdit = hasPermission("events");
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
@@ -49,13 +54,19 @@ const AdminEvents = () => {
   }, [toast]);
   useEffect(() => { void fetchItems(); }, [fetchItems]);
 
-  const openNew = () => { setForm(empty); setOpen(true); };
+  const openNew = () => {
+    if (!canEdit) return denyAccess("You don't have access to create events.");
+    setForm(empty);
+    setOpen(true);
+  };
   const openEdit = (item: EventRow) => {
+    if (!canEdit) return denyAccess("You don't have access to edit events.");
     setForm({ ...item, event_date: new Date(item.event_date).toISOString().slice(0, 16) });
     setOpen(true);
   };
 
   const save = async () => {
+    if (!canEdit) return denyAccess("You don't have access to save events.");
     if (!form.title || !form.event_date) return;
     setSaving(true);
     const payload = {
@@ -85,6 +96,7 @@ const AdminEvents = () => {
   };
 
   const remove = async (id: string) => {
+    if (!canEdit) return denyAccess("You don't have access to delete events.");
     if (!confirm("Delete this event?")) return;
     const { error } = await supabase.from("events").delete().eq("id", id);
     if (error) return toast({ title: "Delete failed", description: error.message, variant: "destructive" });

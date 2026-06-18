@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import WorkspaceTopbarTools from "./WorkspaceTopbarTools";
 import WorkspaceThemeSwitch from "./WorkspaceThemeSwitch";
@@ -35,11 +34,8 @@ const navItems = [
 
 const MemberShell = ({ title, description, eyebrow, icon: Icon = FolderOpen, actions, children, backToDashboard = true }: MemberShellProps) => {
   const { pathname } = useLocation();
-  const { canManageContent } = useAuth();
   const showBack = backToDashboard && pathname !== "/member";
-  const topbarItems = canManageContent
-    ? [...navItems, { to: "/admin", label: "Manage", railLabel: "Admin Panel", icon: Settings }]
-    : navItems;
+  const topbarItems = [...navItems, { to: "/admin", label: "Manage", railLabel: "Admin Panel", icon: Settings }];
 
   return (
     <section className="min-h-screen bg-[#f1f1ef] text-[#191916] dark:bg-[#11100e] dark:text-white">
