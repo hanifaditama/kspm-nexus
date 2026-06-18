@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { addDays, addMonths, endOfMonth, endOfWeek, format, isSameMonth, startOfMonth, startOfWeek, subMonths } from "date-fns";
 import { CalendarDays, ChevronLeft, ChevronRight, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import MemberShell from "@/components/dashboard/MemberShell";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -115,25 +115,15 @@ const MemberCalendar = () => {
   };
 
   return (
-    <section className="min-h-[calc(100vh-4rem)] bg-background">
-      <div className="border-b border-primary/15 bg-primary/[0.035]">
-        <div className="container flex flex-col justify-between gap-4 py-6 sm:flex-row sm:items-center">
-          <div>
-            <div className="flex items-center gap-2">
-              <CalendarDays className="h-5 w-5 text-accent" />
-              <h1 className="text-xl font-semibold text-foreground">Member Calendar</h1>
-            </div>
-            <p className="mt-1 text-sm text-muted-foreground">Internal schedule for UPH Investment Club members.</p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" asChild><Link to="/member">File Manager</Link></Button>
-            {canEdit && <Button onClick={() => openCreate()}><Plus className="h-4 w-4" /> Add Event</Button>}
-          </div>
-        </div>
-      </div>
-
-      <div className="container py-8">
-        <div className="flex items-center justify-between rounded-t-md border border-border bg-card px-3 py-3">
+    <MemberShell
+      title="Member Calendar"
+      eyebrow="Schedule"
+      icon={CalendarDays}
+      description="Internal schedule for UPH Investment Club members."
+      actions={canEdit && <Button onClick={() => openCreate()} className="rounded-full bg-[#1d1c18] text-white hover:bg-[#34322d]"><Plus className="h-4 w-4" /> Add Event</Button>}
+    >
+      <div className="overflow-hidden rounded-lg border border-black/5 bg-white shadow-sm">
+        <div className="flex items-center justify-between border-b border-black/5 bg-white px-3 py-3">
           <Button variant="ghost" size="icon" title="Previous month" onClick={() => setMonth((current) => subMonths(current, 1))}><ChevronLeft className="h-5 w-5" /></Button>
           <div className="text-center">
             <h2 className="text-lg font-semibold text-foreground">{format(month, "MMMM yyyy")}</h2>
@@ -143,13 +133,13 @@ const MemberCalendar = () => {
         </div>
 
         {loading ? (
-          <div className="flex min-h-96 items-center justify-center gap-2 rounded-b-md border border-t-0 border-border bg-card text-sm text-muted-foreground">
+          <div className="flex min-h-96 items-center justify-center gap-2 bg-white text-sm text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" /> Loading calendar...
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-b-md border border-t-0 border-border bg-card shadow-sm">
+          <div className="overflow-x-auto bg-white">
             <div className="grid min-w-[760px] grid-cols-7">
-              {weekdays.map((day) => <div key={day} className="border-b border-r border-border bg-muted/50 px-2 py-2 text-center text-xs font-semibold uppercase text-muted-foreground last:border-r-0">{day}</div>)}
+              {weekdays.map((day) => <div key={day} className="border-b border-r border-black/5 bg-[#f6f7f5] px-2 py-2 text-center text-xs font-semibold uppercase text-[#585956] last:border-r-0">{day}</div>)}
               {days.map((date) => {
                 const dateEvents = eventsForDate(date);
                 return (
@@ -157,7 +147,7 @@ const MemberCalendar = () => {
                     key={date.toISOString()}
                     role={canEdit ? "button" : undefined}
                     tabIndex={canEdit ? 0 : undefined}
-                    className={`min-h-32 border-b border-r border-border p-2 text-left align-top transition-colors hover:bg-primary/[0.035] ${!isSameMonth(date, month) ? "bg-muted/20 text-muted-foreground/50" : "bg-card"}`}
+                    className={`min-h-32 border-b border-r border-black/5 p-2 text-left align-top transition-colors hover:bg-[#f1f1ef] ${!isSameMonth(date, month) ? "bg-[#f6f7f5] text-muted-foreground/50" : "bg-white"}`}
                     onClick={() => openCreate(date)}
                   >
                     <span className="text-xs font-semibold">{format(date, "d")}</span>
@@ -207,7 +197,7 @@ const MemberCalendar = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </section>
+    </MemberShell>
   );
 };
 

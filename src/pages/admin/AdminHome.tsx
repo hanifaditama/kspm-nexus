@@ -43,14 +43,14 @@ const AdminHome = () => {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-foreground">Content Management</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Create, edit, and delete content displayed on the public site.</p>
+      <h1 className="text-3xl font-semibold tracking-normal text-[#191916]">Content Management</h1>
+      <p className="mt-1 text-sm text-[#686760]">Create, edit, and delete content displayed on the public site.</p>
 
-      {canEditRecruitment && <div className="mt-8 rounded-lg border border-border bg-card p-6">
+      {canEditRecruitment && <div className="mt-8 rounded-xl border border-black/5 bg-white p-6 shadow-sm">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-base font-semibold text-foreground">Recruitment Status</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <h2 className="text-base font-semibold text-[#191916]">Recruitment Status</h2>
+            <p className="mt-1 text-sm text-[#686760]">
               When closed, the recruitment landing page is hidden and the "Open Recruitment" badge is replaced with "Recruitment Closed".
             </p>
           </div>
@@ -76,11 +76,13 @@ const AdminHome = () => {
             <Link
               key={c.to}
               to={c.to}
-              className="group rounded-lg border border-border bg-card p-6 transition-colors hover:border-accent/40"
+              className="group rounded-xl border border-black/5 bg-white p-6 shadow-sm transition-colors hover:border-black/15"
             >
-              <Icon className="h-6 w-6 text-accent" />
-              <h3 className="mt-3 text-base font-semibold text-foreground group-hover:text-accent">{c.label}</h3>
-              <p className="mt-1 text-sm text-muted-foreground">{c.description}</p>
+              <span className="grid h-11 w-11 place-items-center rounded-full bg-[#f1f1ef]">
+                <Icon className="h-5 w-5 text-[#191916]" />
+              </span>
+              <h3 className="mt-4 text-base font-semibold text-[#191916]">{c.label}</h3>
+              <p className="mt-1 text-sm text-[#686760]">{c.description}</p>
             </Link>
           );
         })}
@@ -88,12 +90,14 @@ const AdminHome = () => {
       {isPrimaryAdmin && (
         <Link
           to="/admin/access"
-          className="mt-4 flex items-center gap-4 rounded-lg border border-border bg-card p-5 transition-colors hover:border-accent/40"
+          className="mt-4 flex items-center gap-4 rounded-xl border border-black/5 bg-white p-5 shadow-sm transition-colors hover:border-black/15"
         >
-          <ShieldCheck className="h-6 w-6 shrink-0 text-accent" />
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#f1f1ef]">
+            <ShieldCheck className="h-5 w-5 text-[#191916]" />
+          </span>
           <div>
-            <h3 className="text-base font-semibold text-foreground">Access Control</h3>
-            <p className="mt-1 text-sm text-muted-foreground">Choose which members can manage each content area.</p>
+            <h3 className="text-base font-semibold text-[#191916]">Access Control</h3>
+            <p className="mt-1 text-sm text-[#686760]">Choose which members can manage each content area.</p>
           </div>
         </Link>
       )}

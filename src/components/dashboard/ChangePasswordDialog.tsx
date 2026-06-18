@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,7 @@ import { KeyRound } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 
-const ChangePasswordDialog = () => {
+const ChangePasswordDialog = ({ trigger }: { trigger?: ReactNode }) => {
   const [open, setOpen] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -63,10 +64,12 @@ const ChangePasswordDialog = () => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <KeyRound className="mr-2 h-4 w-4" />
-          Change Password
-        </Button>
+        {trigger ?? (
+          <Button variant="outline" size="sm">
+            <KeyRound className="mr-2 h-4 w-4" />
+            Change Password
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="max-w-sm">
         <DialogHeader>

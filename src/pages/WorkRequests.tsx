@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { ArrowLeft, ArrowUpRight, CalendarClock, CheckCircle2, ClipboardList, ExternalLink, FilePenLine, Hourglass, MessageSquare, Pencil, Plus, Search, Settings2, Sparkles, Trash2, UserPlus, X, type LucideIcon } from "lucide-react";
+import { ArrowUpRight, CalendarClock, CheckCircle2, ClipboardList, ExternalLink, FilePenLine, Hourglass, MessageSquare, Pencil, Plus, Search, Settings2, Trash2, UserPlus, X, type LucideIcon } from "lucide-react";
 import SEO from "@/components/SEO";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import MemberShell from "@/components/dashboard/MemberShell";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -434,58 +434,47 @@ const WorkRequests = () => {
   const duePreview = addBusinessDays(form.submission_date, 5);
 
   return (
-    <section className="min-h-[calc(100vh-4rem)] bg-background">
+    <MemberShell
+      title="Work Request Form"
+      eyebrow="Internal Operations"
+      icon={ClipboardList}
+      description="Submit design, event, research, or board requests in one shared dashboard. Each request gets a five-workday target deadline automatically."
+      actions={
+        <>
+          <Button className="rounded-full bg-[#1d1c18] text-white hover:bg-[#34322d]" onClick={() => openCreate()}>
+            <Plus className="h-4 w-4" /> New Request
+          </Button>
+          {isPrimaryAdmin && (
+            <Button variant="outline" className="rounded-full border-black/10 bg-white" onClick={() => setAssignmentOpen(true)}>
+              <Settings2 className="h-4 w-4" /> Manage PICs
+            </Button>
+          )}
+        </>
+      }
+    >
       <SEO title="Work Requests" path="/member/work-requests" noIndex />
-      <div className="border-b border-border bg-[linear-gradient(135deg,hsl(var(--primary))_0%,#1f4778_58%,#168ac5_100%)] text-primary-foreground">
-        <div className="container py-8">
-          <Link to="/member" className="mb-5 inline-flex items-center gap-2 text-sm text-primary-foreground/75 hover:text-primary-foreground">
-            <ArrowLeft className="h-4 w-4" /> Back to dashboard
-          </Link>
-          <div className="grid gap-6 lg:grid-cols-[1fr_340px] lg:items-end">
-            <div>
-              <div className="mb-4 inline-flex items-center gap-2 border border-primary-foreground/20 bg-primary-foreground/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest">
-                <Sparkles className="h-3.5 w-3.5" /> Internal Operations
-              </div>
-              <h1 className="max-w-3xl text-3xl font-bold tracking-tight md:text-5xl">Work Request Form</h1>
-              <p className="mt-4 max-w-2xl text-sm leading-7 text-primary-foreground/80 md:text-base">
-                Submit design, event, research, or board requests in one shared dashboard. Each request gets a five-workday target deadline automatically.
-              </p>
+      <div className="grid gap-5">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {([
+            ["Total", summary.total, ClipboardList],
+            ["Active", summary.active, Hourglass],
+            ["Completed", summary.completed, CheckCircle2],
+            ["Overdue", summary.overdue, CalendarClock],
+          ] satisfies SummaryCard[]).map(([label, value, Icon]) => (
+            <div key={label} className="rounded-lg border border-black/5 bg-white p-4 shadow-sm">
+              <Icon className="mb-3 h-4 w-4 text-[#1d1c18]" />
+              <p className="text-2xl font-semibold text-[#070e08]">{value}</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#585956]">{label}</p>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              {([
-                ["Total", summary.total, ClipboardList],
-                ["Active", summary.active, Hourglass],
-                ["Completed", summary.completed, CheckCircle2],
-                ["Overdue", summary.overdue, CalendarClock],
-              ] satisfies SummaryCard[]).map(([label, value, Icon]) => (
-                <div key={label} className="border border-primary-foreground/15 bg-primary-foreground/10 p-4">
-                  <Icon className="mb-3 h-4 w-4 text-primary-foreground/70" />
-                  <p className="text-2xl font-bold">{value}</p>
-                  <p className="text-xs text-primary-foreground/70">{label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+          ))}
         </div>
-      </div>
 
-      <div className="container py-8">
-        <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <Tabs value={activeDivision} onValueChange={(value) => setActiveDivision(value as Division)}>
-            <TabsList className="grid h-auto w-full grid-cols-2 lg:w-auto lg:grid-cols-4">
+            <TabsList className="grid h-auto w-full grid-cols-2 bg-white lg:w-auto lg:grid-cols-4">
               {divisions.map((division) => <TabsTrigger key={division} value={division}>{divisionMeta[division].label}</TabsTrigger>)}
             </TabsList>
           </Tabs>
-          <div className="flex flex-wrap gap-2">
-            <Button onClick={() => openCreate()}>
-              <Plus className="h-4 w-4" /> New Request
-            </Button>
-            {isPrimaryAdmin && (
-              <Button variant="outline" onClick={() => setAssignmentOpen(true)}>
-                <Settings2 className="h-4 w-4" /> Manage PICs
-              </Button>
-            )}
-          </div>
         </div>
 
         <div className="mb-6 grid gap-4 xl:grid-cols-[minmax(260px,360px)_1fr]">
@@ -539,7 +528,7 @@ const WorkRequests = () => {
                   const latestComment = latestCommentByRequest.get(request.id);
                   const commentCount = commentsByRequest.get(request.id)?.length ?? 0;
                   return (
-                    <article key={request.id} className="rounded-lg border border-border bg-background p-4 transition-colors hover:border-accent/50">
+                    <article key={request.id} className="rounded-lg border border-border bg-background p-4 transition-colors hover:border-black/20">
                       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                         <div className="min-w-0">
                           <div className="mb-2 flex flex-wrap items-center gap-2">
@@ -703,7 +692,7 @@ const WorkRequests = () => {
               )}
               <div className="grid gap-3 border-t border-border pt-4">
                 <div className="flex items-center gap-2">
-                  <MessageSquare className="h-4 w-4 text-accent" />
+                  <MessageSquare className="h-4 w-4 text-[#1d1c18]" />
                   <Label>Comments</Label>
                 </div>
                 <div className="max-h-52 space-y-2 overflow-y-auto">
@@ -811,7 +800,7 @@ const WorkRequests = () => {
           <DialogFooter><Button onClick={() => setAssignmentOpen(false)}>Done</Button></DialogFooter>
         </DialogContent>
       </Dialog>
-    </section>
+    </MemberShell>
   );
 };
 

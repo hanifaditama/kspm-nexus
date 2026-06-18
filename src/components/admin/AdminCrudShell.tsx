@@ -13,13 +13,13 @@ const AdminCrudShell = ({ title, description, onAdd, addLabel = "Add new", child
   <div>
     <div className="mb-6 flex items-start justify-between gap-4">
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">{title}</h1>
-        {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
+        <h1 className="text-3xl font-semibold tracking-normal text-[#191916]">{title}</h1>
+        {description && <p className="mt-1 text-sm text-[#686760]">{description}</p>}
       </div>
       {onAdd && (
         <button
           onClick={onAdd}
-          className="inline-flex shrink-0 items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[#1d1c18] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#34322d]"
         >
           <Plus className="h-4 w-4" /> {addLabel}
         </button>

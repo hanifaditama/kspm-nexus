@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { AlertTriangle, ArrowDownUp, CheckCircle2, Clock3, ExternalLink, FileCheck2, Loader2, MessageSquare, Pencil, Plus, Settings2, ShieldCheck, Trash2, UserPlus, X, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import MemberShell from "@/components/dashboard/MemberShell";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -375,28 +375,19 @@ const ScreeningDashboard = () => {
   };
 
   return (
-    <section className="min-h-[calc(100vh-4rem)] bg-[linear-gradient(180deg,#f8fafc_0%,#ffffff_36%)]">
-      <div className="border-b border-border bg-[linear-gradient(135deg,hsl(var(--primary))_0%,#1f4778_58%,#168ac5_100%)] text-primary-foreground">
-        <div className="container flex flex-col justify-between gap-6 py-8 lg:flex-row lg:items-end">
-          <div>
-            <div className="mb-4 inline-flex items-center gap-2 border border-primary-foreground/20 bg-primary-foreground/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest">
-              <FileCheck2 className="h-3.5 w-3.5" />
-              Screening Flow
-            </div>
-            <h1 className="text-3xl font-bold tracking-tight md:text-5xl">Screening Dashboard</h1>
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-primary-foreground/80 md:text-base">
-              Track material review, evaluator checklist progress, notes, and approval status across divisions.
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button variant="secondary" asChild><Link to="/member">File Manager</Link></Button>
-            {isPrimaryAdmin && <Button variant="secondary" onClick={() => setAssignmentOpen(true)}><Settings2 className="h-4 w-4" /> Manage Evaluators</Button>}
-            {canCreateCurrent && <Button onClick={openCreate}><Plus className="h-4 w-4" /> Add Screening</Button>}
-          </div>
-        </div>
-      </div>
-
-      <div className="container py-8">
+    <MemberShell
+      title="Screening Dashboard"
+      eyebrow="Screening Flow"
+      icon={FileCheck2}
+      description="Track material review, evaluator checklist progress, notes, and approval status across divisions."
+      actions={
+        <>
+          {isPrimaryAdmin && <Button variant="outline" className="rounded-full border-black/10 bg-white" onClick={() => setAssignmentOpen(true)}><Settings2 className="h-4 w-4" /> Manage Evaluators</Button>}
+          {canCreateCurrent && <Button className="rounded-full bg-[#1d1c18] text-white hover:bg-[#34322d]" onClick={openCreate}><Plus className="h-4 w-4" /> Add Screening</Button>}
+        </>
+      }
+    >
+      <div className="grid gap-5">
         <div className="mb-6 grid gap-4 xl:grid-cols-[minmax(260px,360px)_1fr]">
           <div className={`bg-gradient-to-br ${divisionMeta[division].accent} p-6 text-white`}>
             <p className="text-xs font-semibold uppercase tracking-widest text-white/70">Active Division</p>
@@ -409,7 +400,7 @@ const ScreeningDashboard = () => {
           <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <Tabs value={division} onValueChange={(value) => setDivision(value as Division)}>
-                <TabsList className="grid h-auto w-full grid-cols-2 bg-primary/5 lg:w-auto lg:grid-cols-4">
+                <TabsList className="grid h-auto w-full grid-cols-2 bg-white lg:w-auto lg:grid-cols-4">
                   {divisions.map((item) => <TabsTrigger key={item} value={item}>{item}</TabsTrigger>)}
                 </TabsList>
               </Tabs>
@@ -461,7 +452,7 @@ const ScreeningDashboard = () => {
               </thead>
               <tbody>
                 {divisionItems.map((item) => (
-                  <tr key={item.id} className="border-b border-border transition-colors last:border-0 hover:bg-accent/[0.035]">
+                  <tr key={item.id} className="border-b border-border transition-colors last:border-0 hover:bg-[#f1f1ef]">
                     <td className="sticky left-0 z-10 bg-card px-3 py-4 text-center text-muted-foreground">{item.sequence_no}</td>
                     <td className="sticky left-14 z-10 bg-card px-4 py-4 font-semibold text-foreground">{item.material}</td>
                     <td className="px-3 py-4 text-muted-foreground">{formatDate(item.submitted_at)}</td>
@@ -540,7 +531,7 @@ const ScreeningDashboard = () => {
             {editingItem && (
               <div className="grid gap-3 border-t border-border pt-4">
                 <div className="flex items-center gap-2">
-                  <MessageSquare className="h-4 w-4 text-accent" />
+                  <MessageSquare className="h-4 w-4 text-[#1d1c18]" />
                   <Label>Notes</Label>
                 </div>
                 {editingItem.notes && (
@@ -647,7 +638,7 @@ const ScreeningDashboard = () => {
           <DialogFooter><Button onClick={() => setAssignmentOpen(false)}>Done</Button></DialogFooter>
         </DialogContent>
       </Dialog>
-    </section>
+    </MemberShell>
   );
 };
 

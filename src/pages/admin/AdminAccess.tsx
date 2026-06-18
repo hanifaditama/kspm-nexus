@@ -168,12 +168,12 @@ const AdminAccess = () => {
     <div>
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
         <div className="flex items-start gap-3">
-          <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-md bg-accent/10 text-accent">
+          <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#1d1c18] shadow-sm">
             <ShieldCheck className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="text-2xl font-semibold text-foreground">Access Control</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Create or remove accounts, assign content access, manage secondary administrators, and transfer primary ownership.</p>
+            <h1 className="text-3xl font-semibold tracking-normal text-[#191916]">Access Control</h1>
+            <p className="mt-1 text-sm text-[#686760]">Create or remove accounts, assign content access, manage secondary administrators, and transfer primary ownership.</p>
           </div>
         </div>
         <CreateMemberDialog onCreated={() => void loadAccess()} />
@@ -192,10 +192,10 @@ const AdminAccess = () => {
       {loading ? (
         <p className="mt-8 text-sm text-muted-foreground">Loading access settings...</p>
       ) : (
-        <div className="mt-6 overflow-x-auto rounded-md border border-border">
+        <div className="mt-6 overflow-x-auto rounded-xl border border-black/5 bg-white shadow-sm">
           <table className="w-full min-w-[900px] text-sm">
             <thead>
-              <tr className="border-b border-border bg-muted/50 text-left">
+              <tr className="border-b border-black/5 bg-[#f6f6f4] text-left">
                 <th className="px-4 py-3 font-medium text-muted-foreground">Member</th>
                 {contentPermissions.map((permission) => (
                   <th key={permission} className="px-3 py-3 text-center font-medium text-muted-foreground">
@@ -218,7 +218,7 @@ const AdminAccess = () => {
                       {member.recovery_email && (
                         <p className="mt-1 text-xs text-muted-foreground">Recovery: {member.recovery_email}</p>
                       )}
-                      {fullAccess && <p className="mt-1 text-xs font-medium text-accent">Administrator - Full access</p>}
+                      {fullAccess && <p className="mt-1 text-xs font-medium text-[#1d1c18]">Administrator - Full access</p>}
                     </td>
                     {contentPermissions.map((permission) => {
                       const key = `${member.user_id}:${permission}`;
@@ -246,7 +246,7 @@ const AdminAccess = () => {
                     </td>
                     <td className="px-4 py-4 text-right">
                       {member.user_id === primaryAdminId ? (
-                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-accent">
+                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#1d1c18]">
                           <Crown className="h-3.5 w-3.5" />
                           Current
                         </span>

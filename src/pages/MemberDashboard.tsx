@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CalendarDays, ClipboardList, FileCheck2, LogOut, Upload, Search } from "lucide-react";
+import { CalendarDays, ClipboardList, FileCheck2, FolderOpen, Upload, Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { MemberFile, MemberFolder } from "@/components/dashboard/types";
@@ -11,7 +11,7 @@ import FolderBreadcrumb from "@/components/dashboard/FolderBreadcrumb";
 import CreateFolderDialog from "@/components/dashboard/CreateFolderDialog";
 import FileTable from "@/components/dashboard/FileTable";
 import FilePreviewPanel from "@/components/dashboard/FilePreviewPanel";
-import ChangePasswordDialog from "@/components/dashboard/ChangePasswordDialog";
+import MemberShell from "@/components/dashboard/MemberShell";
 
 const allowedMemberFileTypes = new Set([
   "application/pdf",
@@ -33,7 +33,7 @@ const allowedMemberFileTypes = new Set([
 ]);
 
 const MemberDashboard = () => {
-  const { user, profile, loading: authLoading, signOut } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const [files, setFiles] = useState<MemberFile[]>([]);
   const [folders, setFolders] = useState<MemberFolder[]>([]);
@@ -268,13 +268,6 @@ const MemberDashboard = () => {
     if (previewFile?.id === file.id) handleClosePreview();
   };
 
-  const handleSignOut = async () => {
-    const { error } = await signOut();
-    if (error) {
-      toast({ title: "Sign out failed", description: error, variant: "destructive" });
-    }
-  };
-
   const filteredFolders = folders.filter((f) =>
     f.name.toLowerCase().includes(search.toLowerCase())
   );
@@ -293,84 +286,76 @@ const MemberDashboard = () => {
   if (!user) return null;
 
   return (
-    <section className="min-h-[calc(100vh-4rem)] bg-background">
-      <div className="border-b border-border bg-card">
-        <div className="container flex flex-col items-start justify-between gap-4 py-6 sm:flex-row sm:items-center">
-          <div>
-            <h1 className="text-xl font-semibold text-foreground">Member Dashboard</h1>
-            <p className="text-sm text-muted-foreground">
-              Welcome, {profile?.display_name ?? user.email}
-            </p>
-          </div>
-          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/member/calendar">
-                <CalendarDays className="mr-2 h-4 w-4" />
-                Calendar
-              </Link>
-            </Button>
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/member/screening">
-                <FileCheck2 className="mr-2 h-4 w-4" />
-                Screening
-              </Link>
-            </Button>
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/member/work-requests">
-                <ClipboardList className="mr-2 h-4 w-4" />
-                Work Requests
-              </Link>
-            </Button>
-            <CreateFolderDialog onCreateFolder={handleCreateFolder} />
-            <ChangePasswordDialog />
-            {profile?.can_upload && (
-              <label className="cursor-pointer">
-                <input type="file" className="hidden" onChange={handleUpload} disabled={uploading} />
-                <span className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
-                  <Upload className="h-4 w-4" />
-                  {uploading ? "Uploading..." : "Upload File"}
-                </span>
-              </label>
-            )}
-            <Button variant="outline" size="sm" onClick={handleSignOut}>
-              <LogOut className="mr-2 h-4 w-4" />
-              Sign Out
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <div className="container py-8">
-        <div className="mb-4">
+    <MemberShell
+      title="Member Dashboard"
+      eyebrow="Workspace"
+      icon={FolderOpen}
+      description={`Welcome, ${profile?.display_name ?? user.email}. Manage shared files and move between member tools.`}
+      backToDashboard={false}
+      actions={
+        <>
+          <Button variant="outline" size="sm" asChild className="border-black/10 bg-white">
+            <Link to="/member/calendar">
+              <CalendarDays className="h-4 w-4" />
+              Calendar
+            </Link>
+          </Button>
+          <Button variant="outline" size="sm" asChild className="border-black/10 bg-white">
+            <Link to="/member/screening">
+              <FileCheck2 className="h-4 w-4" />
+              Screening
+            </Link>
+          </Button>
+          <Button variant="outline" size="sm" asChild className="border-black/10 bg-white">
+            <Link to="/member/work-requests">
+              <ClipboardList className="h-4 w-4" />
+              Work Requests
+            </Link>
+          </Button>
+          <CreateFolderDialog onCreateFolder={handleCreateFolder} />
+          {profile?.can_upload && (
+            <label className="cursor-pointer">
+              <input type="file" className="hidden" onChange={handleUpload} disabled={uploading} />
+              <span className="inline-flex h-9 items-center gap-2 rounded-full bg-[#1d1c18] px-3 text-sm font-semibold text-white transition-colors hover:bg-[#34322d]">
+                <Upload className="h-4 w-4" />
+                {uploading ? "Uploading..." : "Upload File"}
+              </span>
+            </label>
+          )}
+        </>
+      }
+    >
+      <div className="grid gap-5">
+        <div className="rounded-lg border border-black/5 bg-white p-4 shadow-sm">
           <FolderBreadcrumb path={folderPath} onNavigate={handleNavigateFolder} />
-        </div>
-        <div className="mb-6 flex items-center gap-4">
-          <div className="relative flex-1">
+          <div className="relative mt-4">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search files and folders..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10"
+              className="border-black/10 bg-[#f6f7f5] pl-10"
             />
           </div>
         </div>
 
         <div className={previewFile ? "grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(340px,42%)]" : ""}>
           {loadingFiles ? (
-            <div className="py-20 text-center text-muted-foreground">Loading...</div>
+            <div className="rounded-lg border border-black/5 bg-white py-20 text-center text-muted-foreground shadow-sm">Loading...</div>
           ) : (
-            <FileTable
-              folders={filteredFolders}
-              files={filteredFiles}
-              userId={user.id}
-              onOpenFolder={handleNavigateFolder}
-              onDownload={handleDownload}
-              onPreview={handlePreview}
-              onDeleteFile={handleDelete}
-              onDeleteFolder={handleDeleteFolder}
-              selectedFileId={previewFile?.id}
-            />
+            <div className="overflow-hidden rounded-lg border border-black/5 bg-white shadow-sm">
+              <FileTable
+                folders={filteredFolders}
+                files={filteredFiles}
+                userId={user.id}
+                onOpenFolder={handleNavigateFolder}
+                onDownload={handleDownload}
+                onPreview={handlePreview}
+                onDeleteFile={handleDelete}
+                onDeleteFolder={handleDeleteFolder}
+                selectedFileId={previewFile?.id}
+              />
+            </div>
           )}
           {previewFile && (
             <FilePreviewPanel
@@ -383,7 +368,7 @@ const MemberDashboard = () => {
           )}
         </div>
       </div>
-    </section>
+    </MemberShell>
   );
 };
 

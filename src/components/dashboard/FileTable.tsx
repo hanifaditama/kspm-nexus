@@ -57,7 +57,7 @@ const FileTable = ({
                   onClick={() => onOpenFolder(folder.id)}
                   className="flex items-center gap-3 text-left"
                 >
-                  <Folder className="h-4 w-4 shrink-0 text-primary" />
+                  <Folder className="h-4 w-4 shrink-0 text-[#1d1c18]" />
                   <span className="truncate font-medium text-foreground">{folder.name}</span>
                 </button>
               </td>
@@ -85,13 +85,13 @@ const FileTable = ({
             <tr
               key={file.id}
               className={`border-b border-border last:border-0 hover:bg-muted/30 ${
-                selectedFileId === file.id ? "bg-accent/10" : ""
+                selectedFileId === file.id ? "bg-[#f1f1ef]" : ""
               }`}
             >
               <td className="px-4 py-3">
                 <button
                   onClick={() => onPreview(file)}
-                  className="flex items-center gap-3 text-left hover:text-accent transition-colors"
+                  className="flex items-center gap-3 text-left transition-colors hover:text-[#1d1c18]"
                 >
                   <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
                   <span className="truncate font-medium text-foreground">{file.file_name}</span>
