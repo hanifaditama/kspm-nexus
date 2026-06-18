@@ -445,7 +445,7 @@ const WorkRequests = () => {
             <Plus className="h-4 w-4" /> New Request
           </Button>
           {isPrimaryAdmin && (
-            <Button variant="outline" className="rounded-full border-black/10 bg-white" onClick={() => setAssignmentOpen(true)}>
+            <Button variant="outline" className="rounded-full border-black/10 bg-white dark:border-white/10 dark:bg-[#1c1b18]" onClick={() => setAssignmentOpen(true)}>
               <Settings2 className="h-4 w-4" /> Manage PICs
             </Button>
           )}
@@ -461,7 +461,7 @@ const WorkRequests = () => {
             ["Completed", summary.completed, CheckCircle2],
             ["Overdue", summary.overdue, CalendarClock],
           ] satisfies SummaryCard[]).map(([label, value, Icon]) => (
-            <div key={label} className="rounded-lg border border-black/5 bg-white p-4 shadow-sm">
+            <div key={label} className="rounded-lg border border-black/5 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[#1c1b18]">
               <Icon className="mb-3 h-4 w-4 text-[#1d1c18]" />
               <p className="text-2xl font-semibold text-[#070e08]">{value}</p>
               <p className="text-xs font-semibold uppercase tracking-wide text-[#585956]">{label}</p>
@@ -471,7 +471,7 @@ const WorkRequests = () => {
 
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <Tabs value={activeDivision} onValueChange={(value) => setActiveDivision(value as Division)}>
-            <TabsList className="grid h-auto w-full grid-cols-2 bg-white lg:w-auto lg:grid-cols-4">
+            <TabsList className="grid h-auto w-full grid-cols-2 bg-white dark:bg-white/5 lg:w-auto lg:grid-cols-4">
               {divisions.map((division) => <TabsTrigger key={division} value={division}>{divisionMeta[division].label}</TabsTrigger>)}
             </TabsList>
           </Tabs>
@@ -497,7 +497,7 @@ const WorkRequests = () => {
             </div>
           </div>
 
-          <div className="rounded-lg border border-border bg-card p-4">
+          <div className="rounded-lg border border-border bg-card p-4 dark:border-white/10 dark:bg-[#1c1b18]">
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-foreground">{activeMeta.label} Requests</h2>
@@ -528,7 +528,7 @@ const WorkRequests = () => {
                   const latestComment = latestCommentByRequest.get(request.id);
                   const commentCount = commentsByRequest.get(request.id)?.length ?? 0;
                   return (
-                    <article key={request.id} className="rounded-lg border border-border bg-background p-4 transition-colors hover:border-black/20">
+                    <article key={request.id} className="rounded-lg border border-border bg-background p-4 transition-colors hover:border-black/20 dark:border-white/10 dark:bg-white/5 dark:hover:border-white/25">
                       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                         <div className="min-w-0">
                           <div className="mb-2 flex flex-wrap items-center gap-2">

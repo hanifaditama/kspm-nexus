@@ -294,19 +294,19 @@ const MemberDashboard = () => {
       backToDashboard={false}
       actions={
         <>
-          <Button variant="outline" size="sm" asChild className="border-black/10 bg-white">
+          <Button variant="outline" size="sm" asChild className="border-black/10 bg-white dark:border-white/10 dark:bg-[#1c1b18]">
             <Link to="/member/calendar">
               <CalendarDays className="h-4 w-4" />
               Calendar
             </Link>
           </Button>
-          <Button variant="outline" size="sm" asChild className="border-black/10 bg-white">
+          <Button variant="outline" size="sm" asChild className="border-black/10 bg-white dark:border-white/10 dark:bg-[#1c1b18]">
             <Link to="/member/screening">
               <FileCheck2 className="h-4 w-4" />
               Screening
             </Link>
           </Button>
-          <Button variant="outline" size="sm" asChild className="border-black/10 bg-white">
+          <Button variant="outline" size="sm" asChild className="border-black/10 bg-white dark:border-white/10 dark:bg-[#1c1b18]">
             <Link to="/member/work-requests">
               <ClipboardList className="h-4 w-4" />
               Work Requests
@@ -326,7 +326,7 @@ const MemberDashboard = () => {
       }
     >
       <div className="grid gap-5">
-        <div className="rounded-lg border border-black/5 bg-white p-4 shadow-sm">
+        <div className="rounded-lg border border-black/5 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[#1c1b18]">
           <FolderBreadcrumb path={folderPath} onNavigate={handleNavigateFolder} />
           <div className="relative mt-4">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -334,16 +334,16 @@ const MemberDashboard = () => {
               placeholder="Search files and folders..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="border-black/10 bg-[#f6f7f5] pl-10"
+              className="border-black/10 bg-[#f6f7f5] pl-10 dark:border-white/10 dark:bg-white/5"
             />
           </div>
         </div>
 
         <div className={previewFile ? "grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(340px,42%)]" : ""}>
           {loadingFiles ? (
-            <div className="rounded-lg border border-black/5 bg-white py-20 text-center text-muted-foreground shadow-sm">Loading...</div>
+            <div className="rounded-lg border border-black/5 bg-white py-20 text-center text-muted-foreground shadow-sm dark:border-white/10 dark:bg-[#1c1b18]">Loading...</div>
           ) : (
-            <div className="overflow-hidden rounded-lg border border-black/5 bg-white shadow-sm">
+            <div className="overflow-hidden rounded-lg border border-black/5 bg-white shadow-sm dark:border-white/10 dark:bg-[#1c1b18]">
               <FileTable
                 folders={filteredFolders}
                 files={filteredFiles}

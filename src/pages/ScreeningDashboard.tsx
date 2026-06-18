@@ -382,7 +382,7 @@ const ScreeningDashboard = () => {
       description="Track material review, evaluator checklist progress, notes, and approval status across divisions."
       actions={
         <>
-          {isPrimaryAdmin && <Button variant="outline" className="rounded-full border-black/10 bg-white" onClick={() => setAssignmentOpen(true)}><Settings2 className="h-4 w-4" /> Manage Evaluators</Button>}
+          {isPrimaryAdmin && <Button variant="outline" className="rounded-full border-black/10 bg-white dark:border-white/10 dark:bg-[#1c1b18]" onClick={() => setAssignmentOpen(true)}><Settings2 className="h-4 w-4" /> Manage Evaluators</Button>}
           {canCreateCurrent && <Button className="rounded-full bg-[#1d1c18] text-white hover:bg-[#34322d]" onClick={openCreate}><Plus className="h-4 w-4" /> Add Screening</Button>}
         </>
       }
@@ -397,10 +397,10 @@ const ScreeningDashboard = () => {
               Your checklist column: <span className="font-semibold text-white">{assignedColumns.map((evaluator) => evaluator.display_name).join(", ") || "Not assigned"}</span>
             </p>
           </div>
-          <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
+          <div className="rounded-lg border border-border bg-card p-4 shadow-sm dark:border-white/10 dark:bg-[#1c1b18]">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <Tabs value={division} onValueChange={(value) => setDivision(value as Division)}>
-                <TabsList className="grid h-auto w-full grid-cols-2 bg-white lg:w-auto lg:grid-cols-4">
+                <TabsList className="grid h-auto w-full grid-cols-2 bg-white dark:bg-white/5 lg:w-auto lg:grid-cols-4">
                   {divisions.map((item) => <TabsTrigger key={item} value={item}>{item}</TabsTrigger>)}
                 </TabsList>
               </Tabs>
@@ -426,7 +426,7 @@ const ScreeningDashboard = () => {
             </div>
           </div>
         </div>
-        <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-sm">
+        <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-sm dark:border-white/10 dark:bg-[#1c1b18]">
           {loading ? (
             <div className="flex min-h-52 items-center justify-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" /> Loading screening data...
@@ -434,9 +434,9 @@ const ScreeningDashboard = () => {
           ) : (
             <table className="w-full min-w-[1180px] text-sm">
               <thead>
-                <tr className="border-b border-border bg-slate-50 text-left">
-                  <th className="sticky left-0 z-20 w-14 bg-slate-50 px-3 py-3 text-center font-medium text-muted-foreground">No.</th>
-                  <th className="sticky left-14 z-20 min-w-64 bg-slate-50 px-4 py-3 font-medium text-muted-foreground">Screening Material</th>
+                <tr className="border-b border-border bg-slate-50 text-left dark:border-white/10 dark:bg-white/5">
+                  <th className="sticky left-0 z-20 w-14 bg-slate-50 px-3 py-3 text-center font-medium text-muted-foreground dark:bg-[#24231f]">No.</th>
+                  <th className="sticky left-14 z-20 min-w-64 bg-slate-50 px-4 py-3 font-medium text-muted-foreground dark:bg-[#24231f]">Screening Material</th>
                   <th className="min-w-32 px-3 py-3 font-medium text-muted-foreground">Submitted</th>
                   <th className="min-w-32 px-3 py-3 font-medium text-muted-foreground">Due Date</th>
                   <th className="min-w-20 px-3 py-3 font-medium text-muted-foreground">Link</th>
@@ -452,9 +452,9 @@ const ScreeningDashboard = () => {
               </thead>
               <tbody>
                 {divisionItems.map((item) => (
-                  <tr key={item.id} className="border-b border-border transition-colors last:border-0 hover:bg-[#f1f1ef]">
-                    <td className="sticky left-0 z-10 bg-card px-3 py-4 text-center text-muted-foreground">{item.sequence_no}</td>
-                    <td className="sticky left-14 z-10 bg-card px-4 py-4 font-semibold text-foreground">{item.material}</td>
+                  <tr key={item.id} className="border-b border-border transition-colors last:border-0 hover:bg-[#f1f1ef] dark:border-white/10 dark:hover:bg-white/5">
+                    <td className="sticky left-0 z-10 bg-card px-3 py-4 text-center text-muted-foreground dark:bg-[#1c1b18]">{item.sequence_no}</td>
+                    <td className="sticky left-14 z-10 bg-card px-4 py-4 font-semibold text-foreground dark:bg-[#1c1b18]">{item.material}</td>
                     <td className="px-3 py-4 text-muted-foreground">{formatDate(item.submitted_at)}</td>
                     <td className="px-3 py-4 text-muted-foreground">{formatDate(item.due_at)}</td>
                     <td className="px-3 py-4">

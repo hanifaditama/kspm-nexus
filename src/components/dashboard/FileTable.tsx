@@ -34,10 +34,10 @@ const FileTable = ({
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-border">
+    <div className="overflow-x-auto rounded-lg border border-border dark:border-white/10">
       <table className="w-full min-w-[680px] text-sm">
         <thead>
-          <tr className="border-b border-border bg-muted/50">
+          <tr className="border-b border-border bg-muted/50 dark:border-white/10 dark:bg-white/5">
             <th className="px-4 py-3 text-left font-medium text-muted-foreground">Name</th>
             <th className="hidden px-4 py-3 text-left font-medium text-muted-foreground md:table-cell">Type</th>
             <th className="hidden px-4 py-3 text-left font-medium text-muted-foreground sm:table-cell">Size</th>
@@ -49,7 +49,7 @@ const FileTable = ({
           {folders.map((folder) => (
             <tr
               key={`folder-${folder.id}`}
-              className="border-b border-border last:border-0 hover:bg-muted/30 cursor-pointer"
+              className="cursor-pointer border-b border-border last:border-0 hover:bg-muted/30 dark:border-white/10 dark:hover:bg-white/5"
               onDoubleClick={() => onOpenFolder(folder.id)}
             >
               <td className="px-4 py-3">
@@ -57,7 +57,7 @@ const FileTable = ({
                   onClick={() => onOpenFolder(folder.id)}
                   className="flex items-center gap-3 text-left"
                 >
-                  <Folder className="h-4 w-4 shrink-0 text-[#1d1c18]" />
+                  <Folder className="h-4 w-4 shrink-0 text-[#1d1c18] dark:text-white" />
                   <span className="truncate font-medium text-foreground">{folder.name}</span>
                 </button>
               </td>
@@ -85,7 +85,7 @@ const FileTable = ({
             <tr
               key={file.id}
               className={`border-b border-border last:border-0 hover:bg-muted/30 ${
-                selectedFileId === file.id ? "bg-[#f1f1ef]" : ""
+                selectedFileId === file.id ? "bg-[#f1f1ef] dark:bg-white/10" : ""
               }`}
             >
               <td className="px-4 py-3">

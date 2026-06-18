@@ -122,8 +122,8 @@ const MemberCalendar = () => {
       description="Internal schedule for UPH Investment Club members."
       actions={canEdit && <Button onClick={() => openCreate()} className="rounded-full bg-[#1d1c18] text-white hover:bg-[#34322d]"><Plus className="h-4 w-4" /> Add Event</Button>}
     >
-      <div className="overflow-hidden rounded-lg border border-black/5 bg-white shadow-sm">
-        <div className="flex items-center justify-between border-b border-black/5 bg-white px-3 py-3">
+      <div className="overflow-hidden rounded-lg border border-black/5 bg-white shadow-sm dark:border-white/10 dark:bg-[#1c1b18]">
+        <div className="flex items-center justify-between border-b border-black/5 bg-white px-3 py-3 dark:border-white/10 dark:bg-[#1c1b18]">
           <Button variant="ghost" size="icon" title="Previous month" onClick={() => setMonth((current) => subMonths(current, 1))}><ChevronLeft className="h-5 w-5" /></Button>
           <div className="text-center">
             <h2 className="text-lg font-semibold text-foreground">{format(month, "MMMM yyyy")}</h2>
@@ -133,13 +133,13 @@ const MemberCalendar = () => {
         </div>
 
         {loading ? (
-          <div className="flex min-h-96 items-center justify-center gap-2 bg-white text-sm text-muted-foreground">
+          <div className="flex min-h-96 items-center justify-center gap-2 bg-white text-sm text-muted-foreground dark:bg-[#1c1b18]">
             <Loader2 className="h-4 w-4 animate-spin" /> Loading calendar...
           </div>
         ) : (
-          <div className="overflow-x-auto bg-white">
+          <div className="overflow-x-auto bg-white dark:bg-[#1c1b18]">
             <div className="grid min-w-[760px] grid-cols-7">
-              {weekdays.map((day) => <div key={day} className="border-b border-r border-black/5 bg-[#f6f7f5] px-2 py-2 text-center text-xs font-semibold uppercase text-[#585956] last:border-r-0">{day}</div>)}
+              {weekdays.map((day) => <div key={day} className="border-b border-r border-black/5 bg-[#f6f7f5] px-2 py-2 text-center text-xs font-semibold uppercase text-[#585956] last:border-r-0 dark:border-white/10 dark:bg-white/5 dark:text-[#b6b3aa]">{day}</div>)}
               {days.map((date) => {
                 const dateEvents = eventsForDate(date);
                 return (
@@ -147,7 +147,7 @@ const MemberCalendar = () => {
                     key={date.toISOString()}
                     role={canEdit ? "button" : undefined}
                     tabIndex={canEdit ? 0 : undefined}
-                    className={`min-h-32 border-b border-r border-black/5 p-2 text-left align-top transition-colors hover:bg-[#f1f1ef] ${!isSameMonth(date, month) ? "bg-[#f6f7f5] text-muted-foreground/50" : "bg-white"}`}
+                    className={`min-h-32 border-b border-r border-black/5 p-2 text-left align-top transition-colors hover:bg-[#f1f1ef] dark:border-white/10 dark:hover:bg-white/10 ${!isSameMonth(date, month) ? "bg-[#f6f7f5] text-muted-foreground/50 dark:bg-white/5 dark:text-white/35" : "bg-white dark:bg-[#1c1b18] dark:text-white"}`}
                     onClick={() => openCreate(date)}
                   >
                     <span className="text-xs font-semibold">{format(date, "d")}</span>
