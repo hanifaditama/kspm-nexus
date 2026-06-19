@@ -15,6 +15,8 @@ import {
 
 const normalizeCategory = (category: string) => category.trim().toLocaleLowerCase();
 const getCategory = (category?: string | null) => category?.trim() ?? "";
+const getArticleCategories = (article: { category: string; categories?: string[] }) =>
+  article.categories?.length ? article.categories : [article.category];
 
 const Articles = () => {
   const [activeCategory, setActiveCategory] = useState("All");
@@ -23,8 +25,10 @@ const Articles = () => {
   const categories = useMemo(() => {
     const unique = new Map<string, string>();
     articles.forEach((article) => {
-      const label = getCategory(article.category);
-      if (label) unique.set(normalizeCategory(label), label);
+      getArticleCategories(article).forEach((category) => {
+        const label = getCategory(category);
+        if (label) unique.set(normalizeCategory(label), label);
+      });
     });
     return ["All", ...Array.from(unique.values()).sort((a, b) => a.localeCompare(b))];
   }, [articles]);
@@ -34,7 +38,7 @@ const Articles = () => {
       activeCategory === "All"
         ? articles
         : articles.filter((article) =>
-            normalizeCategory(getCategory(article.category)) === normalizeCategory(activeCategory)
+            getArticleCategories(article).some((category) => normalizeCategory(getCategory(category)) === normalizeCategory(activeCategory))
           ),
     [activeCategory, articles]
   );
@@ -50,20 +54,26 @@ const Articles = () => {
       <div className="sticky top-16 z-30 border-b border-[#2a4262] bg-[#102b49]">
         <div className="container flex items-center gap-0 overflow-x-auto py-0 scrollbar-hide">
           <DropdownMenu>
-            <DropdownMenuTrigger className="group flex shrink-0 items-center gap-1 px-4 py-3.5 text-[13px] font-bold uppercase tracking-wide text-white transition-colors hover:text-white">
-              {activeCategory === "All" ? "All" : activeCategory}
+            <DropdownMenuTrigger
+              onClick={() => setActiveCategory("All")}
+              className="group flex shrink-0 items-center gap-1 px-4 py-3.5 text-[13px] font-bold uppercase tracking-wide text-white transition-colors hover:text-white"
+            >
+              All
               <ChevronDown className="h-3 w-3 opacity-80" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="max-h-80 min-w-52 overflow-y-auto">
-              {categories.map((cat) => (
+              {categories.filter((cat) => cat !== "All").map((cat) => (
                 <DropdownMenuItem
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
                   className={activeCategory === cat ? "font-semibold" : ""}
                 >
-                  {cat === "All" ? "All Articles" : cat}
+                  {cat}
                 </DropdownMenuItem>
               ))}
+              {categories.length === 1 && (
+                <DropdownMenuItem disabled>No categories yet</DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
           {categories.filter((cat) => cat !== "All").map((cat) => (

@@ -4,6 +4,14 @@ function assertNoError(error: { message: string } | null) {
   if (error) throw new Error(error.message);
 }
 
+const parseCategories = (value?: string | null) => {
+  const categories = (value ?? "")
+    .split(",")
+    .map((category) => category.trim())
+    .filter(Boolean);
+  return categories.length > 0 ? categories : ["General"];
+};
+
 export async function getArticles(limit?: number) {
   let query = supabase
     .from("articles")
@@ -12,17 +20,21 @@ export async function getArticles(limit?: number) {
   if (limit) query = query.limit(limit);
   const { data, error } = await query;
   assertNoError(error);
-  return (data ?? []).map((article) => ({
-    _id: article.id,
-    title: article.title,
-    slug: article.slug,
-    excerpt: article.excerpt ?? "",
-    category: article.category?.trim() || "General",
-    publishedAt: article.published_at,
-    author: { name: article.author_name ?? "UPH Investment Club" },
-    mainImage: article.cover_image,
-    content: null as string | null,
-  }));
+  return (data ?? []).map((article) => {
+    const categories = parseCategories(article.category);
+    return {
+      _id: article.id,
+      title: article.title,
+      slug: article.slug,
+      excerpt: article.excerpt ?? "",
+      category: categories.join(", "),
+      categories,
+      publishedAt: article.published_at,
+      author: { name: article.author_name ?? "UPH Investment Club" },
+      mainImage: article.cover_image,
+      content: null as string | null,
+    };
+  });
 }
 
 export async function getArticleBySlug(slug: string) {
@@ -33,12 +45,14 @@ export async function getArticleBySlug(slug: string) {
     .maybeSingle();
   assertNoError(error);
   if (!data) return null;
+  const categories = parseCategories(data.category);
   return {
     _id: data.id,
     title: data.title,
     slug: data.slug,
     excerpt: data.excerpt ?? "",
-    category: data.category?.trim() || "General",
+    category: categories.join(", "),
+    categories,
     publishedAt: data.published_at,
     author: { name: data.author_name ?? "UPH Investment Club" },
     mainImage: data.cover_image,

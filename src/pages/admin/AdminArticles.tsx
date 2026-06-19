@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import AdminCrudShell from "@/components/admin/AdminCrudShell";
@@ -9,9 +9,16 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2 } from "lucide-react";
+import { ChevronDown, Pencil, Plus, Trash2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import useAccessDeniedToast from "@/hooks/useAccessDeniedToast";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Article {
   id: string;
@@ -28,6 +35,15 @@ interface Article {
 const slugify = (s: string) =>
   s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
+const parseCategories = (value?: string | null) =>
+  (value ?? "")
+    .split(",")
+    .map((category) => category.trim())
+    .filter(Boolean);
+
+const stringifyCategories = (categories: string[]) =>
+  Array.from(new Map(categories.map((category) => [category.toLowerCase(), category])).values()).join(", ");
+
 const empty: Partial<Article> = {
   title: "",
   slug: "",
@@ -43,11 +59,37 @@ const AdminArticles = () => {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Partial<Article>>(empty);
+  const [newCategory, setNewCategory] = useState("");
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
   const { hasPermission } = useAuth();
   const denyAccess = useAccessDeniedToast();
   const canEdit = hasPermission("articles");
+  const selectedCategories = useMemo(() => parseCategories(form.category), [form.category]);
+  const categoryOptions = useMemo(() => {
+    const unique = new Map<string, string>();
+    items.forEach((item) => {
+      parseCategories(item.category).forEach((category) => {
+        unique.set(category.toLowerCase(), category);
+      });
+    });
+    selectedCategories.forEach((category) => unique.set(category.toLowerCase(), category));
+    return Array.from(unique.values()).sort((a, b) => a.localeCompare(b));
+  }, [items, selectedCategories]);
+
+  const toggleCategory = (category: string) => {
+    const next = selectedCategories.some((item) => item.toLowerCase() === category.toLowerCase())
+      ? selectedCategories.filter((item) => item.toLowerCase() !== category.toLowerCase())
+      : [...selectedCategories, category];
+    setForm({ ...form, category: stringifyCategories(next) });
+  };
+
+  const addCustomCategory = () => {
+    const category = newCategory.trim();
+    if (!category) return;
+    setForm({ ...form, category: stringifyCategories([...selectedCategories, category]) });
+    setNewCategory("");
+  };
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
@@ -62,11 +104,13 @@ const AdminArticles = () => {
   const openNew = () => {
     if (!canEdit) return denyAccess("You don't have access to create articles.");
     setForm(empty);
+    setNewCategory("");
     setOpen(true);
   };
   const openEdit = (item: Article) => {
     if (!canEdit) return denyAccess("You don't have access to edit articles.");
     setForm(item);
+    setNewCategory("");
     setOpen(true);
   };
 
@@ -151,16 +195,51 @@ const AdminArticles = () => {
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <Label>Category</Label>
-                <Input
-                  list="article-categories"
-                  value={form.category ?? ""}
-                  onChange={(e) => setForm({ ...form, category: e.target.value })}
-                />
-                <datalist id="article-categories">
-                  {["Market Analysis", "Economics", "Sustainable Finance", "Commodities", "Stocks"].map((category) => (
-                    <option key={category} value={category} />
-                  ))}
-                </datalist>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      className="mt-1 flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 text-left text-sm text-foreground ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                    >
+                      <span className="truncate">
+                        {selectedCategories.length > 0 ? selectedCategories.join(", ") : "Choose categories"}
+                      </span>
+                      <ChevronDown className="h-4 w-4 opacity-60" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="max-h-80 w-[min(34rem,calc(100vw-3rem))] overflow-y-auto">
+                    {categoryOptions.length === 0 ? (
+                      <div className="px-2 py-1.5 text-sm text-muted-foreground">No categories yet</div>
+                    ) : categoryOptions.map((category) => (
+                      <DropdownMenuCheckboxItem
+                        key={category}
+                        checked={selectedCategories.some((item) => item.toLowerCase() === category.toLowerCase())}
+                        onCheckedChange={() => toggleCategory(category)}
+                        onSelect={(event) => event.preventDefault()}
+                      >
+                        {category}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                    <DropdownMenuSeparator />
+                    <div className="flex gap-2 p-2">
+                      <Input
+                        placeholder="New category"
+                        value={newCategory}
+                        onChange={(event) => setNewCategory(event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            event.preventDefault();
+                            addCustomCategory();
+                          }
+                        }}
+                      />
+                      <Button type="button" size="sm" onClick={addCustomCategory}>
+                        <Plus className="h-4 w-4" />
+                        Add
+                      </Button>
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
               <div><Label>Author</Label><Input value={form.author_name ?? ""} onChange={(e) => setForm({ ...form, author_name: e.target.value })} /></div>
             </div>
