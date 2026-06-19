@@ -61,12 +61,13 @@ const divisions: Division[] = ["BPH", "CMP", "EVENT", "RESEARCH"];
 const statuses: WorkStatus[] = ["Submitted", "On Progress", "Upscreening", "Needs Revision", "Completed", "Cancelled"];
 type SummaryCard = [string, number, LucideIcon];
 
-const divisionMeta: Record<Division, { label: string; description: string; accent: string }> = {
-  BPH: { label: "BPH", description: "Internal board, planning, and organization support.", accent: "from-sky-500 to-blue-700" },
-  CMP: { label: "CMP", description: "Creative, media, publication, and design requests.", accent: "from-fuchsia-500 to-rose-600" },
-  EVENT: { label: "Event", description: "Program, rundown, logistics, and event operations.", accent: "from-amber-400 to-orange-600" },
-  RESEARCH: { label: "Research", description: "Market work, reports, investment notes, and analysis.", accent: "from-emerald-400 to-teal-700" },
+const divisionMeta: Record<Division, { label: string; description: string }> = {
+  BPH: { label: "BPH", description: "Internal board, planning, and organization support." },
+  CMP: { label: "CMP", description: "Creative, media, publication, and design requests." },
+  EVENT: { label: "Event", description: "Program, rundown, logistics, and event operations." },
+  RESEARCH: { label: "Research", description: "Market work, reports, investment notes, and analysis." },
 };
+const requestingDivisionOptions: Division[] = ["BPH", "RESEARCH", "EVENT", "CMP"];
 
 const statusStyle: Record<WorkStatus, string> = {
   Submitted: "border-sky-200 bg-sky-50 text-sky-800",
@@ -79,10 +80,19 @@ const statusStyle: Record<WorkStatus, string> = {
 
 const blankForm = {
   target_division: "CMP" as Division,
-  requesting_division: "",
+  requesting_division: "RESEARCH" as Division,
   task: "",
   details: "",
   submission_date: new Date().toISOString().slice(0, 10),
+};
+
+const normalizeDivision = (value: string): Division => {
+  const normalized = value.trim().toUpperCase();
+  if (normalized.includes("BPH") || normalized.includes("BOARD")) return "BPH";
+  if (normalized.includes("RESEARCH")) return "RESEARCH";
+  if (normalized.includes("EVENT")) return "EVENT";
+  if (normalized.includes("CMP") || normalized.includes("CREATIVE") || normalized.includes("MEDIA") || normalized.includes("PUBLICATION")) return "CMP";
+  return "CMP";
 };
 
 const addBusinessDays = (dateValue: string, days: number) => {
@@ -126,7 +136,7 @@ const WorkRequests = () => {
   const [editingCommentId, setEditingCommentId] = useState("");
   const [editingCommentMessage, setEditingCommentMessage] = useState("");
   const [editForm, setEditForm] = useState({
-    requesting_division: "",
+    requesting_division: "RESEARCH" as Division,
     task: "",
     details: "",
     submission_date: "",
@@ -240,13 +250,13 @@ const WorkRequests = () => {
   };
 
   const createRequest = async () => {
-    if (!user || !form.requesting_division.trim() || !form.task.trim()) return;
+    if (!user || !form.requesting_division || !form.task.trim()) return;
     setSaving(true);
     const { data, error } = await supabase
       .from("work_requests")
       .insert({
         target_division: form.target_division,
-        requesting_division: form.requesting_division.trim(),
+        requesting_division: divisionMeta[form.requesting_division].label,
         task: form.task.trim(),
         details: form.details.trim() || null,
         submission_date: form.submission_date,
@@ -270,7 +280,7 @@ const WorkRequests = () => {
     if (!canManage && !isOwner) return denyAccess("You don't have access to edit this work request.");
     setEditing(request);
     setEditForm({
-      requesting_division: request.requesting_division,
+      requesting_division: normalizeDivision(request.requesting_division),
       task: request.task,
       details: request.details ?? "",
       submission_date: request.submission_date,
@@ -293,7 +303,7 @@ const WorkRequests = () => {
 
     const payload = canManage
       ? {
-        requesting_division: editForm.requesting_division.trim(),
+        requesting_division: divisionMeta[editForm.requesting_division].label,
         task: editForm.task.trim(),
         details: editForm.details.trim() || null,
         submission_date: editForm.submission_date,
@@ -303,7 +313,7 @@ const WorkRequests = () => {
         work_link: editForm.work_link.trim() || null,
       }
       : {
-        requesting_division: editForm.requesting_division.trim(),
+        requesting_division: divisionMeta[editForm.requesting_division].label,
         task: editForm.task.trim(),
         details: editForm.details.trim() || null,
         submission_date: editForm.submission_date,
@@ -487,10 +497,10 @@ const WorkRequests = () => {
         </div>
 
         <div className="mb-6 grid gap-4 xl:grid-cols-[minmax(260px,360px)_1fr]">
-          <div className={`bg-gradient-to-br ${activeMeta.accent} p-6 text-white`}>
-            <p className="text-xs font-semibold uppercase tracking-widest text-white/70">Receiving Division</p>
-            <h2 className="mt-3 text-3xl font-bold">{activeMeta.label}</h2>
-            <p className="mt-3 text-sm leading-6 text-white/80">{activeMeta.description}</p>
+          <div className="rounded-lg border border-black/5 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-[#1c1b18]">
+            <p className="text-xs font-semibold uppercase tracking-widest text-[#7a7972] dark:text-[#b6b3aa]">Receiving Division</p>
+            <h2 className="mt-3 text-3xl font-semibold text-[#191916] dark:text-white">{activeMeta.label}</h2>
+            <p className="mt-3 text-sm leading-6 text-[#686760] dark:text-[#b6b3aa]">{activeMeta.description}</p>
             <div className="mt-6 grid grid-cols-4 gap-2 text-center">
               {[
                 ["All", currentSummary.total],
@@ -498,9 +508,9 @@ const WorkRequests = () => {
                 ["Done", currentSummary.completed],
                 ["Late", currentSummary.overdue],
               ].map(([label, value]) => (
-                <div key={label as string} className="bg-white/15 px-2 py-3">
-                  <p className="text-lg font-bold">{value as number}</p>
-                  <p className="text-[11px] text-white/70">{label as string}</p>
+                <div key={label as string} className="rounded-md border border-black/5 bg-[#f6f7f5] px-2 py-3 dark:border-white/10 dark:bg-white/5">
+                  <p className="text-lg font-semibold text-[#191916] dark:text-white">{value as number}</p>
+                  <p className="text-[11px] text-[#7a7972] dark:text-[#b6b3aa]">{label as string}</p>
                 </div>
               ))}
             </div>
@@ -603,7 +613,14 @@ const WorkRequests = () => {
               </div>
               <div className="grid gap-2">
                 <Label>Your division</Label>
-                <Input placeholder="Research, BPH, Event..." value={form.requesting_division} onChange={(event) => setForm({ ...form, requesting_division: event.target.value })} />
+                <Select value={form.requesting_division} onValueChange={(value) => setForm({ ...form, requesting_division: value as Division })}>
+                  <SelectTrigger><SelectValue placeholder="Choose your division" /></SelectTrigger>
+                  <SelectContent>
+                    {requestingDivisionOptions.map((division) => (
+                      <SelectItem key={division} value={division}>{divisionMeta[division].label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div className="grid gap-2">
@@ -630,7 +647,7 @@ const WorkRequests = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button onClick={() => void createRequest()} disabled={saving || !form.requesting_division.trim() || !form.task.trim()}>
+            <Button onClick={() => void createRequest()} disabled={saving || !form.requesting_division || !form.task.trim()}>
               {saving ? "Submitting..." : "Submit Request"} <ArrowUpRight className="h-4 w-4" />
             </Button>
           </DialogFooter>
@@ -648,7 +665,14 @@ const WorkRequests = () => {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
                   <Label>Your division</Label>
-                  <Input value={editForm.requesting_division} onChange={(event) => setEditForm({ ...editForm, requesting_division: event.target.value })} />
+                  <Select value={editForm.requesting_division} onValueChange={(value) => setEditForm({ ...editForm, requesting_division: value as Division })}>
+                    <SelectTrigger><SelectValue placeholder="Choose your division" /></SelectTrigger>
+                    <SelectContent>
+                      {requestingDivisionOptions.map((division) => (
+                        <SelectItem key={division} value={division}>{divisionMeta[division].label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="grid gap-2">
                   <Label>Submission date</Label>
@@ -756,7 +780,7 @@ const WorkRequests = () => {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
-            <Button onClick={() => void saveEdit()} disabled={saving || !editForm.requesting_division.trim() || !editForm.task.trim()}>
+            <Button onClick={() => void saveEdit()} disabled={saving || !editForm.requesting_division || !editForm.task.trim()}>
               {saving ? "Saving..." : "Save Changes"}
             </Button>
           </DialogFooter>

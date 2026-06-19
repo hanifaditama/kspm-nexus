@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useLayoutEffect } from "react";
 import { useLocation } from "react-router-dom";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
@@ -6,6 +6,12 @@ import Footer from "./Footer";
 const Layout = ({ children }: { children: ReactNode }) => {
   const { pathname } = useLocation();
   const internalRoute = pathname.startsWith("/member") || pathname.startsWith("/admin");
+
+  useLayoutEffect(() => {
+    if (!internalRoute) {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [internalRoute]);
 
   if (internalRoute) return <>{children}</>;
 

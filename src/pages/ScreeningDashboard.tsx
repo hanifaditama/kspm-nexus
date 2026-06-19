@@ -16,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import useAccessDeniedToast from "@/hooks/useAccessDeniedToast";
 
 type Division = "BPH" | "CMP" | "EVENT" | "RESEARCH";
-type ScreeningStatus = "SCREENING BY INVESTMENT CLUB" | "MINOR REVISION" | "APPROVED BY INVESTMENT CLUB";
+type ScreeningStatus = "SCREENING BY INVESTMENT CLUB" | "MINOR REVISION" | "MAJOR REVISION" | "APPROVED BY INVESTMENT CLUB";
 
 interface ScreeningItem {
   id: string;
@@ -60,20 +60,21 @@ interface MemberProfile {
 }
 
 const divisions: Division[] = ["BPH", "CMP", "EVENT", "RESEARCH"];
-const statuses: ScreeningStatus[] = ["SCREENING BY INVESTMENT CLUB", "MINOR REVISION", "APPROVED BY INVESTMENT CLUB"];
+const statuses: ScreeningStatus[] = ["SCREENING BY INVESTMENT CLUB", "MINOR REVISION", "MAJOR REVISION", "APPROVED BY INVESTMENT CLUB"];
 const blankForm = { material: "", submitted_at: "", due_at: "", link: "" };
 type SummaryCard = [string, number, string, LucideIcon];
 
-const divisionMeta: Record<Division, { label: string; description: string; accent: string }> = {
-  BPH: { label: "BPH", description: "Board-level screening and internal organization review.", accent: "from-sky-500 to-blue-700" },
-  CMP: { label: "CMP", description: "Creative, media, publication, and content readiness checks.", accent: "from-fuchsia-500 to-rose-600" },
-  EVENT: { label: "Event", description: "Program, logistics, and event execution review flow.", accent: "from-amber-400 to-orange-600" },
-  RESEARCH: { label: "Research", description: "Market report, equity research, and analytical output review.", accent: "from-emerald-400 to-teal-700" },
+const divisionMeta: Record<Division, { label: string; description: string }> = {
+  BPH: { label: "BPH", description: "Board-level screening and internal organization review." },
+  CMP: { label: "CMP", description: "Creative, media, publication, and content readiness checks." },
+  EVENT: { label: "Event", description: "Program, logistics, and event execution review flow." },
+  RESEARCH: { label: "Research", description: "Market report, equity research, and analytical output review." },
 };
 
 const statusStyle: Record<ScreeningStatus, string> = {
   "SCREENING BY INVESTMENT CLUB": "border-amber-300 bg-amber-100 text-amber-900 hover:bg-amber-100",
   "MINOR REVISION": "border-orange-300 bg-orange-100 text-orange-900 hover:bg-orange-100",
+  "MAJOR REVISION": "border-red-300 bg-red-100 text-red-900 hover:bg-red-100",
   "APPROVED BY INVESTMENT CLUB": "border-emerald-300 bg-emerald-100 text-emerald-900 hover:bg-emerald-100",
 };
 
@@ -190,7 +191,7 @@ const ScreeningDashboard = () => {
   const summary = useMemo(() => ({
     total: divisionItems.length,
     screening: divisionItems.filter((item) => item.status === "SCREENING BY INVESTMENT CLUB").length,
-    revision: divisionItems.filter((item) => item.status === "MINOR REVISION").length,
+    revision: divisionItems.filter((item) => item.status === "MINOR REVISION" || item.status === "MAJOR REVISION").length,
     approved: divisionItems.filter((item) => item.status === "APPROVED BY INVESTMENT CLUB").length,
     overdue: divisionItems.filter((item) => item.due_at && item.status !== "APPROVED BY INVESTMENT CLUB" && item.due_at < new Date().toISOString().slice(0, 10)).length,
   }), [divisionItems]);
@@ -400,12 +401,12 @@ const ScreeningDashboard = () => {
     >
       <div className="grid gap-5">
         <div className="mb-6 grid gap-4 xl:grid-cols-[minmax(260px,360px)_1fr]">
-          <div className={`bg-gradient-to-br ${divisionMeta[division].accent} p-6 text-white`}>
-            <p className="text-xs font-semibold uppercase tracking-widest text-white/70">Active Division</p>
-            <h2 className="mt-3 text-3xl font-bold">{divisionMeta[division].label}</h2>
-            <p className="mt-3 text-sm leading-6 text-white/80">{divisionMeta[division].description}</p>
-            <p className="mt-6 text-xs text-white/70">
-              Your checklist column: <span className="font-semibold text-white">{assignedColumns.map((evaluator) => evaluator.display_name).join(", ") || "Not assigned"}</span>
+          <div className="rounded-lg border border-black/5 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-[#1c1b18]">
+            <p className="text-xs font-semibold uppercase tracking-widest text-[#7a7972] dark:text-[#b6b3aa]">Active Division</p>
+            <h2 className="mt-3 text-3xl font-semibold text-[#191916] dark:text-white">{divisionMeta[division].label}</h2>
+            <p className="mt-3 text-sm leading-6 text-[#686760] dark:text-[#b6b3aa]">{divisionMeta[division].description}</p>
+            <p className="mt-6 text-xs text-[#7a7972] dark:text-[#b6b3aa]">
+              Your checklist column: <span className="font-semibold text-[#191916] dark:text-white">{assignedColumns.map((evaluator) => evaluator.display_name).join(", ") || "Not assigned"}</span>
             </p>
           </div>
           <div className="rounded-lg border border-border bg-card p-4 shadow-sm dark:border-white/10 dark:bg-[#1c1b18]">
