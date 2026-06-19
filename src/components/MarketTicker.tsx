@@ -14,8 +14,8 @@ const QuotePill = ({ quote, emphasized = false }: { quote: MarketQuote; emphasiz
     <div
       className={`flex h-10 shrink-0 items-center gap-2 rounded-md border px-3 ${
         emphasized
-          ? "border-white/15 bg-[#1b1b1b]"
-          : "border-white/10 bg-[#141414]"
+          ? "border-white/15 bg-[#173456]"
+          : "border-white/10 bg-[#122a47]"
       }`}
       title={`${quote.name}: ${quote.change >= 0 ? "+" : ""}${quote.change.toFixed(2)} (${quote.changePercent.toFixed(2)}%)`}
     >
@@ -74,7 +74,7 @@ const MarketTicker = () => {
     : null;
 
   return (
-    <section className="border-y border-white/10 bg-[#090909] text-white" aria-label="Live market update">
+    <section className="border-y border-[#2a4262] bg-[#0e2138] text-white" aria-label="Live market update">
       <div className="container flex min-h-14 items-center gap-3 py-2">
         <div className="flex shrink-0 items-center gap-2 border-r border-white/15 pr-3">
           <span className="relative flex h-2 w-2">

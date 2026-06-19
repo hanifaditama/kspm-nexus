@@ -103,6 +103,12 @@ const MemberShell = ({ title, description, eyebrow, icon: Icon = FolderOpen, act
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
+              <Button variant="outline" size="sm" asChild className="rounded-full border-black/10 bg-white dark:border-white/10 dark:bg-[#1c1b18]">
+                <Link to="/">
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to site
+                </Link>
+              </Button>
               {showBack && (
                 <Button variant="outline" size="sm" asChild className="rounded-full border-black/10 bg-white dark:border-white/10 dark:bg-[#1c1b18]">
                   <Link to="/member">
