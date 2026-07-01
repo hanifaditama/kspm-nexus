@@ -481,9 +481,9 @@ const WorkRequests = () => {
             ["Overdue", summary.overdue, CalendarClock],
           ] satisfies SummaryCard[]).map(([label, value, Icon]) => (
             <div key={label} className="rounded-lg border border-black/5 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[#1c1b18]">
-              <Icon className="mb-3 h-4 w-4 text-[#1d1c18]" />
-              <p className="text-2xl font-semibold text-[#070e08]">{value}</p>
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#585956]">{label}</p>
+              <Icon className="mb-3 h-4 w-4 text-[#1d1c18] dark:text-white" />
+              <p className="text-2xl font-semibold text-[#191916] dark:text-white">{value}</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#585956] dark:text-[#b6b3aa]">{label}</p>
             </div>
           ))}
         </div>
